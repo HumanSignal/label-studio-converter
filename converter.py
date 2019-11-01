@@ -136,7 +136,7 @@ class Converter(object):
                 out.append(j)
             return out
 
-    def convert_to_json(self, input_data, output_file, is_dir=False):
+    def convert_to_json(self, input_data, output_file, is_dir=True):
         self._check_format(Format.JSON)
         ensure_dir(os.path.dirname(output_file))
         records = []
@@ -149,7 +149,7 @@ class Converter(object):
         with io.open(output_file, mode='w') as fout:
             json.dump(records, fout, indent=2)
 
-    def convert_to_csv(self, input_data, output_file, is_dir=False, **kwargs):
+    def convert_to_csv(self, input_data, output_file, is_dir=True, **kwargs):
         self._check_format(Format.CSV)
         ensure_dir(os.path.dirname(output_file))
         records = []
@@ -163,7 +163,7 @@ class Converter(object):
 
         pd.DataFrame.from_records(records).to_csv(output_file, index=False, **kwargs)
 
-    def convert_to_conll2003(self, input_data, output_file, is_dir=False):
+    def convert_to_conll2003(self, input_data, output_file, is_dir=True):
         self._check_format(Format.CONLL2003)
         ensure_dir(os.path.dirname(output_file))
         data_key = self._data_keys[0]
@@ -180,7 +180,7 @@ class Converter(object):
                     fout.write(f'{token} -X- _ {tag}\n')
                 fout.write('\n')
 
-    def convert_to_coco(self, input_data, output_file, output_image_dir=None, is_dir=False):
+    def convert_to_coco(self, input_data, output_file, output_image_dir=None, is_dir=True):
         self._check_format(Format.COCO)
         ensure_dir(os.path.dirname(output_file))
         if output_image_dir is not None:
@@ -249,7 +249,7 @@ class Converter(object):
                 }
             }, fout, indent=2)
 
-    def convert_to_voc(self, input_data, output_dir, output_image_dir=None, is_dir=False):
+    def convert_to_voc(self, input_data, output_dir, output_image_dir=None, is_dir=True):
 
         ensure_dir(output_dir)
         if output_image_dir is not None:
