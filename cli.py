@@ -17,7 +17,7 @@ def main():
     )
     parser.add_argument(
         '-i', '--input', dest='input', required=True,
-        help='Directory with completions (e.g. "/<project_path>/completions")',
+        help='Directory or JSON file with completions (e.g. "/<project_path>/completions")',
         action=ExpandFullPath
     )
     parser.add_argument(
@@ -54,6 +54,10 @@ def main():
         help='In case of image outputs (COCO, VOC, ...), specifies output image directory where downloaded images will '
              'be stored. (If not specified, local image paths left untouched)'
     )
+    parser.add_argument(
+        '--label-studio', dest='label_studio', action='store_true',
+        help='Set this flag if your completions are coming from Label Studio instead of Heartex platform'
+    )
     args = parser.parse_args()
 
     with io.open(args.config) as f:
@@ -61,17 +65,17 @@ def main():
     c = Converter(config_str)
 
     if args.format == Format.JSON:
-        c.convert_to_json(args.input, args.output)
+        c.convert_to_json(args.input, args.output, is_dir=args.label_studio)
     elif args.format == Format.CSV:
         header = not args.csv_no_header
         sep = args.csv_separator
-        c.convert_to_csv(args.input, args.output, sep=sep, header=header)
+        c.convert_to_csv(args.input, args.output, sep=sep, header=header, is_dir=args.label_studio)
     elif args.format == Format.CONLL2003:
-        c.convert_to_conll2003(args.input, args.output)
+        c.convert_to_conll2003(args.input, args.output, is_dir=args.label_studio)
     elif args.format == Format.COCO:
-        c.convert_to_coco(args.input, args.output, output_image_dir=args.image_dir)
+        c.convert_to_coco(args.input, args.output, output_image_dir=args.image_dir, is_dir=args.label_studio)
     elif args.format == Format.VOC:
-        c.convert_to_voc(args.input, args.output, output_image_dir=args.image_dir)
+        c.convert_to_voc(args.input, args.output, output_image_dir=args.image_dir, is_dir=args.label_studio)
 
     print(f'Congratulations! Now check:\n{args.output}')
 
