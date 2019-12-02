@@ -1,13 +1,15 @@
 import io
-import json
 import os
 import xml.etree.ElementTree
 import requests
 import hashlib
+import logging
 
 from operator import itemgetter
-from glob import glob
 from PIL import Image
+
+
+logger = logging.getLogger(__name__)
 
 
 def tokenize(text):
@@ -54,10 +56,12 @@ def download(url, output_dir, filename=None):
     if filename is None:
         filename = hashlib.md5(url.encode()).hexdigest()
     filepath = os.path.join(output_dir, filename)
-    r = requests.get(url)
-    r.raise_for_status()
-    with io.open(filepath, mode='wb') as fout:
-        fout.write(r.content)
+    if not os.path.exists(filepath):
+        logger.info(f'Download {url} to {filepath}')
+        r = requests.get(url)
+        r.raise_for_status()
+        with io.open(filepath, mode='wb') as fout:
+            fout.write(r.content)
     return filepath
 
 

@@ -46,8 +46,12 @@ class Format(Enum):
 class Converter(object):
 
     def __init__(self, config_string, output_tags=None):
-        self._config_string = config_string
-        self._schema = parse_config(config_string)
+        if os.path.isfile(config_string):
+            with io.open(config_string) as f:
+                self._config_string = f.read()
+        else:
+            self._config_string = config_string
+        self._schema = parse_config(self._config_string)
 
         self._data_keys, self._output_tags = self._get_data_keys_and_output_tags(output_tags)
         self._supported_formats = self._get_supported_formats()
@@ -96,18 +100,25 @@ class Converter(object):
             if isinstance(data, Mapping):
                 yield self.load_from_dict(data)
             elif isinstance(data, list):
-                return map(self.load_from_dict, data)
+                for item in data:
+                    yield self.load_from_dict(item)
 
     def load_from_dict(self, d):
-        if 'completions' not in d:
-            raise KeyError(f'Each completions dict item should contain "completions" key, where value is list of dicts')
-        if len(d['completions']) != 1:
-            raise NotImplementedError(
-                f'Currently only one completion could be added per task - we can\'t convert more than one completions, '
-                f'but {len(d["completions"])} found in item: {json.dumps(d, indent=2)}')
+        if 'completions' not in d and 'result' not in d:
+            raise KeyError('Each completions dict item should contain "completions" or "result" key, '
+                           'where value is list of dicts')
+        result = []
+        if 'completions' in d:
+            if len(d['completions']) != 1:
+                raise NotImplementedError(
+                    f'Currently only one completion could be added per task - we can\'t convert more than one completions, '
+                    f'but {len(d["completions"])} found in item: {json.dumps(d, indent=2)}')
+            result = d['completion'][0]['result']
+        elif 'result' in d:
+            result = d['result']
         inputs = {key: d['data'][key] for key in self._data_keys}
         outputs = defaultdict(list)
-        for r in d['completions'][0]['result']:
+        for r in result:
             if r['from_name'] in self._output_tags:
                 v = deepcopy(r['value'])
                 v['type'] = self._schema[r['from_name']]['type']
@@ -188,8 +199,11 @@ class Converter(object):
         images, categories, annotations = [], [], []
         category_name_to_id = {}
         data_key = self._data_keys[0]
-        item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
-        for item_idx, item in enumerate(item_iterator(input_data)):
+        item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
+        for item_idx, item in enumerate(item_iterator):
+            if not item['output']:
+                logger.warning(f'No completions found for item #{item_idx}')
+                continue
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
                 if output_image_dir is None:
@@ -262,8 +276,11 @@ class Converter(object):
             parent_node.appendChild(child_node)
 
         data_key = self._data_keys[0]
-        item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
-        for item_idx, item in enumerate(item_iterator(input_data)):
+        item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
+        for item_idx, item in enumerate(item_iterator):
+            if not item['output']:
+                logger.warning(f'No completions found for item #{item_idx}')
+                continue
             image_path = item['input'][data_key]
             annotations_dir = os.path.join(output_dir, 'Annotations')
             if not os.path.exists(annotations_dir):
