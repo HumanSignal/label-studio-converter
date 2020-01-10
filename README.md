@@ -12,6 +12,7 @@
     - [COCO](#coco)
     - [Pascal VOC XML](#pascal-voc-xml)
 - [Contributing](#contributing)
+- [License](#license)
 
 ## Introduction
 
@@ -257,7 +258,6 @@ Corresponding annotations could be found in `tmp/voc-annotations/*.xml`:
 ```
 
 Use cases: image object detection
-
 
 ## Contributing
 
