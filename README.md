@@ -265,3 +265,9 @@ We would love to get your help for creating converters to other models. Please f
 
 - [Contributing Guideline](/CONTRIBUTING.md)
 - [Code Of Conduct](/CODE_OF_CONDUCT.md)
+
+## License
+
+This software is licensed under the [Apache 2.0 LICENSE](/LICENSE) © [Heartex](https://www.heartex.ai/). 2020
+
+<img src="https://github.com/heartexlabs/label-studio/blob/master/images/opossum_looking.png?raw=true" title="Hey everyone!" height="140" width="140" />
