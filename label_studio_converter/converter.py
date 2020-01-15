@@ -28,6 +28,7 @@ class FormatNotSupportedError(NotImplementedError):
 class Format(Enum):
     JSON = auto()
     CSV = auto()
+    TSV = auto()
     CONLL2003 = auto()
     COCO = auto()
     VOC = auto()
@@ -56,6 +57,28 @@ class Converter(object):
         self._data_keys, self._output_tags = self._get_data_keys_and_output_tags(output_tags)
         self._supported_formats = self._get_supported_formats()
 
+    def convert(self, input_data, output_data, format, is_dir=True, **kwargs):
+        if isinstance(format, str):
+            format = Format.from_string(format)
+        if format == Format.JSON:
+            self.convert_to_json(input_data, output_data, is_dir=is_dir)
+        elif format == Format.CSV:
+            header = kwargs.get('csv_header', True)
+            sep = kwargs.get('csv_separator', ',')
+            self.convert_to_csv(input_data, output_data, sep=sep, header=header, is_dir=is_dir)
+        elif format == Format.TSV:
+            header = kwargs.get('csv_header', True)
+            sep = kwargs.get('csv_separator', '\t')
+            self.convert_to_csv(input_data, output_data, sep=sep, header=header, is_dir=is_dir)
+        elif format == Format.CONLL2003:
+            self.convert_to_conll2003(input_data, output_data, is_dir=is_dir)
+        elif format == Format.COCO:
+            image_dir = kwargs.get('image_dir')
+            self.convert_to_coco(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
+        elif format == Format.VOC:
+            image_dir = kwargs.get('image_dir')
+            self.convert_to_voc(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
+
     def _get_data_keys_and_output_tags(self, output_tags=None):
         data_keys = set()
         output_tag_names = []
@@ -81,7 +104,7 @@ class Converter(object):
         return list(data_keys), output_tag_names
 
     def _get_supported_formats(self):
-        return []
+        return [f.name for f in Format]
 
     @property
     def supported_formats(self):
@@ -113,7 +136,7 @@ class Converter(object):
                 raise NotImplementedError(
                     f'Currently only one completion could be added per task - we can\'t convert more than one completions, '
                     f'but {len(d["completions"])} found in item: {json.dumps(d, indent=2)}')
-            result = d['completion'][0]['result']
+            result = d['completions'][0]['result']
         elif 'result' in d:
             result = d['result']
         inputs = {key: d['data'][key] for key in self._data_keys}
@@ -147,9 +170,10 @@ class Converter(object):
                 out.append(j)
             return out
 
-    def convert_to_json(self, input_data, output_file, is_dir=True):
+    def convert_to_json(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.JSON)
-        ensure_dir(os.path.dirname(output_file))
+        ensure_dir(output_dir)
+        output_file = os.path.join(output_dir, 'result.json')
         records = []
         item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
         for item in item_iterator(input_data):
@@ -160,9 +184,10 @@ class Converter(object):
         with io.open(output_file, mode='w') as fout:
             json.dump(records, fout, indent=2)
 
-    def convert_to_csv(self, input_data, output_file, is_dir=True, **kwargs):
+    def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
         self._check_format(Format.CSV)
-        ensure_dir(os.path.dirname(output_file))
+        ensure_dir(output_dir)
+        output_file = os.path.join(output_dir, 'result.csv')
         records = []
         item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
         for item in item_iterator(input_data):
@@ -174,9 +199,10 @@ class Converter(object):
 
         pd.DataFrame.from_records(records).to_csv(output_file, index=False, **kwargs)
 
-    def convert_to_conll2003(self, input_data, output_file, is_dir=True):
+    def convert_to_conll2003(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.CONLL2003)
-        ensure_dir(os.path.dirname(output_file))
+        ensure_dir(output_dir)
+        output_file = os.path.join(output_dir, 'result.conll')
         data_key = self._data_keys[0]
         with io.open(output_file, 'w') as fout:
             fout.write('-DOCSTART- -X- O\n')
@@ -191,11 +217,17 @@ class Converter(object):
                     fout.write(f'{token} -X- _ {tag}\n')
                 fout.write('\n')
 
-    def convert_to_coco(self, input_data, output_file, output_image_dir=None, is_dir=True):
+    def convert_to_coco(self, input_data, output_dir, output_image_dir=None, is_dir=True):
         self._check_format(Format.COCO)
-        ensure_dir(os.path.dirname(output_file))
+        ensure_dir(output_dir)
+        output_file = os.path.join(output_dir, 'result.json')
         if output_image_dir is not None:
             ensure_dir(output_image_dir)
+            output_image_dir_rel = output_image_dir
+        else:
+            output_image_dir = os.path.join(output_dir, 'images')
+            os.makedirs(output_image_dir, exist_ok=True)
+            output_image_dir_rel = 'images'
         images, categories, annotations = [], [], []
         category_name_to_id = {}
         data_key = self._data_keys[0]
@@ -206,11 +238,6 @@ class Converter(object):
                 continue
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
-                if output_image_dir is None:
-                    raise FileNotFoundError(
-                        f'We can\'t find file by path {image_path}: if it is URL, please specify "output_image_dir"'
-                        f'where downloaded images will be stored'
-                    )
                 try:
                     image_path = download(image_path, output_image_dir)
                 except:
@@ -222,7 +249,7 @@ class Converter(object):
                 'width': width,
                 'height': height,
                 'id': image_id,
-                'file_name': image_path
+                'file_name': os.path.join(output_image_dir_rel, os.path.basename(image_path))
             })
             bboxes = next(iter(item['output'].values()))
             for bbox in bboxes:
@@ -268,6 +295,11 @@ class Converter(object):
         ensure_dir(output_dir)
         if output_image_dir is not None:
             ensure_dir(output_image_dir)
+            output_image_dir_rel = output_image_dir
+        else:
+            output_image_dir = os.path.join(output_dir, 'images')
+            os.makedirs(output_image_dir, exist_ok=True)
+            output_image_dir_rel = 'images'
 
         def create_child_node(doc, tag, attr, parent_node):
             child_node = doc.createElement(tag)
@@ -286,11 +318,6 @@ class Converter(object):
             if not os.path.exists(annotations_dir):
                 os.makedirs(annotations_dir)
             if not os.path.exists(image_path):
-                if output_image_dir is None:
-                    raise FileNotFoundError(
-                        f'We can\'t find file by path {image_path}: if it is URL, please specify "output_image_dir"'
-                        f'where downloaded images will be stored'
-                    )
                 try:
                     image_path = download(image_path, output_image_dir)
                 except:
@@ -303,7 +330,7 @@ class Converter(object):
             my_dom = xml.dom.getDOMImplementation()
             doc = my_dom.createDocument(None, 'annotation', None)
             root_node = doc.documentElement
-            create_child_node(doc, 'folder', output_image_dir, root_node)
+            create_child_node(doc, 'folder', output_image_dir_rel, root_node)
             create_child_node(doc, 'filename', image_name, root_node)
 
             source_node = doc.createElement('source')
