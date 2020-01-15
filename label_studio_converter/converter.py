@@ -13,7 +13,7 @@ from collections import Mapping, defaultdict
 from operator import itemgetter
 from copy import deepcopy
 
-from utils import (
+from .utils import (
     parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir
 )
 

@@ -2,7 +2,7 @@ import argparse
 import os
 import io
 
-from converter import Converter, Format
+from label_studio_converter.converter import Converter, Format
 
 
 class ExpandFullPath(argparse.Action):
