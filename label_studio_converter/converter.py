@@ -104,7 +104,20 @@ class Converter(object):
         return list(data_keys), output_tag_names
 
     def _get_supported_formats(self):
-        return [f.name for f in Format]
+        output_tag_types = set()
+        input_tag_types = set()
+        for info in self._schema.values():
+            output_tag_types.add(info['type'])
+            for input_tag in info['inputs']:
+                input_tag_types.add(input_tag['type'])
+
+        all_formats = [f.name for f in Format]
+        if not ('Text' in input_tag_types and 'Labels' in output_tag_types):
+            all_formats.remove(Format.CONLL2003.name)
+        if not ('Image' in input_tag_types and 'RectangleLabels' in output_tag_types):
+            all_formats.remove(Format.COCO.name)
+            all_formats.remove(Format.VOC.name)
+        return all_formats
 
     @property
     def supported_formats(self):
