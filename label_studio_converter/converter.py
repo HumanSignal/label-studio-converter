@@ -13,7 +13,7 @@ from collections import Mapping, defaultdict
 from operator import itemgetter
 from copy import deepcopy
 
-from .utils import (
+from label_studio_converter.utils import (
     parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir
 )
 
@@ -166,22 +166,17 @@ class Converter(object):
 
     def _check_format(self, fmt):
         pass
-        # if fmt not in self._supported_formats:
-        #     raise FormatNotSupportedError(
-        #         f'{fmt.name} format not supported for current config. Available options are: {self._supported_formats}')
 
     def _prettify(self, v):
-        if len(v) == 1:
-            v = v[0]
-            if v['type'] == 'Choices' and len(v['choices']) == 1:
-                return v['choices'][0]
-        else:
-            out = []
-            for i in v:
-                j = deepcopy(i)
-                j.pop('type')
+        out = []
+        for i in v:
+            j = deepcopy(i)
+            tag_type = j.pop('type')
+            if tag_type == 'Choices' and len(j['choices']) == 1:
+                out.append(j['choices'][0])
+            else:
                 out.append(j)
-            return out
+        return out[0] if len(out) == 1 else out
 
     def convert_to_json(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.JSON)
@@ -194,6 +189,7 @@ class Converter(object):
             for name, value in item['output'].items():
                 record[name] = self._prettify(value)
             records.append(record)
+
         with io.open(output_file, mode='w') as fout:
             json.dump(records, fout, indent=2)
 
