@@ -40,7 +40,7 @@ def create_tokens_and_tags(text, spans):
             # TODO: it is not right choice to place empty tag here in case when current token is covered by next span  # noqa
             tags.append('O')
         else:
-            tags.append(f'{prefix}{span["labels"][0]}')
+            tags.append(prefix + span['labels'][0])
             if span['end'] > token_end:
                 prefix = 'I-'
             elif len(spans):
@@ -57,7 +57,7 @@ def download(url, output_dir, filename=None):
         filename = hashlib.md5(url.encode()).hexdigest()
     filepath = os.path.join(output_dir, filename)
     if not os.path.exists(filepath):
-        logger.info(f'Download {url} to {filepath}')
+        logger.info('Download {url} to {filepath}'.format(url=url, filepath=filepath))
         r = requests.get(url)
         r.raise_for_status()
         with io.open(filepath, mode='wb') as fout:
@@ -102,8 +102,9 @@ def parse_config(config_string):
         tag_info['inputs'] = []
         for input_tag_name in tag_info['to_name']:
             if input_tag_name not in inputs:
-                raise KeyError(f'to_name={input_tag_name} is specified for output tag name={output_tag}, '
-                               f'but we can\'t find it among input tags')
+                raise KeyError(
+                    'to_name={input_tag_name} is specified for output tag name={output_tag}, but we can\'t find it '
+                    'among input tags'.format(input_tag_name=input_tag_name, output_tag=output_tag))
             tag_info['inputs'].append(inputs[input_tag_name])
 
     return outputs

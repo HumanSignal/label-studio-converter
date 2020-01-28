@@ -86,8 +86,9 @@ class Converter(object):
             for tag in output_tags:
                 if tag not in self._schema:
                     logger.warning(
-                        f'Specified tag "{tag}" not found in config schema: '
-                        f'available options are {list(self._schema.keys())}')
+                        'Specified tag "{tag}" not found in config schema: '
+                        'available options are {schema_keys}'.format(
+                            tag=tag, schema_keys=str(list(self._schema.keys()))))
         for name, info in self._schema.items():
             if output_tags is not None and name not in output_tags:
                 continue
@@ -96,9 +97,10 @@ class Converter(object):
                 data_keys |= new_data_keys
             if data_keys != new_data_keys and output_tags is None:
                 raise ValueError(
-                    f'Input schema for tag {name} differs from other tags: can\'t resolve data keys ambiguity. '
-                    f'Check your input tag {json.dumps(info["inputs"], indent=2)}, or explicitly specify which '
-                    f'output tag you wan\'t to save by using "output_tag" option')
+                    'Input schema for tag {name} differs from other tags: can\'t resolve data keys ambiguity. '
+                    'Check your input tag {input_tags}, or explicitly specify which '
+                    'output tag you wan\'t to save by using "output_tag" option'.format(
+                        name=name, input_tags=json.dumps(info['inputs'], indent=2)))
             output_tag_names.append(name)
 
         return list(data_keys), output_tag_names
@@ -125,7 +127,7 @@ class Converter(object):
 
     def iter_from_dir(self, input_dir):
         if not os.path.exists(input_dir):
-            raise FileNotFoundError(f'{input_dir} doesn\'t exist')
+            raise FileNotFoundError('{input_dir} doesn\'t exist'.format(input_dir=input_dir))
         for json_file in glob(os.path.join(input_dir, '*.json')):
             for item in self.iter_from_json_file(json_file):
                 yield item
@@ -147,8 +149,9 @@ class Converter(object):
         if 'completions' in d:
             if len(d['completions']) != 1:
                 raise NotImplementedError(
-                    f'Currently only one completion could be added per task - we can\'t convert more than one completions, '
-                    f'but {len(d["completions"])} found in item: {json.dumps(d, indent=2)}')
+                    'Currently only one completion could be added per task - '
+                    'we can\'t convert more than one completions, but {num_completions} found in item: {item}'.format(
+                        num_completions=len(d['completions']), item=json.dumps(d, indent=2)))
             result = d['completions'][0]['result']
         elif 'result' in d:
             result = d['result']
@@ -223,7 +226,7 @@ class Converter(object):
                     spans=next(iter(item['output'].values()))
                 )
                 for token, tag in zip(tokens, tags):
-                    fout.write(f'{token} -X- _ {tag}\n')
+                    fout.write('{token} -X- _ {tag}\n'.format(token=token, tag=tag))
                 fout.write('\n')
 
     def convert_to_coco(self, input_data, output_dir, output_image_dir=None, is_dir=True):
@@ -243,14 +246,16 @@ class Converter(object):
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
             if not item['output']:
-                logger.warning(f'No completions found for item #{item_idx}')
+                logger.warning('No completions found for item #' + str(item_idx))
                 continue
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir)
                 except:
-                    logger.error(f'Unable to download {image_path}. The item {item} will be skipped', exc_info=True)
+                    logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
+                        image_path=image_path, item=item
+                    ), exc_info=True)
                     continue
             width, height = get_image_size(image_path)
             image_id = len(images)
@@ -320,7 +325,7 @@ class Converter(object):
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
             if not item['output']:
-                logger.warning(f'No completions found for item #{item_idx}')
+                logger.warning('No completions found for item #' + str(item_idx))
                 continue
             image_path = item['input'][data_key]
             annotations_dir = os.path.join(output_dir, 'Annotations')
@@ -330,7 +335,8 @@ class Converter(object):
                 try:
                     image_path = download(image_path, output_image_dir)
                 except:
-                    logger.error(f'Unable to download {image_path}. The item {item} will be skipped', exc_info=True)
+                    logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
+                        image_path=image_path, item=item), exc_info=True)
                     continue
             width, height, channels = get_image_size_and_channels(image_path)
             image_name = os.path.splitext(os.path.basename(image_path))[0]

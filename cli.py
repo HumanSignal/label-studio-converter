@@ -34,7 +34,7 @@ def main():
     parser.add_argument(
         '-f', '--format', dest='format',
         metavar='FORMAT',
-        help=f'Output format: {", ".join(f.name for f in Format)}',
+        help='Output format: ' + ', '.join(f.name for f in Format),
         type=Format.from_string,
         choices=list(Format),
         default=Format.JSON
@@ -77,7 +77,7 @@ def main():
     elif args.format == Format.VOC:
         c.convert_to_voc(args.input, args.output, output_image_dir=args.image_dir, is_dir=not args.heartex_format)
 
-    print(f'Congratulations! Now check:\n{args.output}')
+    print('Congratulations! Now check:\n' + args.output)
 
 
 if __name__ == "__main__":
