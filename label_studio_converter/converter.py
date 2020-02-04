@@ -155,7 +155,7 @@ class Converter(object):
             result = d['completions'][0]['result']
         elif 'result' in d:
             result = d['result']
-        inputs = {key: d['data'][key] for key in self._data_keys}
+        inputs = d['data']
         outputs = defaultdict(list)
         for r in result:
             if r['from_name'] in self._output_tags:
