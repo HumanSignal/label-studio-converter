@@ -27,6 +27,7 @@ class FormatNotSupportedError(NotImplementedError):
 
 class Format(Enum):
     JSON = auto()
+    JSON_MIN = auto()
     CSV = auto()
     TSV = auto()
     CONLL2003 = auto()
@@ -61,7 +62,9 @@ class Converter(object):
         if isinstance(format, str):
             format = Format.from_string(format)
         if format == Format.JSON:
-            self.convert_to_json(input_data, output_data, is_dir=is_dir)
+            self.convert_to_json(input_data, output_data)
+        elif format == Format.JSON_MIN:
+            self.convert_to_json_min(input_data, output_data, is_dir=is_dir)
         elif format == Format.CSV:
             header = kwargs.get('csv_header', True)
             sep = kwargs.get('csv_separator', ',')
@@ -181,8 +184,20 @@ class Converter(object):
                 out.append(j)
         return out[0] if len(out) == 1 else out
 
-    def convert_to_json(self, input_data, output_dir, is_dir=True):
+    def convert_to_json(self, input_dir, output_dir):
         self._check_format(Format.JSON)
+        ensure_dir(output_dir)
+        output_file = os.path.join(output_dir, 'result.json')
+        records = []
+        for json_file in glob(os.path.join(input_dir, '*.json')):
+            with io.open(json_file) as f:
+                records.append(json.load(f))
+
+        with io.open(output_file, mode='w') as fout:
+            json.dump(records, fout, indent=2, ensure_ascii=False)
+
+    def convert_to_json_min(self, input_data, output_dir, is_dir=True):
+        self._check_format(Format.JSON_MIN)
         ensure_dir(output_dir)
         output_file = os.path.join(output_dir, 'result.json')
         records = []
