@@ -175,6 +175,7 @@ class Converter(object):
 
     def _prettify(self, v):
         out = []
+        tag_type = None
         for i in v:
             j = deepcopy(i)
             tag_type = j.pop('type')
@@ -182,7 +183,7 @@ class Converter(object):
                 out.append(j['choices'][0])
             else:
                 out.append(j)
-        return out[0] if len(out) == 1 else out
+        return out[0] if tag_type == 'Choices' and len(out) == 1 else out
 
     def convert_to_json(self, input_dir, output_dir):
         self._check_format(Format.JSON)
@@ -209,7 +210,7 @@ class Converter(object):
             records.append(record)
 
         with io.open(output_file, mode='w') as fout:
-            json.dump(records, fout, indent=2)
+            json.dump(records, fout, indent=2, ensure_ascii=False)
 
     def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
         self._check_format(Format.CSV)
