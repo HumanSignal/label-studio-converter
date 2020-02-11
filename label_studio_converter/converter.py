@@ -6,7 +6,7 @@ import pandas as pd
 import xml.dom
 import xml.dom.minidom
 
-from enum import Enum, auto
+from enum import Enum
 from datetime import datetime
 from glob import glob
 from collections import Mapping, defaultdict
@@ -26,13 +26,13 @@ class FormatNotSupportedError(NotImplementedError):
 
 
 class Format(Enum):
-    JSON = auto()
-    JSON_MIN = auto()
-    CSV = auto()
-    TSV = auto()
-    CONLL2003 = auto()
-    COCO = auto()
-    VOC = auto()
+    JSON = 1
+    JSON_MIN = 2
+    CSV = 3
+    TSV = 4
+    CONLL2003 = 5
+    COCO = 6
+    VOC = 7
 
     def __str__(self):
         return self.name
