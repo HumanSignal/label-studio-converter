@@ -1,7 +1,7 @@
 import setuptools
 
 # Package version
-version = '0.0.10'
+version = '0.0.10.post2'
 
 # Readme
 with open('README.md', 'r') as f:
