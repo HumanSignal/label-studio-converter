@@ -95,20 +95,14 @@ class Converter(object):
         for name, info in self._schema.items():
             if output_tags is not None and name not in output_tags:
                 continue
-            new_data_keys = set(map(itemgetter('value'), info['inputs']))
-            if not data_keys:
-                data_keys |= new_data_keys
-            if data_keys != new_data_keys and output_tags is None:
-                raise ValueError(
-                    'Input schema for tag {name} differs from other tags: can\'t resolve data keys ambiguity. '
-                    'Check your input tag {input_tags}, or explicitly specify which '
-                    'output tag you wan\'t to save by using "output_tag" option'.format(
-                        name=name, input_tags=json.dumps(info['inputs'], indent=2)))
+            data_keys |= set(map(itemgetter('value'), info['inputs']))
             output_tag_names.append(name)
 
         return list(data_keys), output_tag_names
 
     def _get_supported_formats(self):
+        if len(self._data_keys) > 1:
+            return [Format.JSON.name, Format.JSON_MIN.name, Format.CSV.name, Format.TSV.name]
         output_tag_types = set()
         input_tag_types = set()
         for info in self._schema.values():
