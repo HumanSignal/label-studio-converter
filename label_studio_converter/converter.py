@@ -127,7 +127,8 @@ class Converter(object):
             raise FileNotFoundError('{input_dir} doesn\'t exist'.format(input_dir=input_dir))
         for json_file in glob(os.path.join(input_dir, '*.json')):
             for item in self.iter_from_json_file(json_file):
-                yield item
+                if item:
+                    yield item
 
     def iter_from_json_file(self, json_file):
         with io.open(json_file) as f:
@@ -149,9 +150,12 @@ class Converter(object):
                     'Currently only one completion could be added per task - '
                     'we can\'t convert more than one completions, but {num_completions} found in item: {item}'.format(
                         num_completions=len(d['completions']), item=json.dumps(d, indent=2)))
+            if d['completions'][0].get('skipped'):
+                return None
             result = d['completions'][0]['result']
         elif 'result' in d:
             result = d['result']
+
         inputs = d['data']
         outputs = defaultdict(list)
         for r in result:
