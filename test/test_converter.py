@@ -4,6 +4,7 @@ import os
 import json
 CONLL_OUT_PATH = "tmp/completions/result.conll"
 
+
 class TestConverter(unittest.TestCase):
     def setUp(self):
         os.remove(CONLL_OUT_PATH)
@@ -18,17 +19,29 @@ class TestConverter(unittest.TestCase):
             data = file.read()
         with open("test/fixtures/completions/348.json", 'r') as file:
             completion = json.loads(file.read())
-        
-        results = completion["completions"][0] ["result"]
+
+        results = completion["completions"][0]["result"]
         for result in results:
-            print(result)
             substrings = result["value"]["text"].split(" ")
+            substrings = [r'{}'.format(s.replace("(", "\(")
+                                       .replace(")", "\)")
+                                       .replace(".", "\.")
+                                       .replace(",", "\,"))
+
+                          for s in substrings if s]
             # first substring should tagged as beginning
             first_token = substrings[0]
-            if substrings[1]:
+            if len(substrings) > 1:
                 second_token = substrings[1]
             else:
                 second_token = None
             with self.subTest(first_token=first_token, second_token=second_token):
-                 self.assertRegex(data, rf"{first_token} -X- _ B-.+")
-                 self.assertRegex(data, rf"{second_token} -X- _ I-.+")
+                self.assertRegex(data, rf"{first_token}[\,\.]* -X- _ B-.+")
+                if second_token:
+                    self.assertRegex(
+                        data, rf"{second_token}[\,\.]* -X- _ I-.+")
+
+
+# for debugging in vscode
+if __name__ == '__main__':
+    unittest.main()

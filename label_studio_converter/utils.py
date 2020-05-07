@@ -28,11 +28,12 @@ def create_tokens_and_tags(text, spans):
     tokens_and_idx = tokenize(text)
     spans = list(sorted(spans, key=itemgetter('start')))
     span = spans.pop(0)
+    # print(span)
     prefix = 'B-'
     tokens, tags = [], []
     for token, token_start in tokens_and_idx:
         tokens.append(token)
-        token_end = token_start + len(token) - 1
+        token_end = token_start + len(token)
         if not span or token_end < span['start']:
             tags.append('O')
         elif token_start > span['end']:
@@ -57,7 +58,8 @@ def download(url, output_dir, filename=None):
         filename = hashlib.md5(url.encode()).hexdigest()
     filepath = os.path.join(output_dir, filename)
     if not os.path.exists(filepath):
-        logger.info('Download {url} to {filepath}'.format(url=url, filepath=filepath))
+        logger.info('Download {url} to {filepath}'.format(
+            url=url, filepath=filepath))
         r = requests.get(url)
         r.raise_for_status()
         with io.open(filepath, mode='wb') as fout:
@@ -94,9 +96,11 @@ def parse_config(config_string):
     inputs, outputs = {}, {}
     for tag in xml_tree.iter():
         if _is_input_tag(tag):
-            inputs[tag.attrib['name']] = {'type': tag.tag, 'value': tag.attrib['value'].lstrip('$')}
+            inputs[tag.attrib['name']] = {
+                'type': tag.tag, 'value': tag.attrib['value'].lstrip('$')}
         elif _is_output_tag(tag):
-            outputs[tag.attrib['name']] = {'type': tag.tag, 'to_name': tag.attrib['toName'].split(',')}
+            outputs[tag.attrib['name']] = {
+                'type': tag.tag, 'to_name': tag.attrib['toName'].split(',')}
 
     for output_tag, tag_info in outputs.items():
         tag_info['inputs'] = []

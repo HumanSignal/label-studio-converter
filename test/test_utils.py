@@ -8,14 +8,35 @@ class TestUtils(unittest.TestCase):
         val = "parse this string"
         out = utils.tokenize(val)
         assert out == [
-            ("parse", 0), 
-            ("this", 6) , 
+            ("parse", 0),
+            ("this", 6),
             ("string", 11)]
 
+    def test_create_tokens_and_tags(self):
+        # handles situation when span end exactly equals token end
 
-    # def test_create_tokens_and_tags(self):
-    #     s = 'hello world'
-    #     self.assertEqual(s.split(), ['hello', 'world'])
-    #     # check that s.split fails when the separator is not a string
-    #     with self.assertRaises(TypeError):
-    #         s.split(2)
+        s = 'my world Hello not'
+        spans = [{'end': 8,
+                  'labels': ['GPE'],
+                  'start': 0,
+                  'text': 'my world',
+                  'type': 'Labels'},
+                 {'end': 13,
+                  'labels': ['PERSON'],
+                  'start': 9,
+                  'text': 'Hello',
+                  'type': 'Labels'}]
+        tokens, tags = utils.create_tokens_and_tags(s, spans)
+        self.assertEqual(tokens[0], "my")
+        self.assertEqual(tags[0], "B-GPE")
+        self.assertEqual(tokens[1], "world")
+        self.assertEqual(tags[1], "I-GPE")
+        self.assertEqual(tokens[2], "Hello")
+        self.assertEqual(tags[2], "B-PERSON")
+        self.assertEqual(tokens[3], "not")
+        self.assertEqual(tags[3], "O")
+
+
+# for debugging in vscode
+if __name__ == '__main__':
+    unittest.main()
