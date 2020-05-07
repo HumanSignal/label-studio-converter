@@ -1,0 +1,39 @@
+<View>
+  <Labels name="ner" toName="text">
+    <Label value="PERSON" background="#23c"/>
+    <Label value="NORP" background="#247"/>
+    <Label value="FAC" background="#345"/>
+    <Label value="ORG" background="#428"/>
+    <Label value="GPE" background="#10c"/>
+    <Label value="LOC" background="#92a"/>
+    <Label value="PRODUCT" background="#b02"/>
+    <Label value="EVENT" background="#835"/>
+    <Label value="WORK_OF_ART" background="#62d"/>
+    <Label value="LAW" background="#46e"/>
+    <Label value="LANGUAGE" background="#02c"/>
+    <Label value="DATE" background="#94e"/>
+    <Label value="TIME" background="#33f"/>
+    <Label value="PERCENT" background="#12c"/>
+    <Label value="MONEY" background="#019"/>
+    <Label value="QUANTITY" background="#20b"/>
+    <Label value="ORDINAL" background="#816"/>
+    <Label value="CARDINAL" background="#084"/>
+    <Label value="INGREDIENT" background="#545"/>
+    </Labels>
+  <Text name="text" value="$text"/>
+</View>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

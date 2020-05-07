@@ -1,0 +1,508 @@
+{
+  "completions": [
+    {
+      "id": 348001,
+      "lead_time": 72.138,
+      "result": [
+        {
+          "from_name": "ner",
+          "id": "-JfBQoozxW",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 155,
+            "labels": ["INGREDIENT"],
+            "start": 121,
+            "text": "Sodium Lauroyl Methyl Isethionate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "_0SJDbnEH7",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 184,
+            "labels": ["INGREDIENT"],
+            "start": 156,
+            "text": "Disodium Cocoamphodiacetate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "aQ3zmes0qs",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 212,
+            "labels": ["INGREDIENT"],
+            "start": 185,
+            "text": "Sodium Lauroyl Sarcosinate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "CUWnkiDda0",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 232,
+            "labels": ["INGREDIENT"],
+            "start": 221,
+            "text": "Fragrance),"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "qymT8BQVEr",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 307,
+            "labels": ["INGREDIENT"],
+            "start": 277,
+            "text": "Triticum Vulgare Germ Extract,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "AjJcVVb8ls",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 338,
+            "labels": ["INGREDIENT"],
+            "start": 308,
+            "text": "Myrciaria Dubia Fruit Extract,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "ULVe_JFpxI",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 385,
+            "labels": ["INGREDIENT"],
+            "start": 339,
+            "text": "Crambe Abyssinica Seed Oil Phytosterol Esters,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "j8kpcZYcI0",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 395,
+            "labels": ["INGREDIENT"],
+            "start": 386,
+            "text": "Glycerin,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "ql_zwRtKd1",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 419,
+            "labels": ["INGREDIENT"],
+            "start": 396,
+            "text": "Cocamidopropyl Betaine,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "debx58NGB5",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 482,
+            "labels": ["INGREDIENT"],
+            "start": 466,
+            "text": "Sodium Chloride,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "cNAWJzixNW",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 495,
+            "labels": ["INGREDIENT"],
+            "start": 483,
+            "text": "Lauric Acid,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "FwfkLRRhC3",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 513,
+            "labels": ["INGREDIENT"],
+            "start": 496,
+            "text": "Pentylene Glycol,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "z-yP1O7-F5",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 529,
+            "labels": ["INGREDIENT"],
+            "start": 514,
+            "text": "Phenylpropanol,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "WWuCFlnQie",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 556,
+            "labels": ["INGREDIENT"],
+            "start": 530,
+            "text": "Sodium Methyl Isethionate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "abd8qQuaX4",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 575,
+            "labels": ["INGREDIENT"],
+            "start": 557,
+            "text": "Glycol Distearate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "xc4XnN5NcJ",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 614,
+            "labels": ["INGREDIENT"],
+            "start": 576,
+            "text": "Trisodium Ethylenediamine Disuccinate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "41C2d98jrz",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 632,
+            "labels": ["INGREDIENT"],
+            "start": 615,
+            "text": "Sodium Hydroxide,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "89ompIrvyv",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 668,
+            "labels": ["INGREDIENT"],
+            "start": 652,
+            "text": "Caprylyl Glycol,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "LM_2LIPQjI",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 685,
+            "labels": ["INGREDIENT"],
+            "start": 669,
+            "text": "Decylene Glycol,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "4QSCm6jgTv",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 702,
+            "labels": ["INGREDIENT"],
+            "start": 686,
+            "text": "Sodium Benzoate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "TtbvJpwDIs",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 718,
+            "labels": ["INGREDIENT"],
+            "start": 703,
+            "text": "Sodium Phytate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "iaW31C52Dt",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 776,
+            "labels": ["INGREDIENT"],
+            "start": 764,
+            "text": "Citric Acid,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "gXx2ZbAHGi",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 789,
+            "labels": ["INGREDIENT"],
+            "start": 777,
+            "text": "Lactic Acid,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "gDrjcwHWTY",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 805,
+            "labels": ["INGREDIENT"],
+            "start": 790,
+            "text": "Sodium Acetate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "XVLZ6XfURX",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 814,
+            "labels": ["INGREDIENT"],
+            "start": 806,
+            "text": "Alcohol,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "9CwuGTjz0N",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 833,
+            "labels": ["INGREDIENT"],
+            "start": 815,
+            "text": "Isopropyl Alcohol,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "fIgYVIUEVx",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 853,
+            "labels": ["INGREDIENT"],
+            "start": 834,
+            "text": "Ascorbyl Glucoside,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "wI4XIIjNYL",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 874,
+            "labels": ["INGREDIENT"],
+            "start": 854,
+            "text": "Hydroxyacetophenone,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "rhL8sh9LIl",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 890,
+            "labels": ["INGREDIENT"],
+            "start": 875,
+            "text": "Hexyl Cinnamal,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "fAxi4aaCsq",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 909,
+            "labels": ["INGREDIENT"],
+            "start": 891,
+            "text": "Benzyl Salicylate,"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "nvrQ7VvpVn",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 918,
+            "labels": ["INGREDIENT"],
+            "start": 910,
+            "text": "Limonene"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "iBBs3HQ7SU",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 735,
+            "labels": ["INGREDIENT"],
+            "start": 718,
+            "text": " Polyquaternium-7"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "uUCX5zd5_f",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 746,
+            "labels": ["INGREDIENT"],
+            "start": 737,
+            "text": "Laureth-4"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "OqzJyMVHRm",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 762,
+            "labels": ["INGREDIENT"],
+            "start": 748,
+            "text": "1,2-Hexanediol"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "GJtznm4-2y",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 464,
+            "labels": ["INGREDIENT"],
+            "start": 420,
+            "text": "Acrylates/C10-30 Alkyl Acrylate Crosspolymer"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "6xJVAbWB_9",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 650,
+            "labels": ["INGREDIENT"],
+            "start": 633,
+            "text": "Polyquaternium-10"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "TWYXYVAvYQ",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 119,
+            "labels": ["INGREDIENT"],
+            "start": 107,
+            "text": "Aqua (Water)"
+          }
+        },
+        {
+          "from_name": "ner",
+          "id": "dTUXRNhuez",
+          "source": "$text",
+          "to_name": "text",
+          "type": "labels",
+          "value": {
+            "end": 275,
+            "labels": ["INGREDIENT"],
+            "start": 233,
+            "text": "Citrus Paradisi (Grapefruit) Fruit Extract"
+          }
+        }
+      ]
+    }
+  ],
+  "data": {
+    "text": " -Antioxidant Vitamins: Contain natural amino acids which lock in pigments and help to rebuild hair fiber. Aqua (Water), Sodium Lauroyl Methyl Isethionate, Disodium Cocoamphodiacetate, Sodium Lauroyl Sarcosinate, Parfum (Fragrance), Citrus Paradisi (Grapefruit) Fruit Extract, Triticum Vulgare Germ Extract, Myrciaria Dubia Fruit Extract, Crambe Abyssinica Seed Oil Phytosterol Esters, Glycerin, Cocamidopropyl Betaine, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Sodium Chloride, Lauric Acid, Pentylene Glycol, Phenylpropanol, Sodium Methyl Isethionate, Glycol Distearate, Trisodium Ethylenediamine Disuccinate, Sodium Hydroxide, Polyquaternium-10, Caprylyl Glycol, Decylene Glycol, Sodium Benzoate, Sodium Phytate, Polyquaternium-7, Laureth-4, 1,2-Hexanediol, Citric Acid, Lactic Acid, Sodium Acetate, Alcohol, Isopropyl Alcohol, Ascorbyl Glucoside, Hydroxyacetophenone, Hexyl Cinnamal, Benzyl Salicylate, Limonene. "
+  },
+  "id": 348
+}
