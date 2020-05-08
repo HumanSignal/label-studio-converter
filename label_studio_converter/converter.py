@@ -47,13 +47,16 @@ class Format(Enum):
 
 class Converter(object):
 
-    def __init__(self, config_string, output_tags=None):
-        if os.path.isfile(config_string):
-            with io.open(config_string) as f:
-                self._config_string = f.read()
-        else:
-            self._config_string = config_string
-        self._schema = parse_config(self._config_string)
+    def __init__(self, config, output_tags=None):
+        if isinstance(config, dict):
+            self._schema = config
+        elif isinstance(config, str):
+            if os.path.isfile(config):
+                with io.open(config) as f:
+                    config_string = f.read()
+            else:
+                config_string = config
+            self._schema = parse_config(config_string)
 
         self._data_keys, self._output_tags = self._get_data_keys_and_output_tags(output_tags)
         self._supported_formats = self._get_supported_formats()
