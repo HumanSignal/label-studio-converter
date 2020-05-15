@@ -26,28 +26,32 @@ def tokenize(text):
 
 def create_tokens_and_tags(text, spans):
     tokens_and_idx = tokenize(text)
-    spans = list(sorted(spans, key=itemgetter('start')))
-    span = spans.pop(0)
-    prefix = 'B-'
-    tokens, tags = [], []
-    for token, token_start in tokens_and_idx:
-        tokens.append(token)
-        token_end = token_start + len(token) - 1
-        if not span or token_end < span['start']:
-            tags.append('O')
-        elif token_start > span['end']:
-            # this could happen if prev label ends with whitespaces, e.g. "cat " "too"
-            # TODO: it is not right choice to place empty tag here in case when current token is covered by next span  # noqa
-            tags.append('O')
-        else:
-            tags.append(prefix + span['labels'][0])
-            if span['end'] > token_end:
-                prefix = 'I-'
-            elif len(spans):
-                span = spans.pop(0)
-                prefix = 'B-'
+    if spans:
+        spans = list(sorted(spans, key=itemgetter('start')))
+        span = spans.pop(0)
+        prefix = 'B-'
+        tokens, tags = [], []
+        for token, token_start in tokens_and_idx:
+            tokens.append(token)
+            token_end = token_start + len(token) - 1
+            if not span or token_end < span['start']:
+                tags.append('O')
+            elif token_start >= span['end']:
+                # this could happen if prev label ends with whitespaces, e.g. "cat " "too"
+                # TODO: it is not right choice to place empty tag here in case when current token is covered by next span  # noqa
+                tags.append('O')
             else:
-                span = None
+                tags.append(prefix + span['labels'][0])
+                if (span['end'] - 1) > token_end:
+                    prefix = 'I-'
+                elif len(spans):
+                    span = spans.pop(0)
+                    prefix = 'B-'
+                else:
+                    span = None
+    else:
+        tokens = [token for token, _ in tokens_and_idx]
+        tags = ['O'] * len(tokens)
 
     return tokens, tags
 

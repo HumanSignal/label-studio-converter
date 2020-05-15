@@ -1,7 +1,7 @@
 import setuptools
 
 # Package version
-version = '0.0.13'
+version = '0.0.16'
 
 # Readme
 with open('README.md', 'r') as f:
@@ -17,7 +17,7 @@ setuptools.setup(
     author='Heartex',
     author_email="hello@heartex.ai",
     description='Format converter add-on for Label Studio',
-    long_description=long_description,
+    long_description='',
     long_description_content_type='text/markdown',
     url='https://github.com/heartexlabs/label-studio-converter',
     packages=setuptools.find_packages(),
