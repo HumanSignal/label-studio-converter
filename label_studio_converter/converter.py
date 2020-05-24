@@ -134,7 +134,7 @@ class Converter(object):
                     yield item
 
     def iter_from_json_file(self, json_file):
-        with io.open(json_file) as f:
+        with io.open(json_file, encoding='utf8') as f:
             data = json.load(f)
             if isinstance(data, Mapping):
                 yield self.load_from_dict(data)
@@ -192,10 +192,10 @@ class Converter(object):
         output_file = os.path.join(output_dir, 'result.json')
         records = []
         for json_file in glob(os.path.join(input_dir, '*.json')):
-            with io.open(json_file) as f:
+            with io.open(json_file, encoding='utf8') as f:
                 records.append(json.load(f))
 
-        with io.open(output_file, mode='w') as fout:
+        with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump(records, fout, indent=2, ensure_ascii=False)
 
     def convert_to_json_min(self, input_data, output_dir, is_dir=True):
@@ -210,7 +210,7 @@ class Converter(object):
                 record[name] = self._prettify(value)
             records.append(record)
 
-        with io.open(output_file, mode='w') as fout:
+        with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump(records, fout, indent=2, ensure_ascii=False)
 
     def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
@@ -233,7 +233,7 @@ class Converter(object):
         ensure_dir(output_dir)
         output_file = os.path.join(output_dir, 'result.conll')
         data_key = self._data_keys[0]
-        with io.open(output_file, 'w') as fout:
+        with io.open(output_file, 'w', encoding='utf8') as fout:
             fout.write('-DOCSTART- -X- O\n')
             item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
 
@@ -309,7 +309,7 @@ class Converter(object):
                     'area': w * h
                 })
 
-        with io.open(output_file, mode='w') as fout:
+        with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump({
                 'images': images,
                 'categories': categories,
@@ -403,5 +403,5 @@ class Converter(object):
                 object_node.appendChild(bndbox_node)
                 root_node.appendChild(object_node)
 
-            with io.open(xml_filepath, mode='w') as fout:
+            with io.open(xml_filepath, mode='w', encoding='utf8') as fout:
                 doc.writexml(fout, addindent='' * 4, newl='\n', encoding='utf-8')
