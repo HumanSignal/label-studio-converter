@@ -4,6 +4,7 @@ import xml.etree.ElementTree
 import requests
 import hashlib
 import logging
+import urllib
 
 from operator import itemgetter
 from PIL import Image
@@ -57,6 +58,12 @@ def create_tokens_and_tags(text, spans):
 
 
 def download(url, output_dir, filename=None):
+    if '/data/' in url and '?d=' in url:
+        filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
+        dir_path = str(urllib.parse.unquote(dir_path))
+        filepath = os.path.join(dir_path, filename)
+        return filepath, False
+
     if filename is None:
         filename = hashlib.md5(url.encode()).hexdigest()
     filepath = os.path.join(output_dir, filename)
@@ -66,7 +73,7 @@ def download(url, output_dir, filename=None):
         r.raise_for_status()
         with io.open(filepath, mode='wb') as fout:
             fout.write(r.content)
-    return filepath
+    return filepath, True
 
 
 def get_image_size(image_path):

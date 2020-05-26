@@ -165,6 +165,10 @@ class Converter(object):
             if r['from_name'] in self._output_tags:
                 v = deepcopy(r['value'])
                 v['type'] = self._schema[r['from_name']]['type']
+                if 'original_width' in r:
+                    v['original_width'] = r['original_width']
+                if 'original_height' in r:
+                    v['original_height'] = r['original_height']
                 outputs[r['from_name']].append(v)
         return {
             'input': inputs,
@@ -268,21 +272,26 @@ class Converter(object):
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
                 try:
-                    image_path = download(image_path, output_image_dir)
+                    image_path, is_downloaded = download(image_path, output_image_dir)
+                    if is_downloaded:
+                        image_path = os.path.join(output_image_dir_rel, os.path.basename(image_path))
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
-                    continue
-            width, height = get_image_size(image_path)
+            bboxes = next(iter(item['output'].values()))
+            if len(bboxes) == 0:
+                logger.error('Empty bboxes.')
+                continue
+            width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
             image_id = len(images)
             images.append({
                 'width': width,
                 'height': height,
                 'id': image_id,
-                'file_name': os.path.join(output_image_dir_rel, os.path.basename(image_path))
+                'file_name': image_path
             })
-            bboxes = next(iter(item['output'].values()))
+
             for bbox in bboxes:
                 category_name = bbox['rectanglelabels'][0]
                 if category_name not in category_name_to_id:
@@ -350,7 +359,9 @@ class Converter(object):
                 os.makedirs(annotations_dir)
             if not os.path.exists(image_path):
                 try:
-                    image_path = download(image_path, output_image_dir)
+                    image_path, is_downloaded = download(image_path, output_image_dir)
+                    if not is_downloaded:
+                        output_image_dir_rel = os.path.dirname(image_path)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)
