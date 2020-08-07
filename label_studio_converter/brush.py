@@ -87,6 +87,9 @@ def decode_from_completion(completion):
     """
     layers = {}
     for result in completion['result']:
+        if result['type'] != 'brushlabels':
+            continue
+
         rle = result['value']['rle']
         width = result['original_width']
         height = result['original_height']
