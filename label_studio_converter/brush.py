@@ -135,4 +135,4 @@ def convert_task_dir(inp_dir, out_dir, out_format='numpy'):
         convert_task(task, out_dir, out_format)
 
 
-convert_task_dir('/ls/test/completions', '/ls/test/completions/output', 'numpy')
+# convert_task_dir('/ls/test/completions', '/ls/test/completions/output', 'numpy')
