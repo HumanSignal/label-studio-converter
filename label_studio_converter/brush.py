@@ -31,6 +31,7 @@ import os
 import json
 import numpy as np
 from PIL import Image
+from collections import defaultdict
 
 
 class InputStream:
@@ -86,6 +87,7 @@ def decode_from_completion(completion):
     """ from LS completion to {"tag_name + label_name": [numpy uint8 image (width x height)]}
     """
     layers = {}
+    counters = defaultdict(int)
     for result in completion['result']:
         if result['type'] != 'brushlabels':
             continue
@@ -96,6 +98,12 @@ def decode_from_completion(completion):
         labels = result['value']['brushlabels']
         tag_name = result['from_name']
         name = tag_name + '-' + '-'.join(labels)
+
+        # result count
+        i = str(counters[name])
+        counters[name] += 1
+        name += '-' + i
+
         image = decode_rle(rle)
         layers[name] = np.reshape(image, [height, width, 4])[:, :, 0]
     return layers
@@ -135,4 +143,4 @@ def convert_task_dir(inp_dir, out_dir, out_format='numpy'):
         convert_task(task, out_dir, out_format)
 
 
-convert_task_dir('/ls/test/completions', '/ls/test/completions/output', 'numpy')
+# convert_task_dir('/ls/test/completions', '/ls/test/completions/output', 'numpy')
