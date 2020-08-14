@@ -16,6 +16,7 @@ from copy import deepcopy
 from label_studio_converter.utils import (
     parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir
 )
+from label_studio_converter import brush
 
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,8 @@ class Format(Enum):
     CONLL2003 = 5
     COCO = 6
     VOC = 7
+    BRUSH_TO_NUMPY = 8
+    BRUSH_TO_PNG = 9
 
     def __str__(self):
         return self.name
@@ -84,6 +87,12 @@ class Converter(object):
         elif format == Format.VOC:
             image_dir = kwargs.get('image_dir')
             self.convert_to_voc(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
+        elif format == Format.BRUSH_TO_NUMPY:
+            image_dir = kwargs.get('image_dir')
+            brush.convert_task_dir(input_data, output_data, out_format='numpy')
+        elif format == Format.BRUSH_TO_PNG:
+            image_dir = kwargs.get('image_dir')
+            brush.convert_task_dir(input_data, output_data, out_format='png')
 
     def _get_data_keys_and_output_tags(self, output_tags=None):
         data_keys = set()
@@ -119,6 +128,10 @@ class Converter(object):
         if not ('Image' in input_tag_types and 'RectangleLabels' in output_tag_types):
             all_formats.remove(Format.COCO.name)
             all_formats.remove(Format.VOC.name)
+        if not ('Image' in input_tag_types and 'BrushLabels' in output_tag_types):
+            all_formats.remove(Format.BRUSH_TO_NUMPY.name)
+            all_formats.remove(Format.BRUSH_TO_PNG.name)
+
         return all_formats
 
     @property
