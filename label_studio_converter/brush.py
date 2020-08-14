@@ -73,7 +73,8 @@ def decode_rle(rle):
         x = input.read(1)
         j = i + 1 + input.read(rle_sizes[input.read(2)])
         if x:
-            out[i:j] = input.read(word_size)
+            val = input.read(word_size)
+            out[i:j] = val
             i = j
         else:
             while i < j:
@@ -105,7 +106,7 @@ def decode_from_completion(completion):
         name += '-' + i
 
         image = decode_rle(rle)
-        layers[name] = np.reshape(image, [height, width, 4])[:, :, 0]
+        layers[name] = np.reshape(image, [height, width, 4])[:, :, 3]
     return layers
 
 
