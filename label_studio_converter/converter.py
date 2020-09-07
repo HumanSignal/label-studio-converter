@@ -162,10 +162,10 @@ class Converter(object):
         result = []
         if 'completions' in d:
             if len(d['completions']) != 1:
-                raise NotImplementedError(
-                    'Currently only one completion could be added per task - '
-                    'we can\'t convert more than one completions, but {num_completions} found in item: {item}'.format(
-                        num_completions=len(d['completions']), item=json.dumps(d, indent=2)))
+                tmp = list(filter(lambda x: 'skipped' not in x or not x['skipped'], d['completions']))
+                if len(tmp) == 0:
+                    return None
+                result = sorted(d['completions'], key=lambda x: x['created_at'], reverse=True)[0]['result']
             if d['completions'][0].get('skipped'):
                 return None
             result = d['completions'][0]['result']
