@@ -161,14 +161,13 @@ class Converter(object):
                            'where value is list of dicts')
         result = []
         if 'completions' in d:
-            if len(d['completions']) != 1:
-                tmp = list(filter(lambda x: 'skipped' not in x or not x['skipped'], d['completions']))
-                if len(tmp) == 0:
-                    return None
-                result = sorted(d['completions'], key=lambda x: x['created_at'], reverse=True)[0]['result']
-            if d['completions'][0].get('skipped'):
+            # get last not skipped completion and make result from it
+            tmp = list(filter(lambda x: 'skipped' not in x or not x['skipped'], d['completions']))
+            if len(tmp) > 0:
+                result = sorted(tmp, key=lambda x: x['created_at'], reverse=True)[0]['result']
+            else:
                 return None
-            result = d['completions'][0]['result']
+            
         elif 'result' in d:
             result = d['result']
 
