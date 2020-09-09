@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def tokenize(text):
     tok_start = 0
     out = []
-    for tok in text.split(' '):
+    for tok in text.split():
         if len(tok):
             out.append((tok, tok_start))
             tok_start += len(tok) + 1
