@@ -14,7 +14,8 @@ from operator import itemgetter
 from copy import deepcopy
 
 from label_studio_converter.utils import (
-    parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir
+    parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir,
+    get_polygon_area, get_polygon_bounding_box
 )
 from label_studio_converter import brush
 
@@ -291,11 +292,11 @@ class Converter(object):
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
-            bboxes = next(iter(item['output'].values()))
-            if len(bboxes) == 0:
+            labels = next(iter(item['output'].values()))
+            if len(labels) == 0:
                 logger.error('Empty bboxes.')
                 continue
-            width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
+            width, height = labels[0]['original_width'], labels[0]['original_height']
             image_id = len(images)
             images.append({
                 'width': width,
@@ -304,8 +305,14 @@ class Converter(object):
                 'file_name': image_path
             })
 
-            for bbox in bboxes:
-                category_name = bbox['rectanglelabels'][0]
+            for label in labels:
+                if 'rectanglelabels' in label:
+                    category_name = label['rectanglelabels'][0]
+                elif 'polygonlabels' in label:
+                    category_name = label['polygonlabels'][0]
+                else:
+                    raise ValueError("Unknown label type")
+
                 if category_name not in category_name_to_id:
                     category_id = len(categories)
                     category_name_to_id[category_name] = category_id
@@ -314,21 +321,40 @@ class Converter(object):
                         'name': category_name
                     })
                 category_id = category_name_to_id[category_name]
+
                 annotation_id = len(annotations)
-                x = int(bbox['x'] / 100 * width)
-                y = int(bbox['y'] / 100 * height)
-                w = int(bbox['width'] / 100 * width)
-                h = int(bbox['height'] / 100 * height)
-                annotations.append({
-                    'id': annotation_id,
-                    'image_id': image_id,
-                    'category_id': category_id,
-                    'segmentation': [],
-                    'bbox': [x, y, w, h],
-                    'ignore': 0,
-                    'iscrowd': 0,
-                    'area': w * h
-                })
+
+                if "rectanglelabels" in label:
+                    x = int(label['x'] / 100 * width)
+                    y = int(label['y'] / 100 * height)
+                    w = int(label['width'] / 100 * width)
+                    h = int(label['height'] / 100 * height)
+
+                    annotations.append({
+                        'id': annotation_id,
+                        'image_id': image_id,
+                        'category_id': category_id,
+                        'segmentation': [],
+                        'bbox': [x, y, w, h],
+                        'ignore': 0,
+                        'iscrowd': 0,
+                        'area': w * h
+                    })
+                elif "polygonlabels" in label:
+                    x, y = zip(*label["points"])
+
+                    annotations.append({
+                        'id': annotation_id,
+                        'image_id': image_id,
+                        'category_id': category_id,
+                        'segmentation': [sum(label["points"], [])],
+                        'bbox': get_polygon_bounding_box(x, y),
+                        'ignore': 0,
+                        'iscrowd': 0,
+                        'area': get_polygon_area(x, y)
+                    })
+                else:
+                    raise ValueError("Unknown label type")
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump({
