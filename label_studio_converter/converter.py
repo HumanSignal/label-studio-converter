@@ -126,7 +126,8 @@ class Converter(object):
         all_formats = [f.name for f in Format]
         if not ('Text' in input_tag_types and 'Labels' in output_tag_types):
             all_formats.remove(Format.CONLL2003.name)
-        if not ('Image' in input_tag_types and 'RectangleLabels' in output_tag_types):
+        if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
+                                                'PolygonLabels' in output_tag_types)):
             all_formats.remove(Format.COCO.name)
             all_formats.remove(Format.VOC.name)
         if not ('Image' in input_tag_types and 'BrushLabels' in output_tag_types):
