@@ -5,6 +5,7 @@ import requests
 import hashlib
 import logging
 import urllib
+import numpy as np
 
 from operator import itemgetter
 from PIL import Image
@@ -119,3 +120,18 @@ def parse_config(config_string):
             tag_info['inputs'].append(inputs[input_tag_name])
 
     return outputs
+
+
+def get_polygon_area(x, y):
+    """https://en.wikipedia.org/wiki/Shoelace_formula"""
+
+    assert len(x) == len(y)
+
+    return float(0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))))
+
+
+def get_polygon_bounding_box(x, y):
+    assert len(x) == len(y)
+
+    x1, y1, x2, y2 = min(x), min(y), max(x), max(y)
+    return [x1, y1, x2 - x1, y2 - y1]
