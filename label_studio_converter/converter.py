@@ -350,7 +350,7 @@ class Converter(object):
                         'id': annotation_id,
                         'image_id': image_id,
                         'category_id': category_id,
-                        'segmentation': [coord for point in points_abs for coord in point],
+                        'segmentation': [[coord for point in points_abs for coord in point]],
                         'bbox': get_polygon_bounding_box(x, y),
                         'ignore': 0,
                         'iscrowd': 0,
