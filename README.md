@@ -58,7 +58,7 @@ Use cases: any tasks
 #### CSV
 Running from the command line:
 ```bash
-python backend/converter/cli.py --input examples/sentiment_analysis/completions/ --config examples/sentiment_analysis/config.xml --output tmp/output.tsv --format CSV --csv-separator $'\t'
+python backend/converter/cli.py --input examples/sentiment_analysis/completions/ --config examples/sentiment_analysis/config.xml --output output_dir --format CSV --csv-separator $'\t'
 ```
 
 Running from python:
@@ -66,7 +66,7 @@ Running from python:
 from converter import Converter
 
 c = Converter('examples/sentiment_analysis/config.xml')
-c.convert_to_csv('examples/sentiment_analysis/completions/', 'tmp/output.tsv', sep='\t', header=True)
+c.convert_to_csv('examples/sentiment_analysis/completions/', 'output_dir', sep='\t', header=True)
 ```
 
 Getting output file `tmp/output.tsv`:
