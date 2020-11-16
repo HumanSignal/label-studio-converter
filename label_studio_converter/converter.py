@@ -186,6 +186,7 @@ class Converter(object):
                     v['original_height'] = r['original_height']
                 outputs[r['from_name']].append(v)
         return {
+            'id': d['id'],
             'input': inputs,
             'output': outputs
         }
@@ -225,6 +226,8 @@ class Converter(object):
         item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
         for item in item_iterator(input_data):
             record = deepcopy(item['input'])
+            if item.get('id') is not None:
+                record['id'] = item['id']
             for name, value in item['output'].items():
                 record[name] = self._prettify(value)
             records.append(record)
@@ -240,6 +243,8 @@ class Converter(object):
         item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
         for item in item_iterator(input_data):
             record = deepcopy(item['input'])
+            if item.get('id') is not None:
+                record['id'] = item['id']
             for name, value in item['output'].items():
                 pretty_value = self._prettify(value)
                 record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value)
