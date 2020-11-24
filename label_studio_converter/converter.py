@@ -411,8 +411,19 @@ class Converter(object):
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)
-                    continue
-            width, height, channels = get_image_size_and_channels(image_path)
+                    # On error, use default number of channels
+                    channels = 3
+                else:
+                    # retrieve number of channels from downloaded image
+                    _, _, channels = get_image_size_and_channels(image_path)
+
+            bboxes = next(iter(item['output'].values()))
+            if len(bboxes) == 0:
+                logger.error('Empty bboxes.')
+                continue
+
+            width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
+
             image_name = os.path.splitext(os.path.basename(image_path))[0]
             xml_filepath = os.path.join(annotations_dir, image_name + '.xml')
 
@@ -439,7 +450,7 @@ class Converter(object):
             root_node.appendChild(size_node)
             create_child_node(doc, 'segmented', '0', root_node)
 
-            bboxes = next(iter(item['output'].values()))
+
             for bbox in bboxes:
                 name = bbox['rectanglelabels'][0]
                 x = int(bbox['x'] / 100 * width)
