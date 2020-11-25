@@ -62,6 +62,8 @@ def download(url, output_dir, filename=None):
     if '/data/' in url and '?d=' in url:
         filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
         dir_path = str(urllib.parse.unquote(dir_path))
+        if not os.path.exists(dir_path):
+            raise FileNotFoundError(dir_path)
         filepath = os.path.join(dir_path, filename)
         return filepath, False
 
