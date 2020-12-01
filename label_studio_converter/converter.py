@@ -177,7 +177,7 @@ class Converter(object):
         inputs = d['data']
         outputs = defaultdict(list)
         for r in result:
-            if r['from_name'] in self._output_tags:
+            if 'from_name' in r and r['from_name'] in self._output_tags:
                 v = deepcopy(r['value'])
                 v['type'] = self._schema[r['from_name']]['type']
                 if 'original_width' in r:
