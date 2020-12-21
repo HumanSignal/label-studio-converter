@@ -167,7 +167,7 @@ class Converter(object):
             # get last not skipped completion and make result from it
             tmp = list(filter(lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False)), d['completions']))
             if len(tmp) > 0:
-                result = sorted(tmp, key=lambda x: x['created_at'], reverse=True)[0]['result']
+                result = sorted(tmp, key=lambda x: x.get('created_at', 0), reverse=True)[0]['result']
             else:
                 return None
             
