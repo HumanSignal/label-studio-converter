@@ -292,7 +292,7 @@ class Converter(object):
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
                 try:
-                    image_path, is_downloaded = download(image_path, output_image_dir)
+                    image_path, is_downloaded = download(image_path, output_image_dir, input_dir=input_data)
                     if is_downloaded:
                         image_path = os.path.join(output_image_dir_rel, os.path.basename(image_path))
                 except:
@@ -405,7 +405,7 @@ class Converter(object):
                 os.makedirs(annotations_dir)
             if not os.path.exists(image_path):
                 try:
-                    image_path, is_downloaded = download(image_path, output_image_dir)
+                    image_path, is_downloaded = download(image_path, output_image_dir, input_dir=input_data)
                     if not is_downloaded:
                         output_image_dir_rel = os.path.dirname(image_path)
                 except:

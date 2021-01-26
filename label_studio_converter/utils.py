@@ -6,6 +6,7 @@ import hashlib
 import logging
 import urllib
 import numpy as np
+import shutil
 
 from operator import itemgetter
 from PIL import Image
@@ -58,9 +59,15 @@ def create_tokens_and_tags(text, spans):
     return tokens, tags
 
 
-def download(url, output_dir, filename=None):
-    if url.startswith('/data/upload/'):
-        url = 'http://localhost' + url
+def download(url, output_dir, filename=None, input_dir=None):
+    if url.startswith('/data/upload/') and input_dir:
+        upload_dir = os.environ.get('LS_UPLOAD_DIR', '')
+        if not upload_dir:
+            # get project root dir, instead of project/completions dir
+            upload_dir = os.path.join(os.path.abspath(input_dir + '/../'), 'upload')
+        filepath = os.path.join(upload_dir, url.replace('/data/upload/', ''))
+        shutil.copy(filepath, output_dir)
+        return filepath, True
 
     if '/data/' in url and '?d=' in url:
         filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
