@@ -59,6 +59,9 @@ def create_tokens_and_tags(text, spans):
 
 
 def download(url, output_dir, filename=None):
+    if url.startswith('/data/upload/'):
+        url = 'http://localhost' + url
+
     if '/data/' in url and '?d=' in url:
         filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
         dir_path = str(urllib.parse.unquote(dir_path))
