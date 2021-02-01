@@ -6,9 +6,11 @@ import hashlib
 import logging
 import urllib
 import numpy as np
+import wave
 
 from operator import itemgetter
 from PIL import Image
+from urllib.parse import urlparse
 
 
 logger = logging.getLogger(__name__)
@@ -68,7 +70,8 @@ def download(url, output_dir, filename=None):
         return filepath, False
 
     if filename is None:
-        filename = hashlib.md5(url.encode()).hexdigest()
+        basename, ext = os.path.splitext(os.path.basename(urlparse(url).path))
+        filename = basename + '_' + hashlib.md5(url.encode()).hexdigest()[:4] + ext
     filepath = os.path.join(output_dir, filename)
     if not os.path.exists(filepath):
         logger.info('Download {url} to {filepath}'.format(url=url, filepath=filepath))
@@ -88,6 +91,11 @@ def get_image_size_and_channels(image_path):
     w, h = i.size
     c = len(i.getbands())
     return w, h, c
+
+
+def get_audio_duration(audio_path):
+    with wave.open(audio_path, mode='r') as f:
+        return f.getnframes() / float(f.getframerate())
 
 
 def ensure_dir(dir_path):

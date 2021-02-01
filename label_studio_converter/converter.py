@@ -18,6 +18,7 @@ from label_studio_converter.utils import (
     get_polygon_area, get_polygon_bounding_box
 )
 from label_studio_converter import brush
+from label_studio_converter.audio import convert_to_asr_json_manifest
 
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class Format(Enum):
     VOC = 7
     BRUSH_TO_NUMPY = 8
     BRUSH_TO_PNG = 9
+    AUDIO_TRANSCRIPTION_MANIFEST = 10
 
     def __str__(self):
         return self.name
@@ -89,11 +91,12 @@ class Converter(object):
             image_dir = kwargs.get('image_dir')
             self.convert_to_voc(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
         elif format == Format.BRUSH_TO_NUMPY:
-            image_dir = kwargs.get('image_dir')
             brush.convert_task_dir(input_data, output_data, out_format='numpy')
         elif format == Format.BRUSH_TO_PNG:
-            image_dir = kwargs.get('image_dir')
             brush.convert_task_dir(input_data, output_data, out_format='png')
+        elif format == Format.AUDIO_TRANSCRIPTION_MANIFEST:
+            items = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
+            convert_to_asr_json_manifest(items, output_data, data_key=self._data_keys[0])
 
     def _get_data_keys_and_output_tags(self, output_tags=None):
         data_keys = set()
@@ -134,6 +137,9 @@ class Converter(object):
         if not ('Image' in input_tag_types and 'BrushLabels' in output_tag_types):
             all_formats.remove(Format.BRUSH_TO_NUMPY.name)
             all_formats.remove(Format.BRUSH_TO_PNG.name)
+
+        if not ('Audio' in input_tag_types and 'TextArea' in output_tag_types):
+            all_formats.remove(Format.AUDIO_TRANSCRIPTION_MANIFEST)
 
         return all_formats
 
