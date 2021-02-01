@@ -38,7 +38,7 @@ class Format(Enum):
     VOC = 7
     BRUSH_TO_NUMPY = 8
     BRUSH_TO_PNG = 9
-    AUDIO_TRANSCRIPTION_MANIFEST = 10
+    ASR_MANIFEST = 10
 
     def __str__(self):
         return self.name
@@ -94,7 +94,7 @@ class Converter(object):
             brush.convert_task_dir(input_data, output_data, out_format='numpy')
         elif format == Format.BRUSH_TO_PNG:
             brush.convert_task_dir(input_data, output_data, out_format='png')
-        elif format == Format.AUDIO_TRANSCRIPTION_MANIFEST:
+        elif format == Format.ASR_MANIFEST:
             items = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
             convert_to_asr_json_manifest(items, output_data, data_key=self._data_keys[0])
 
@@ -139,7 +139,7 @@ class Converter(object):
             all_formats.remove(Format.BRUSH_TO_PNG.name)
 
         if not ('Audio' in input_tag_types and 'TextArea' in output_tag_types):
-            all_formats.remove(Format.AUDIO_TRANSCRIPTION_MANIFEST)
+            all_formats.remove(Format.ASR_MANIFEST.name)
 
         return all_formats
 
