@@ -61,23 +61,40 @@ def create_tokens_and_tags(text, spans):
     return tokens, tags
 
 
-def download(url, output_dir, filename=None, input_dir=None):
-    if url.startswith('/data/upload/') and input_dir:
-        upload_dir = os.environ.get('LS_UPLOAD_DIR', '')
-        if not upload_dir:
-            # get project root dir, instead of project/completions dir
-            upload_dir = os.path.join(os.path.abspath(input_dir + '/../'), 'upload')
-        filepath = os.path.join(upload_dir, url.replace('/data/upload/', ''))
-        shutil.copy(filepath, output_dir)
-        return filepath, True
+def _get_upload_dir(project_dir):
+    upload_dir = os.environ.get('LS_UPLOAD_DIR')
+    if not upload_dir and project_dir:
+        upload_dir = os.path.join(project_dir, 'upload')
+        if not os.path.exists(upload_dir):
+            upload_dir = None
+    if not upload_dir:
+        raise FileNotFoundError("Can't find upload dir: either LS_UPLOAD_DIR or project should be passed to converter")
+    return upload_dir
 
-    if '/data/' in url and '?d=' in url:
+
+def download(url, output_dir, filename=None, project_dir=None, return_relative_path=False):
+    is_local_file = url.startswith('/data/') and '?d=' in url
+    is_uploaded_file = url.startswith('/data/upload')
+
+    if is_uploaded_file:
+        upload_dir = _get_upload_dir(project_dir)
+        filename = url.replace('/data/upload/', '')
+        filepath = os.path.join(upload_dir, filename)
+        logger.debug('Copy {filepath} to {output_dir}'.format(filepath=filepath, output_dir=output_dir))
+        shutil.copy(filepath, output_dir)
+        if return_relative_path:
+            return os.path.join(os.path.basename(output_dir), filename)
+        return filepath
+
+    if is_local_file:
         filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
         dir_path = str(urllib.parse.unquote(dir_path))
         if not os.path.exists(dir_path):
             raise FileNotFoundError(dir_path)
         filepath = os.path.join(dir_path, filename)
-        return filepath, False
+        if return_relative_path:
+            raise NotImplementedError()
+        return filepath
 
     if filename is None:
         basename, ext = os.path.splitext(os.path.basename(urlparse(url).path))
@@ -89,7 +106,9 @@ def download(url, output_dir, filename=None, input_dir=None):
         r.raise_for_status()
         with io.open(filepath, mode='wb') as fout:
             fout.write(r.content)
-    return filepath, True
+    if return_relative_path:
+        return os.path.join(os.path.basename(output_dir), filename)
+    return filepath
 
 
 def get_image_size(image_path):
