@@ -173,7 +173,7 @@ class Converter(object):
             # get last not skipped completion and make result from it
             tmp = list(filter(lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False)), d['completions']))
             if len(tmp) > 0:
-                result = sorted(tmp, key=lambda x: x['created_at'], reverse=True)[0]['result']
+                result = sorted(tmp, key=lambda x: x.get('created_at', 0), reverse=True)[0]['result']
             else:
                 return None
             
@@ -298,7 +298,7 @@ class Converter(object):
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
                 try:
-                    image_path, is_downloaded = download(image_path, output_image_dir)
+                    image_path, is_downloaded = download(image_path, output_image_dir, input_dir=input_data)
                     if is_downloaded:
                         image_path = os.path.join(output_image_dir_rel, os.path.basename(image_path))
                 except:
@@ -411,7 +411,7 @@ class Converter(object):
                 os.makedirs(annotations_dir)
             if not os.path.exists(image_path):
                 try:
-                    image_path, is_downloaded = download(image_path, output_image_dir)
+                    image_path, is_downloaded = download(image_path, output_image_dir, input_dir=input_data)
                     if not is_downloaded:
                         output_image_dir_rel = os.path.dirname(image_path)
                 except:
