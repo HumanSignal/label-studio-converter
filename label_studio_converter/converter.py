@@ -139,7 +139,7 @@ class Converter(object):
             all_formats.remove(Format.BRUSH_TO_NUMPY.name)
             all_formats.remove(Format.BRUSH_TO_PNG.name)
 
-        if not ('Audio' in input_tag_types and 'TextArea' in output_tag_types):
+        if not (('Audio' in input_tag_types or 'AudioPlus' in input_tag_types) and 'TextArea' in output_tag_types):
             all_formats.remove(Format.ASR_MANIFEST.name)
 
         return all_formats
