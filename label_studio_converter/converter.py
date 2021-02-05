@@ -18,6 +18,7 @@ from label_studio_converter.utils import (
     get_polygon_area, get_polygon_bounding_box
 )
 from label_studio_converter import brush
+from label_studio_converter.audio import convert_to_asr_json_manifest
 
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,7 @@ class Format(Enum):
     VOC = 7
     BRUSH_TO_NUMPY = 8
     BRUSH_TO_PNG = 9
+    ASR_MANIFEST = 10
 
     def __str__(self):
         return self.name
@@ -51,7 +53,8 @@ class Format(Enum):
 
 class Converter(object):
 
-    def __init__(self, config, output_tags=None):
+    def __init__(self, config, project_dir, output_tags=None):
+        self.project_dir = project_dir
         if isinstance(config, dict):
             self._schema = config
         elif isinstance(config, str):
@@ -89,11 +92,12 @@ class Converter(object):
             image_dir = kwargs.get('image_dir')
             self.convert_to_voc(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
         elif format == Format.BRUSH_TO_NUMPY:
-            image_dir = kwargs.get('image_dir')
             brush.convert_task_dir(input_data, output_data, out_format='numpy')
         elif format == Format.BRUSH_TO_PNG:
-            image_dir = kwargs.get('image_dir')
             brush.convert_task_dir(input_data, output_data, out_format='png')
+        elif format == Format.ASR_MANIFEST:
+            items = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
+            convert_to_asr_json_manifest(items, output_data, data_key=self._data_keys[0], project_dir=self.project_dir)
 
     def _get_data_keys_and_output_tags(self, output_tags=None):
         data_keys = set()
@@ -134,6 +138,9 @@ class Converter(object):
         if not ('Image' in input_tag_types and 'BrushLabels' in output_tag_types):
             all_formats.remove(Format.BRUSH_TO_NUMPY.name)
             all_formats.remove(Format.BRUSH_TO_PNG.name)
+
+        if not ('Audio' in input_tag_types and 'TextArea' in output_tag_types):
+            all_formats.remove(Format.ASR_MANIFEST.name)
 
         return all_formats
 
@@ -276,11 +283,9 @@ class Converter(object):
         output_file = os.path.join(output_dir, 'result.json')
         if output_image_dir is not None:
             ensure_dir(output_image_dir)
-            output_image_dir_rel = output_image_dir
         else:
             output_image_dir = os.path.join(output_dir, 'images')
             os.makedirs(output_image_dir, exist_ok=True)
-            output_image_dir_rel = 'images'
         images, categories, annotations = [], [], []
         category_name_to_id = {}
         data_key = self._data_keys[0]
@@ -292,9 +297,7 @@ class Converter(object):
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
                 try:
-                    image_path, is_downloaded = download(image_path, output_image_dir)
-                    if is_downloaded:
-                        image_path = os.path.join(output_image_dir_rel, os.path.basename(image_path))
+                    image_path = download(image_path, output_image_dir, project_dir=self.project_dir, return_relative_path=True)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
@@ -405,9 +408,7 @@ class Converter(object):
                 os.makedirs(annotations_dir)
             if not os.path.exists(image_path):
                 try:
-                    image_path, is_downloaded = download(image_path, output_image_dir)
-                    if not is_downloaded:
-                        output_image_dir_rel = os.path.dirname(image_path)
+                    image_path = download(image_path, output_image_dir, project_dir=self.project_dir, return_relative_path=True)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)
