@@ -55,6 +55,10 @@ def main():
              'be stored. (If not specified, local image paths left untouched)'
     )
     parser.add_argument(
+        '--project-dir', dest='project_dir', default=None,
+        help='Label Studio project directory path'
+    )
+    parser.add_argument(
         '--heartex-format', dest='heartex_format', action='store_true',
         help='Set this flag if your completions are coming from Heartex platform instead of Label Studio'
     )
@@ -62,10 +66,10 @@ def main():
 
     with io.open(args.config) as f:
         config_str = f.read()
-    c = Converter(config_str)
+    c = Converter(config_str, project_dir=args.project_dir)
 
     if args.format == Format.JSON:
-        c.convert_to_json(args.input, args.output, is_dir=not args.heartex_format)
+        c.convert_to_json(args.input, args.output)
     elif args.format == Format.CSV:
         header = not args.csv_no_header
         sep = args.csv_separator
