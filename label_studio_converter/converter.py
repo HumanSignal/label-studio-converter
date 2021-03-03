@@ -20,7 +20,6 @@ from label_studio_converter.utils import (
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -72,7 +71,7 @@ class Converter(object):
         if isinstance(format, str):
             format = Format.from_string(format)
         if format == Format.JSON:
-            self.convert_to_json(input_data, output_data)
+            self.convert_to_json(input_data, output_data, is_dir=is_dir)
         elif format == Format.JSON_MIN:
             self.convert_to_json_min(input_data, output_data, is_dir=is_dir)
         elif format == Format.CSV:
@@ -213,14 +212,18 @@ class Converter(object):
                 out.append(j)
         return out[0] if tag_type == 'Choices' and len(out) == 1 else out
 
-    def convert_to_json(self, input_dir, output_dir):
+    def convert_to_json(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.JSON)
         ensure_dir(output_dir)
         output_file = os.path.join(output_dir, 'result.json')
         records = []
-        for json_file in glob(os.path.join(input_dir, '*.json')):
-            with io.open(json_file, encoding='utf8') as f:
-                records.append(json.load(f))
+        if is_dir:
+            for json_file in glob(os.path.join(input_data, '*.json')):
+                with io.open(json_file, encoding='utf8') as f:
+                    records.append(json.load(f))
+        else:
+            with io.open(input_data, encoding='utf8') as f:
+                records.extend(json.load(f))
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump(records, fout, indent=2, ensure_ascii=False)
