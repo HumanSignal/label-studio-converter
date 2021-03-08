@@ -229,13 +229,17 @@ class Converter(object):
                         yield prepared_item
 
     def load_from_dict(self, d):
-        if 'completions' not in d and 'result' not in d:
-            raise KeyError('Each completions dict item should contain "completions" or "result" key, '
+        has_annotations = 'completions' in d or 'annotations' in d
+        if not has_annotations and 'result' not in d:
+            raise KeyError('Each annotation dict item should contain "annotations" or "result" key, '
                            'where value is list of dicts')
         result = []
-        if 'completions' in d:
+        if has_annotations:
             # get last not skipped completion and make result from it
-            tmp = list(filter(lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False)), d['completions']))
+            annotations = d.get('annotations')
+            if annotations is None:
+                annotations = d['completions']
+            tmp = list(filter(lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False)), annotations))
             if len(tmp) > 0:
                 result = sorted(tmp, key=lambda x: x.get('created_at', 0), reverse=True)[0]['result']
             else:
@@ -358,7 +362,7 @@ class Converter(object):
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
             if not item['output']:
-                logger.warning('No completions found for item #' + str(item_idx))
+                logger.warning('No annotations found for item #' + str(item_idx))
                 continue
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
@@ -466,7 +470,7 @@ class Converter(object):
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
             if not item['output']:
-                logger.warning('No completions found for item #' + str(item_idx))
+                logger.warning('No annotations found for item #' + str(item_idx))
                 continue
             image_path = item['input'][data_key]
             annotations_dir = os.path.join(output_dir, 'Annotations')
