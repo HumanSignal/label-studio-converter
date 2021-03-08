@@ -6,6 +6,7 @@ import pandas as pd
 import xml.dom
 import xml.dom.minidom
 
+from shutil import copy2
 from enum import Enum
 from datetime import datetime
 from glob import glob
@@ -288,12 +289,10 @@ class Converter(object):
             for json_file in glob(os.path.join(input_data, '*.json')):
                 with io.open(json_file, encoding='utf8') as f:
                     records.append(json.load(f))
+            with io.open(output_file, mode='w', encoding='utf8') as fout:
+                json.dump(records, fout, indent=2, ensure_ascii=False)
         else:
-            with io.open(input_data, encoding='utf8') as f:
-                records.extend(json.load(f))
-
-        with io.open(output_file, mode='w', encoding='utf8') as fout:
-            json.dump(records, fout, indent=2, ensure_ascii=False)
+            copy2(input_data, output_file)
 
     def convert_to_json_min(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.JSON_MIN)
