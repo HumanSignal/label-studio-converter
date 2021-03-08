@@ -69,7 +69,7 @@ class Converter(object):
             'link': 'https://labelstud.io/guide/export.html#CSV'
         },
         Format.TSV: {
-            'title': 'CSV',
+            'title': 'TSV',
             'description': 'Results are stored in tab-separated tabular file with column names specified by "from_name" "to_name" values',
             'link': 'https://labelstud.io/guide/export.html#TSV'
         },
