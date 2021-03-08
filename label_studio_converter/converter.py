@@ -52,6 +52,68 @@ class Format(Enum):
 
 class Converter(object):
 
+    _FORMAT_INFO = {
+        Format.JSON: {
+            'title': 'JSON',
+            'description': 'List of items in raw JSON format stored in one JSON file. Use to export both the data and the annotations for a dataset.',
+            'link': 'https://labelstud.io/guide/export.html#JSON'
+        },
+        Format.JSON_MIN: {
+            'title': 'JSON-MIN',
+            'description': 'List of items where only "from_name", "to_name" values from the raw JSON format are exported. Use to export only the annotations for a dataset.',
+            'link': 'https://labelstud.io/guide/export.html#JSON-MIN',
+        },
+        Format.CSV: {
+            'title': 'CSV',
+            'description': 'Results are stored as comma-separated values with the column names specified by the values of the "from_name" and "to_name" fields.',
+            'link': 'https://labelstud.io/guide/export.html#CSV'
+        },
+        Format.TSV: {
+            'title': 'CSV',
+            'description': 'Results are stored in tab-separated tabular file with column names specified by "from_name" "to_name" values',
+            'link': 'https://labelstud.io/guide/export.html#TSV'
+        },
+        Format.CONLL2003: {
+            'title': 'CONLL2003',
+            'description': 'Popular format used for the CoNLL-2003 named entity recognition challenge.',
+            'link': 'https://labelstud.io/guide/export.html#CONLL2003',
+            'tags': ['sequence labeling', 'text tagging', 'named entity recognition']
+        },
+        Format.COCO: {
+            'title': 'COCO',
+            'description': 'Popular machine learning format used by the COCO dataset for object detection and image segmentation tasks.',
+            'link': 'https://labelstud.io/guide/export.html#COCO',
+            'tags': ['image segmentation', 'object detection']
+        },
+        Format.VOC: {
+            'title': 'Pascal VOC XML',
+            'description': 'Popular XML-formatted task data used for object detection and image segmentation tasks.',
+            'link': 'https://labelstud.io/guide/export.html#Pascal-VOC-XML',
+            'tags': ['image segmentation', 'object detection']
+        },
+        Format.BRUSH_TO_NUMPY: {
+            'title': 'Brush labels to NumPy',
+            'description': 'Export your brush labels as NumPy 2d arrays. Each label outputs as one image.',
+            'link': 'https://labelstud.io/guide/export.html#Brush-labels-to-NumPy-amp-PNG',
+            'tags': ['image segmentation']
+        },
+        Format.BRUSH_TO_PNG: {
+            'title': 'Brush labels to PNG',
+            'description': 'Export your brush labels as PNG images. Each label outputs as one image.',
+            'link': 'https://labelstud.io/guide/export.html#Brush-labels-to-NumPy-amp-PNG',
+            'tags': ['image segmentation']
+        },
+        Format.ASR_MANIFEST: {
+            'title': 'ASR Manifest',
+            'description': 'Export audio transcription labels for automatic speech recognition as the JSON manifest format expected by NVIDIA NeMo models.',
+            'link': 'https://labelstud.io/guide/export.html#ASR-MANIFEST',
+            'tags': ['speech recognition']
+        }
+    }
+
+    def all_formats(self):
+        return self._FORMAT_INFO
+
     def __init__(self, config, project_dir, output_tags=None):
         self.project_dir = project_dir
         if isinstance(config, dict):
@@ -162,7 +224,9 @@ class Converter(object):
                 yield self.load_from_dict(data)
             elif isinstance(data, list):
                 for item in data:
-                    yield self.load_from_dict(item)
+                    prepared_item = self.load_from_dict(item)
+                    if prepared_item is not None:
+                        yield prepared_item
 
     def load_from_dict(self, d):
         if 'completions' not in d and 'result' not in d:
@@ -179,7 +243,6 @@ class Converter(object):
             
         elif 'result' in d:
             result = d['result']
-
         inputs = d['data']
         outputs = defaultdict(list)
         for r in result:
