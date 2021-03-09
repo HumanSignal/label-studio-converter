@@ -301,3 +301,28 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
     rle = bits2byte(total_str)
 
     return rle
+
+
+def mask2rle(contours, contour_id, img_width, img_height):
+    """countours mask to rle
+
+    Parameters
+    ----------
+    contours : list
+        list of contours
+    contour_id : int
+        id of contour which you want to translate
+    img_width : int
+        image shape width
+    img_height : int
+        image shape height
+
+    Returns
+    -------
+
+    """
+
+    mask_im = np.zeros((img_width, img_height, 4))
+    mask_contours = cv2.drawContours(mask_im, contours, contour_id, color=(0, 255, 0, 100), thickness=-1)
+    rle_out = encode_rle(mask_contours.ravel().astype(int))
+    return rle_out
