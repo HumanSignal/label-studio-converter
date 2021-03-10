@@ -115,8 +115,9 @@ class Converter(object):
     def all_formats(self):
         return self._FORMAT_INFO
 
-    def __init__(self, config, project_dir, output_tags=None):
+    def __init__(self, config, project_dir, output_tags=None, upload_dir=None):
         self.project_dir = project_dir
+        self.upload_dir = upload_dir
         if isinstance(config, dict):
             self._schema = config
         elif isinstance(config, str):
@@ -477,15 +478,18 @@ class Converter(object):
                 os.makedirs(annotations_dir)
             if not os.path.exists(image_path):
                 try:
-                    image_path = download(image_path, output_image_dir, project_dir=self.project_dir, return_relative_path=True)
+                    image_path = download(
+                        image_path, output_image_dir, project_dir=self.project_dir,
+                        upload_dir=self.upload_dir, return_relative_path=True)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)
                     # On error, use default number of channels
                     channels = 3
                 else:
+                    full_image_path = os.path.join(output_image_dir, os.path.basename(image_path))
                     # retrieve number of channels from downloaded image
-                    _, _, channels = get_image_size_and_channels(image_path)
+                    _, _, channels = get_image_size_and_channels(full_image_path)
 
             bboxes = next(iter(item['output'].values()))
             if len(bboxes) == 0:
