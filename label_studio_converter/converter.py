@@ -198,7 +198,7 @@ class Converter(object):
         if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
                                                 'PolygonLabels' in output_tag_types)):
             all_formats.remove(Format.COCO.name)
-        if not ('Image' in input_tag_types and 'BrushLabels' in output_tag_types):
+        if not ('Image' in input_tag_types and ('BrushLabels' in output_tag_types or 'brushlabels' in output_tag_types)):
             all_formats.remove(Format.BRUSH_TO_NUMPY.name)
             all_formats.remove(Format.BRUSH_TO_PNG.name)
 
