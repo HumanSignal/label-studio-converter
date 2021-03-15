@@ -1,7 +1,7 @@
 import setuptools
 
 # Package version
-version = '0.0.23rc3'
+version = '0.0.25'
 
 # Readme
 with open('README.md', 'r') as f:
@@ -28,5 +28,5 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ],
     install_requires=requirements,
-    python_requires='>=3.5'
+    python_requires='>=3.6'
 )
