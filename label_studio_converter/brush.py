@@ -149,20 +149,14 @@ def convert_task_dir(inp_dir, out_dir, out_format='numpy'):
 
 
 def bits2byte(arr_str, n=8):
-    """ Convert bits back to byte
+    """Convert bits back to byte
 
-    Parameters
-    ----------
-    arr_str : str
-        string with the bit array
-    n : int
-        number of bits to separate the arr string into
-
-    Returns
-    -------
-    rle : list
-        run length encoded list
-
+    :param arr_str:  string with the bit array
+    :type arr_str: str
+    :param n: number of bits to separate the arr string into
+    :type n: int
+    :return rle:
+    :type rle: list
     """
     rle = []
     numbers = [arr_str[i:i + n] for i in range(0, len(arr_str), n)]
@@ -174,19 +168,15 @@ def bits2byte(arr_str, n=8):
 def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
     """ Encode a 1d array to rle
 
-    Parameters
-    ----------
-    arr : np.array
-        flattened np.array from a 4d image (R, G, B, alpha)
-    wordsize: int
-        wordsize bits for decoding, default is 8
-    rle_sizes: list
-        list of ints which state how long a series is of the same number
 
-    Returns
-    -------
-    rle: list
-        run length encoded array
+    :param arr : flattened np.array from a 4d image (R, G, B, alpha)
+    :type arr: np.array
+    :param wordsize: wordsize bits for decoding, default is 8
+    :type wordsize: int
+    :param rle_sizes:  list of ints which state how long a series is of the same number
+    :type rle_sizes: list
+    :return rle: run length encoded array
+    :type rle: list
 
     """
     # Set length of array in 32 bits
@@ -304,22 +294,17 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
 
 
 def mask2rle(contours, contour_id, img_width, img_height):
-    """countours mask to rle
+    """
 
-    Parameters
-    ----------
-    contours : list
-        list of contours
-    contour_id : int
-        id of contour which you want to translate
-    img_width : int
-        image shape width
-    img_height : int
-        image shape height
-
-    Returns
-    -------
-
+    :param contours:  list of contours
+    :type contours: list
+    :param contour_id: id of contour which you want to translate
+    :type contour_id: int
+    :param img_width: image shape width
+    :type img_width: int
+    :param img_height: image shape height
+    :type img_height: int
+    :return:
     """
 
     mask_im = np.zeros((img_width, img_height, 4))
