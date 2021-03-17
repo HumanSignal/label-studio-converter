@@ -30,8 +30,12 @@ const arrayForWordSize = (ws: number, n: number) => {
 import os
 import json
 import numpy as np
+import logging
+
 from PIL import Image
 from collections import defaultdict
+
+logger = logging.getLogger(__name__)
 
 
 class InputStream:
@@ -84,21 +88,20 @@ def decode_rle(rle):
     return out
 
 
-def decode_from_completion(completion):
-    """ from LS completion to {"tag_name + label_name": [numpy uint8 image (width x height)]}
+def decode_from_annotation(from_name, results):
+    """ from LS annotation to {"tag_name + label_name": [numpy uint8 image (width x height)]}
     """
     layers = {}
     counters = defaultdict(int)
-    for result in completion['result']:
-        if result['type'] != 'brushlabels':
+    for result in results:
+        if result['type'].lower() != 'brushlabels':
             continue
 
-        rle = result['value']['rle']
+        rle = result['rle']
         width = result['original_width']
         height = result['original_height']
-        labels = result['value']['brushlabels']
-        tag_name = result['from_name']
-        name = tag_name + '-' + '-'.join(labels)
+        labels = result['brushlabels']
+        name = from_name + '-' + '-'.join(labels)
 
         # result count
         i = str(counters[name])
@@ -110,13 +113,12 @@ def decode_from_completion(completion):
     return layers
 
 
-def save_brush_images_from_completion(task_id, completion, out_dir, out_format='numpy'):
-    os.makedirs(out_dir, exist_ok=True)
-    layers = decode_from_completion(completion)
+def save_brush_images_from_annotation(task_id, from_name, results, out_dir, out_format='numpy'):
+    layers = decode_from_annotation(from_name, results)
     for name in layers:
-        filename = os.path.join(out_dir, 'task-' + str(task_id) + '-completion-' + str(completion['id']) + '-' + name)
+        filename = os.path.join(out_dir, 'task-' + str(task_id) + '-' + name)
         image = layers[name]
-
+        logger.debug(f'Save image to {filename}')
         if out_format == 'numpy':
             np.save(filename, image)
         elif out_format == 'png':
@@ -126,22 +128,19 @@ def save_brush_images_from_completion(task_id, completion, out_dir, out_format='
             raise Exception('Unknown output format for brush converter')
 
 
-def convert_task(task, out_dir, out_format='numpy'):
-    """ Task with multiple completions to brush images, out_format = numpy | png
+def convert_task(item, out_dir, out_format='numpy'):
+    """ Task with multiple annotations to brush images, out_format = numpy | png
     """
-    completions = task['completions']
-    for completion in completions:
-        save_brush_images_from_completion(task['id'], completion, out_dir, out_format)
+    task_id = item['id']
+    for from_name, results in item['output'].items():
+        save_brush_images_from_annotation(task_id, from_name, results, out_dir, out_format)
 
 
-def convert_task_dir(inp_dir, out_dir, out_format='numpy'):
-    """ Directory with tasks and completion to brush images, out_format = numpy | png
+def convert_task_dir(items, out_dir, out_format='numpy'):
+    """ Directory with tasks and annotation to brush images, out_format = numpy | png
     """
-    files = [f for f in os.listdir(inp_dir) if f.endswith('.json')]
-    for f in files:
-        f = os.path.join(inp_dir, f)
-        task = json.load(open(f))
-        convert_task(task, out_dir, out_format)
+    for item in items:
+        convert_task(item, out_dir, out_format)
 
 
-# convert_task_dir('/ls/test/completions', '/ls/test/completions/output', 'numpy')
+# convert_task_dir('/ls/test/annotations', '/ls/test/annotations/output', 'numpy')

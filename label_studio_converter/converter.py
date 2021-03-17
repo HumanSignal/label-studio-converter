@@ -155,12 +155,16 @@ class Converter(object):
             image_dir = kwargs.get('image_dir')
             self.convert_to_voc(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
         elif format == Format.BRUSH_TO_NUMPY:
-            brush.convert_task_dir(input_data, output_data, out_format='numpy')
+            items = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
+            brush.convert_task_dir(items, output_data, out_format='numpy')
         elif format == Format.BRUSH_TO_PNG:
-            brush.convert_task_dir(input_data, output_data, out_format='png')
+            items = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
+            brush.convert_task_dir(items, output_data, out_format='png')
         elif format == Format.ASR_MANIFEST:
             items = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
-            convert_to_asr_json_manifest(items, output_data, data_key=self._data_keys[0], project_dir=self.project_dir)
+            convert_to_asr_json_manifest(
+                items, output_data, data_key=self._data_keys[0], project_dir=self.project_dir,
+                upload_dir=self.upload_dir)
 
     def _get_data_keys_and_output_tags(self, output_tags=None):
         data_keys = set()
@@ -201,7 +205,6 @@ class Converter(object):
         if not ('Image' in input_tag_types and ('BrushLabels' in output_tag_types or 'brushlabels' in output_tag_types)):
             all_formats.remove(Format.BRUSH_TO_NUMPY.name)
             all_formats.remove(Format.BRUSH_TO_PNG.name)
-
         if not (('Audio' in input_tag_types or 'AudioPlus' in input_tag_types) and 'TextArea' in output_tag_types):
             all_formats.remove(Format.ASR_MANIFEST.name)
 
@@ -243,10 +246,11 @@ class Converter(object):
                 annotations = d['completions']
             tmp = list(filter(lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False)), annotations))
             if len(tmp) > 0:
+                # TODO: only one annotation per task is supported for non full JSON formats
                 result = sorted(tmp, key=lambda x: x.get('created_at', 0), reverse=True)[0]['result']
             else:
                 return None
-            
+
         elif 'result' in d:
             result = d['result']
         inputs = d['data']
