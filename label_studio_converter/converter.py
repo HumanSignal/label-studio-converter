@@ -360,8 +360,12 @@ class Converter(object):
         else:
             output_image_dir = os.path.join(output_dir, 'images')
             os.makedirs(output_image_dir, exist_ok=True)
-        images, categories, annotations = [], [], []
-        category_name_to_id = {}
+        images, annotations = [], []
+        categories = [
+            {"id": n, "name": x} for n, x in enumerate(self._schema["label"]["labels"])
+        ]
+        category_name_to_id = {x["name"]: x["id"] for x in categories}
+
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
@@ -397,13 +401,6 @@ class Converter(object):
                 else:
                     raise ValueError("Unknown label type")
 
-                if category_name not in category_name_to_id:
-                    category_id = len(categories)
-                    category_name_to_id[category_name] = category_id
-                    categories.append({
-                        'id': category_id,
-                        'name': category_name
-                    })
                 category_id = category_name_to_id[category_name]
 
                 annotation_id = len(annotations)
