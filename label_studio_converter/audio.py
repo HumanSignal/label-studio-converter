@@ -10,7 +10,7 @@ from .utils import get_audio_duration, ensure_dir, download
 logger = logging.getLogger(__name__)
 
 
-def convert_to_asr_json_manifest(input_data, output_dir, data_key, project_dir):
+def convert_to_asr_json_manifest(input_data, output_dir, data_key, project_dir, upload_dir):
     audio_dir_rel = 'audio'
     output_audio_dir = os.path.join(output_dir, audio_dir_rel)
     ensure_dir(output_dir), ensure_dir(output_audio_dir)
@@ -19,7 +19,8 @@ def convert_to_asr_json_manifest(input_data, output_dir, data_key, project_dir):
         for item in input_data:
             audio_path = item['input'][data_key]
             try:
-                audio_path = download(audio_path, output_audio_dir, project_dir=project_dir, return_relative_path=True)
+                audio_path = download(audio_path, output_audio_dir, project_dir=project_dir, upload_dir=upload_dir,
+                                      return_relative_path=True)
             except:
                 logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                     image_path=audio_path, item=item

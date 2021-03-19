@@ -73,7 +73,10 @@ def create_tokens_and_tags(text, spans):
     return tokens, tags
 
 
-def _get_upload_dir(project_dir):
+def _get_upload_dir(project_dir=None, upload_dir=None):
+    """Return either upload_dir, or path by LS_UPLOAD_DIR, or project_dir/upload"""
+    if upload_dir:
+        return upload_dir
     upload_dir = os.environ.get('LS_UPLOAD_DIR')
     if not upload_dir and project_dir:
         upload_dir = os.path.join(project_dir, 'upload')
@@ -84,12 +87,12 @@ def _get_upload_dir(project_dir):
     return upload_dir
 
 
-def download(url, output_dir, filename=None, project_dir=None, return_relative_path=False):
+def download(url, output_dir, filename=None, project_dir=None, return_relative_path=False, upload_dir=None):
     is_local_file = url.startswith('/data/') and '?d=' in url
     is_uploaded_file = url.startswith('/data/upload')
 
     if is_uploaded_file:
-        upload_dir = _get_upload_dir(project_dir)
+        upload_dir = _get_upload_dir(project_dir, upload_dir)
         filename = url.replace('/data/upload/', '')
         filepath = os.path.join(upload_dir, filename)
         logger.debug('Copy {filepath} to {output_dir}'.format(filepath=filepath, output_dir=output_dir))
