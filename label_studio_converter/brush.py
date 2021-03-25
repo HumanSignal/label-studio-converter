@@ -113,10 +113,15 @@ def decode_from_annotation(from_name, results):
     return layers
 
 
-def save_brush_images_from_annotation(task_id, from_name, results, out_dir, out_format='numpy'):
+def save_brush_images_from_annotation(task_id, annotation_id, completed_by,
+                                      from_name, results, out_dir, out_format='numpy'):
     layers = decode_from_annotation(from_name, results)
+    email = completed_by.get('email', 'none')
+    email = "".join(x for x in email if x.isalnum() or x == '@' or x == '.')  # sanitize filename
+
     for name in layers:
-        filename = os.path.join(out_dir, 'task-' + str(task_id) + '-' + name)
+        filename = os.path.join(out_dir, 'task-' + str(task_id) + '-annotation-' + str(annotation_id)
+                                + '-by-' + email + '-' + name)
         image = layers[name]
         logger.debug(f'Save image to {filename}')
         if out_format == 'numpy':
@@ -131,9 +136,9 @@ def save_brush_images_from_annotation(task_id, from_name, results, out_dir, out_
 def convert_task(item, out_dir, out_format='numpy'):
     """ Task with multiple annotations to brush images, out_format = numpy | png
     """
-    task_id = item['id']
     for from_name, results in item['output'].items():
-        save_brush_images_from_annotation(task_id, from_name, results, out_dir, out_format)
+        save_brush_images_from_annotation(item['id'], item['annotation_id'], item['completed_by'],
+                                          from_name, results, out_dir, out_format)
 
 
 def convert_task_dir(items, out_dir, out_format='numpy'):

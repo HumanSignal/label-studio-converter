@@ -134,6 +134,7 @@ class Converter(object):
     def convert(self, input_data, output_data, format, is_dir=True, **kwargs):
         if isinstance(format, str):
             format = Format.from_string(format)
+            
         if format == Format.JSON:
             self.convert_to_json(input_data, output_data, is_dir=is_dir)
         elif format == Format.JSON_MIN:
@@ -223,52 +224,65 @@ class Converter(object):
                     yield item
 
     def iter_from_json_file(self, json_file):
+        """ Extract annotation results from json file
+
+        param json_file: path to task list or dict with annotations
+        """
         with io.open(json_file, encoding='utf8') as f:
             data = json.load(f)
+            # one task
             if isinstance(data, Mapping):
-                yield self.load_from_dict(data)
+                for item in self.annotation_result_from_task(data):
+                    yield item
+
+            # many tasks
             elif isinstance(data, list):
-                for item in data:
-                    prepared_item = self.load_from_dict(item)
-                    if prepared_item is not None:
-                        yield prepared_item
+                for task in data:
+                    for item in self.annotation_result_from_task(task):
+                        if item is not None:
+                            yield item
 
-    def load_from_dict(self, d):
-        has_annotations = 'completions' in d or 'annotations' in d
-        if not has_annotations and 'result' not in d:
-            raise KeyError('Each annotation dict item should contain "annotations" or "result" key, '
+    def annotation_result_from_task(self, task):
+        has_annotations = 'completions' in task or 'annotations' in task
+        if not has_annotations:
+            raise KeyError('Each task dict item should contain "annotations" or "completions" [deprecated],'
                            'where value is list of dicts')
-        result = []
-        if has_annotations:
-            # get last not skipped completion and make result from it
-            annotations = d.get('annotations')
-            if annotations is None:
-                annotations = d['completions']
-            tmp = list(filter(lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False)), annotations))
-            if len(tmp) > 0:
-                # TODO: only one annotation per task is supported for non full JSON formats
-                result = sorted(tmp, key=lambda x: x.get('created_at', 0), reverse=True)[0]['result']
-            else:
-                return None
 
-        elif 'result' in d:
-            result = d['result']
-        inputs = d['data']
-        outputs = defaultdict(list)
-        for r in result:
-            if 'from_name' in r and r['from_name'] in self._output_tags:
-                v = deepcopy(r['value'])
-                v['type'] = self._schema[r['from_name']]['type']
-                if 'original_width' in r:
-                    v['original_width'] = r['original_width']
-                if 'original_height' in r:
-                    v['original_height'] = r['original_height']
-                outputs[r['from_name']].append(v)
-        return {
-            'id': d['id'],
-            'input': inputs,
-            'output': outputs
-        }
+        # get last not skipped completion and make result from it
+        annotations = task['annotations'] if 'annotations' in task else task['completions']
+        
+        # skip cancelled annotations
+        cancelled = lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False))
+        annotations = list(filter(cancelled, annotations))
+        if not annotations:
+            return None
+        
+        # sort by creation time
+        annotations = sorted(annotations, key=lambda x: x.get('created_at', 0), reverse=True)
+
+        for annotation in annotations:
+            inputs = task['data']
+            result = annotation['result']
+            outputs = defaultdict(list)
+
+            # get results only as output
+            for r in result:
+                if 'from_name' in r and r['from_name'] in self._output_tags:
+                    v = deepcopy(r['value'])
+                    v['type'] = self._schema[r['from_name']]['type']
+                    if 'original_width' in r:
+                        v['original_width'] = r['original_width']
+                    if 'original_height' in r:
+                        v['original_height'] = r['original_height']
+                    outputs[r['from_name']].append(v)
+
+            yield {
+                'id': task['id'],
+                'input': inputs,
+                'output': outputs,
+                'completed_by': annotation.get('completed_by', {}),
+                'annotation_id': annotation.get('id')
+            }
 
     def _check_format(self, fmt):
         pass
@@ -305,12 +319,15 @@ class Converter(object):
         output_file = os.path.join(output_dir, 'result.json')
         records = []
         item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
+
         for item in item_iterator(input_data):
             record = deepcopy(item['input'])
             if item.get('id') is not None:
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 record[name] = self._prettify(value)
+            record['annotator'] = item['completed_by'].get('email')
+            record['annotation_id'] = item['annotation_id']
             records.append(record)
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
@@ -322,6 +339,7 @@ class Converter(object):
         output_file = os.path.join(output_dir, 'result.csv')
         records = []
         item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
+
         for item in item_iterator(input_data):
             record = deepcopy(item['input'])
             if item.get('id') is not None:
@@ -329,6 +347,8 @@ class Converter(object):
             for name, value in item['output'].items():
                 pretty_value = self._prettify(value)
                 record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value)
+            record['annotator'] = item['completed_by'].get('email')
+            record['annotation_id'] = item['annotation_id']
             records.append(record)
 
         pd.DataFrame.from_records(records).to_csv(output_file, index=False, **kwargs)
@@ -422,7 +442,8 @@ class Converter(object):
                         'bbox': [x, y, w, h],
                         'ignore': 0,
                         'iscrowd': 0,
-                        'area': w * h
+                        'area': w * h,
+                        'annotator': item['completed_by'].get('email')
                     })
                 elif "polygonlabels" in label:
                     points_abs = [(x / 100 * width, y / 100 * height) for x, y in label["points"]]
@@ -436,7 +457,8 @@ class Converter(object):
                         'bbox': get_polygon_bounding_box(x, y),
                         'ignore': 0,
                         'iscrowd': 0,
-                        'area': get_polygon_area(x, y)
+                        'area': get_polygon_area(x, y),
+                        'annotator': item['completed_by'].get('email')
                     })
                 else:
                     raise ValueError("Unknown label type")
@@ -510,6 +532,7 @@ class Converter(object):
             root_node = doc.documentElement
             create_child_node(doc, 'folder', output_image_dir_rel, root_node)
             create_child_node(doc, 'filename', image_name, root_node)
+            create_child_node(doc, 'annotator', item['completed_by'].get('email', 'none'), root_node)
 
             source_node = doc.createElement('source')
             create_child_node(doc, 'database', 'MyDatabase', source_node)
@@ -546,6 +569,7 @@ class Converter(object):
                 create_child_node(doc, 'ymin', str(y), bndbox_node)
                 create_child_node(doc, 'xmax', str(x + w), bndbox_node)
                 create_child_node(doc, 'ymax', str(y + h), bndbox_node)
+
                 object_node.appendChild(bndbox_node)
                 root_node.appendChild(object_node)
 
