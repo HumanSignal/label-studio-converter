@@ -443,7 +443,6 @@ class Converter(object):
                         'ignore': 0,
                         'iscrowd': 0,
                         'area': w * h,
-                        'annotator': item['completed_by'].get('email')
                     })
                 elif "polygonlabels" in label:
                     points_abs = [(x / 100 * width, y / 100 * height) for x, y in label["points"]]
@@ -457,11 +456,13 @@ class Converter(object):
                         'bbox': get_polygon_bounding_box(x, y),
                         'ignore': 0,
                         'iscrowd': 0,
-                        'area': get_polygon_area(x, y),
-                        'annotator': item['completed_by'].get('email')
+                        'area': get_polygon_area(x, y)
                     })
                 else:
                     raise ValueError("Unknown label type")
+
+                if os.getenv('LABEL_STUDIO_FORCE_ANNOTATOR_EXPORT'):
+                    annotations[-1].update({'annotator': item['completed_by'].get('email')})
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump({
@@ -532,14 +533,15 @@ class Converter(object):
             root_node = doc.documentElement
             create_child_node(doc, 'folder', output_image_dir_rel, root_node)
             create_child_node(doc, 'filename', image_name, root_node)
-            create_child_node(doc, 'annotator', item['completed_by'].get('email', 'none'), root_node)
 
             source_node = doc.createElement('source')
             create_child_node(doc, 'database', 'MyDatabase', source_node)
             create_child_node(doc, 'annotation', 'COCO2017', source_node)
             create_child_node(doc, 'image', 'flickr', source_node)
             create_child_node(doc, 'flickrid', 'NULL', source_node)
+            create_child_node(doc, 'annotator', item['completed_by'].get('email', 'none'), source_node)
             root_node.appendChild(source_node)
+
             owner_node = doc.createElement('owner')
             create_child_node(doc, 'flickrid', 'NULL', owner_node)
             create_child_node(doc, 'name', 'Label Studio', owner_node)
@@ -550,7 +552,6 @@ class Converter(object):
             create_child_node(doc, 'depth', str(channels), size_node)
             root_node.appendChild(size_node)
             create_child_node(doc, 'segmented', '0', root_node)
-
 
             for bbox in bboxes:
                 name = bbox['rectanglelabels'][0]
