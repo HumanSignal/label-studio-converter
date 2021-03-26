@@ -309,7 +309,7 @@ def mask2rle(contours, contour_id, img_width, img_height):
     :type img_height: int
     :return:
     """
-
+    import cv2  # opencv
     mask_im = np.zeros((img_width, img_height, 4))
     mask_contours = cv2.drawContours(mask_im, contours, contour_id, color=(0, 255, 0, 100), thickness=-1)
     rle_out = encode_rle(mask_contours.ravel().astype(int))
