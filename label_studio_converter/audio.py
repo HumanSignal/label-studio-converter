@@ -31,7 +31,8 @@ def convert_to_asr_json_manifest(input_data, output_dir, data_key, project_dir, 
             metadata = {
                 'audio_filepath': audio_path,
                 'duration': duration,
-                'text': transcript
+                'text': transcript,
+                'annotator': item['completed_by'].get('email', 'none')
             }
             json.dump(metadata, fout)
             fout.write('\n')
