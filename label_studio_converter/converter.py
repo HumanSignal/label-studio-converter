@@ -56,7 +56,7 @@ class Converter(object):
     _FORMAT_INFO = {
         Format.JSON: {
             'title': 'JSON',
-            'description': 'List of items in raw JSON format stored in one JSON file. Use to export both the data and the annotations for a dataset.',
+            'description': "List of items in raw JSON format stored in one JSON file. Use to export both the data and the annotations for a dataset. It's Label Studio Common Format",
             'link': 'https://labelstud.io/guide/export.html#JSON'
         },
         Format.JSON_MIN: {
