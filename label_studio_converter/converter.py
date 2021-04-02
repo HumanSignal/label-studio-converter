@@ -82,13 +82,13 @@ class Converter(object):
         },
         Format.COCO: {
             'title': 'COCO',
-            'description': 'Popular machine learning format used by the COCO dataset for object detection and image segmentation tasks.',
+            'description': 'Popular machine learning format used by the COCO dataset for object detection and image segmentation tasks with polygons and rectangles.',
             'link': 'https://labelstud.io/guide/export.html#COCO',
             'tags': ['image segmentation', 'object detection']
         },
         Format.VOC: {
             'title': 'Pascal VOC XML',
-            'description': 'Popular XML-formatted task data used for object detection and image segmentation tasks.',
+            'description': 'Popular XML format used for object detection and polygon image segmentation tasks.',
             'link': 'https://labelstud.io/guide/export.html#Pascal-VOC-XML',
             'tags': ['image segmentation', 'object detection']
         },
