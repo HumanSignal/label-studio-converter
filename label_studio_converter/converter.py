@@ -57,22 +57,26 @@ class Converter(object):
     _FORMAT_INFO = {
         Format.JSON: {
             'title': 'JSON',
-            'description': "List of items in raw JSON format stored in one JSON file. Use to export both the data and the annotations for a dataset. It's Label Studio Common Format",
+            'description': "List of items in raw JSON format stored in one JSON file. Use to export both the data "
+                           "and the annotations for a dataset. It's Label Studio Common Format",
             'link': 'https://labelstud.io/guide/export.html#JSON'
         },
         Format.JSON_MIN: {
             'title': 'JSON-MIN',
-            'description': 'List of items where only "from_name", "to_name" values from the raw JSON format are exported. Use to export only the annotations for a dataset.',
+            'description': 'List of items where only "from_name", "to_name" values from the raw JSON format are '
+                           'exported. Use to export only the annotations for a dataset.',
             'link': 'https://labelstud.io/guide/export.html#JSON-MIN',
         },
         Format.CSV: {
             'title': 'CSV',
-            'description': 'Results are stored as comma-separated values with the column names specified by the values of the "from_name" and "to_name" fields.',
+            'description': 'Results are stored as comma-separated values with the column names specified by the '
+                           'values of the "from_name" and "to_name" fields.',
             'link': 'https://labelstud.io/guide/export.html#CSV'
         },
         Format.TSV: {
             'title': 'TSV',
-            'description': 'Results are stored in tab-separated tabular file with column names specified by "from_name" "to_name" values',
+            'description': 'Results are stored in tab-separated tabular file with column names specified by '
+                           '"from_name" "to_name" values',
             'link': 'https://labelstud.io/guide/export.html#TSV'
         },
         Format.CONLL2003: {
@@ -83,7 +87,8 @@ class Converter(object):
         },
         Format.COCO: {
             'title': 'COCO',
-            'description': 'Popular machine learning format used by the COCO dataset for object detection and image segmentation tasks with polygons and rectangles.',
+            'description': 'Popular machine learning format used by the COCO dataset for object detection and image '
+                           'segmentation tasks with polygons and rectangles.',
             'link': 'https://labelstud.io/guide/export.html#COCO',
             'tags': ['image segmentation', 'object detection']
         },
@@ -91,6 +96,13 @@ class Converter(object):
             'title': 'Pascal VOC XML',
             'description': 'Popular XML format used for object detection and polygon image segmentation tasks.',
             'link': 'https://labelstud.io/guide/export.html#Pascal-VOC-XML',
+            'tags': ['image segmentation', 'object detection']
+        },
+        Format.YOLO: {
+            'title': 'YOLO',
+            'description': 'Popular TXT format is created for each image file. Each txt file contains annotations for '
+                           'the corresponding image file, that is object class, object coordinates, height & width.',
+            'link': 'https://labelstud.io/guide/export.html#YOLO',
             'tags': ['image segmentation', 'object detection']
         },
         Format.BRUSH_TO_NUMPY: {
@@ -107,7 +119,8 @@ class Converter(object):
         },
         Format.ASR_MANIFEST: {
             'title': 'ASR Manifest',
-            'description': 'Export audio transcription labels for automatic speech recognition as the JSON manifest format expected by NVIDIA NeMo models.',
+            'description': 'Export audio transcription labels for automatic speech recognition as the JSON manifest '
+                           'format expected by NVIDIA NeMo models.',
             'link': 'https://labelstud.io/guide/export.html#ASR-MANIFEST',
             'tags': ['speech recognition']
         }
@@ -156,7 +169,8 @@ class Converter(object):
         elif format == Format.YOLO:
             image_dir = kwargs.get('image_dir')
             label_dir = kwargs.get('label_dir')
-            self.convert_to_yolo(input_data, output_data, output_image_dir=image_dir, output_label_dir=label_dir,is_dir=is_dir)
+            self.convert_to_yolo(input_data, output_data, output_image_dir=image_dir,
+                                 output_label_dir=label_dir, is_dir=is_dir)
         elif format == Format.VOC:
             image_dir = kwargs.get('image_dir')
             self.convert_to_voc(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
