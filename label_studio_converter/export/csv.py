@@ -65,6 +65,7 @@ class ExportToCSV(object):
                     'annotation_id': annotation.get('id'),
                     'annotator': self._get_annotator_id(annotation)
                 }
+                record.update(task['data'])
                 for result in self._get_annotation_results(annotation, minify, flat_regions):
                     rec = deepcopy(record)
                     rec.update(result)
