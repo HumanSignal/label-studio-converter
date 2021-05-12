@@ -1,7 +1,7 @@
 import setuptools
 
 # Package version
-version = '0.0.28'
+version = '0.0.29rc0'
 
 # Readme
 with open('README.md', 'r') as f:
@@ -28,5 +28,10 @@ setuptools.setup(
         'Operating System :: OS Independent',
     ],
     install_requires=requirements,
-    python_requires='>=3.6'
+    python_requires='>=3.6',
+    entry_points={
+        'console_scripts': [
+            'label-studio-converter=label_studio_converter.main:main',
+        ],
+    }
 )
