@@ -45,14 +45,25 @@ class ExportToCSV(object):
             else:
                 yield {self._get_result_name(result): result}
 
+    def _get_annotator_id(self, annotation):
+        annotator = annotation.get('completed_by', {})
+        if isinstance(annotator, int):
+            return annotator
+        elif isinstance(annotator, dict):
+            return annotator.get('email') or annotator.get('id')
+
     def to_records(self, minify=True, flat_regions=True):
         records = []
         for task in self.tasks:
-            for annotation in task['annotations']:
+            annotations = task.get('annotations')
+            if annotations is None:
+                # Temp legacy fix
+                annotations = task['completions']
+            for annotation in annotations:
                 record = {
                     'id': task['id'],
                     'annotation_id': annotation.get('id'),
-                    'annotator': annotation.get('completed_by', {}).get('email'),
+                    'annotator': self._get_annotator_id(annotation)
                 }
                 for result in self._get_annotation_results(annotation, minify, flat_regions):
                     rec = deepcopy(record)
