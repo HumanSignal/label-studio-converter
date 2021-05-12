@@ -39,6 +39,7 @@ class Format(Enum):
     BRUSH_TO_NUMPY = 8
     BRUSH_TO_PNG = 9
     ASR_MANIFEST = 10
+    YOLO = 11
 
     def __str__(self):
         return self.name
@@ -56,22 +57,26 @@ class Converter(object):
     _FORMAT_INFO = {
         Format.JSON: {
             'title': 'JSON',
-            'description': "List of items in raw JSON format stored in one JSON file. Use to export both the data and the annotations for a dataset. It's Label Studio Common Format",
+            'description': "List of items in raw JSON format stored in one JSON file. Use to export both the data "
+                           "and the annotations for a dataset. It's Label Studio Common Format",
             'link': 'https://labelstud.io/guide/export.html#JSON'
         },
         Format.JSON_MIN: {
             'title': 'JSON-MIN',
-            'description': 'List of items where only "from_name", "to_name" values from the raw JSON format are exported. Use to export only the annotations for a dataset.',
+            'description': 'List of items where only "from_name", "to_name" values from the raw JSON format are '
+                           'exported. Use to export only the annotations for a dataset.',
             'link': 'https://labelstud.io/guide/export.html#JSON-MIN',
         },
         Format.CSV: {
             'title': 'CSV',
-            'description': 'Results are stored as comma-separated values with the column names specified by the values of the "from_name" and "to_name" fields.',
+            'description': 'Results are stored as comma-separated values with the column names specified by the '
+                           'values of the "from_name" and "to_name" fields.',
             'link': 'https://labelstud.io/guide/export.html#CSV'
         },
         Format.TSV: {
             'title': 'TSV',
-            'description': 'Results are stored in tab-separated tabular file with column names specified by "from_name" "to_name" values',
+            'description': 'Results are stored in tab-separated tabular file with column names specified by '
+                           '"from_name" "to_name" values',
             'link': 'https://labelstud.io/guide/export.html#TSV'
         },
         Format.CONLL2003: {
@@ -82,7 +87,8 @@ class Converter(object):
         },
         Format.COCO: {
             'title': 'COCO',
-            'description': 'Popular machine learning format used by the COCO dataset for object detection and image segmentation tasks with polygons and rectangles.',
+            'description': 'Popular machine learning format used by the COCO dataset for object detection and image '
+                           'segmentation tasks with polygons and rectangles.',
             'link': 'https://labelstud.io/guide/export.html#COCO',
             'tags': ['image segmentation', 'object detection']
         },
@@ -90,6 +96,13 @@ class Converter(object):
             'title': 'Pascal VOC XML',
             'description': 'Popular XML format used for object detection and polygon image segmentation tasks.',
             'link': 'https://labelstud.io/guide/export.html#Pascal-VOC-XML',
+            'tags': ['image segmentation', 'object detection']
+        },
+        Format.YOLO: {
+            'title': 'YOLO',
+            'description': 'Popular TXT format is created for each image file. Each txt file contains annotations for '
+                           'the corresponding image file, that is object class, object coordinates, height & width.',
+            'link': 'https://labelstud.io/guide/export.html#YOLO',
             'tags': ['image segmentation', 'object detection']
         },
         Format.BRUSH_TO_NUMPY: {
@@ -106,7 +119,8 @@ class Converter(object):
         },
         Format.ASR_MANIFEST: {
             'title': 'ASR Manifest',
-            'description': 'Export audio transcription labels for automatic speech recognition as the JSON manifest format expected by NVIDIA NeMo models.',
+            'description': 'Export audio transcription labels for automatic speech recognition as the JSON manifest '
+                           'format expected by NVIDIA NeMo models.',
             'link': 'https://labelstud.io/guide/export.html#ASR-MANIFEST',
             'tags': ['speech recognition']
         }
@@ -152,6 +166,11 @@ class Converter(object):
         elif format == Format.COCO:
             image_dir = kwargs.get('image_dir')
             self.convert_to_coco(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
+        elif format == Format.YOLO:
+            image_dir = kwargs.get('image_dir')
+            label_dir = kwargs.get('label_dir')
+            self.convert_to_yolo(input_data, output_data, output_image_dir=image_dir,
+                                 output_label_dir=label_dir, is_dir=is_dir)
         elif format == Format.VOC:
             image_dir = kwargs.get('image_dir')
             self.convert_to_voc(input_data, output_data, output_image_dir=image_dir, is_dir=is_dir)
@@ -470,6 +489,86 @@ class Converter(object):
                 'images': images,
                 'categories': categories,
                 'annotations': annotations,
+                'info': {
+                    'year': datetime.now().year,
+                    'version': '1.0',
+                    'contributor': 'Label Studio'
+                }
+            }, fout, indent=2)
+
+    def convert_to_yolo(self, input_data, output_dir, output_image_dir=None, output_label_dir=None, is_dir=True):
+        self._check_format(Format.YOLO)
+        ensure_dir(output_dir)
+        notes_file = os.path.join(output_dir, 'notes.json')
+        class_file = os.path.join(output_dir, 'classes.txt')
+        if output_image_dir is not None:
+            ensure_dir(output_image_dir)
+        else:
+            output_image_dir = os.path.join(output_dir, 'images')
+            os.makedirs(output_image_dir, exist_ok=True)
+        if output_label_dir is not None:
+            ensure_dir(output_label_dir)
+        else:
+            output_label_dir = os.path.join(output_dir, 'labels')
+            os.makedirs(output_label_dir, exist_ok=True)
+        categories = []
+        category_name_to_id = {}
+        data_key = self._data_keys[0]
+        item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
+        for item_idx, item in enumerate(item_iterator):
+            if not item['output']:
+                logger.warning('No completions found for item #' + str(item_idx))
+                continue
+            image_path = item['input'][data_key]
+            if not os.path.exists(image_path):
+                try:
+                    image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
+                                          return_relative_path=True)
+                except:
+                    logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
+                        image_path=image_path, item=item
+                    ), exc_info=True)
+            labels = next(iter(item['output'].values()))
+            if len(labels) == 0:
+                logger.error('Empty bboxes.')
+                continue
+            label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0]+'.txt')
+            annotations =[]
+            for label in labels:
+                if 'rectanglelabels' in label:
+                    category_name = label['rectanglelabels'][0]
+                else:
+                    raise ValueError("Unknown label type")
+                if category_name not in category_name_to_id:
+                    category_id = len(categories)
+                    category_name_to_id[category_name] = category_id
+                    categories.append({
+                        'id': category_id,
+                        'name': category_name
+                    })
+                category_id = category_name_to_id[category_name]
+
+                if "rectanglelabels" in label:
+                    x = (label['x'] + label['width']/2) / 100
+                    y = (label['y'] + label['height']/2) / 100
+                    w = label['width'] / 100
+                    h = label['height'] / 100
+                    annotations.append([category_id, x, y, w, h])
+                else:
+                    raise ValueError("Unknown label type")
+            with open(label_path, 'w') as f:
+                for annotation in annotations:
+                    for idx, l in enumerate(annotation):
+                        if idx == len(annotation) -1:
+                            f.write(f"{l}\n")
+                        else:
+                            f.write(f"{l} ")
+        with open(class_file, 'w', encoding='utf8') as f:
+            for c in categories:
+                f.write(c['name']+'\n')
+        with io.open(notes_file, mode='w', encoding='utf8') as fout:
+            json.dump({
+                'categories': categories,
                 'info': {
                     'year': datetime.now().year,
                     'version': '1.0',

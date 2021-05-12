@@ -1,7 +1,5 @@
 import setuptools
-
-# Package version
-version = '0.0.29rc0'
+import label_studio_converter
 
 # Readme
 with open('README.md', 'r') as f:
@@ -13,7 +11,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name='label-studio-converter',
-    version=version,
+    version=label_studio_converter.__version__,
     author='Heartex',
     author_email="hello@heartex.ai",
     description='Format converter add-on for Label Studio',
