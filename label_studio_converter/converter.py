@@ -219,6 +219,7 @@ class Converter(object):
             all_formats.remove(Format.CONLL2003.name)
         if not ('Image' in input_tag_types and 'RectangleLabels' in output_tag_types):
             all_formats.remove(Format.VOC.name)
+            all_formats.remove(Format.YOLO.name)
         if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
                                                 'PolygonLabels' in output_tag_types)):
             all_formats.remove(Format.COCO.name)
@@ -540,7 +541,7 @@ class Converter(object):
                 logger.error('Empty bboxes.')
                 continue
             label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0]+'.txt')
-            annotations =[]
+            annotations = []
             for label in labels:
                 if 'rectanglelabels' in label:
                     category_name = label['rectanglelabels'][0]
