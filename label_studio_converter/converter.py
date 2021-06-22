@@ -531,7 +531,7 @@ class Converter(object):
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
-                                          return_relative_path=True)
+                                          return_relative_path=True, upload_dir=self.upload_dir)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
