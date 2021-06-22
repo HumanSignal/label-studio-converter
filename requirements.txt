@@ -2,3 +2,4 @@ pandas>=0.24.0
 requests>=2.22.0,<3
 Pillow>=7,<8
 nltk==3.5
+appdirs>=1.4.3

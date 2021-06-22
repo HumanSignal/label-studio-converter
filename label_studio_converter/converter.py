@@ -6,7 +6,7 @@ import pandas as pd
 import xml.dom
 import xml.dom.minidom
 
-from shutil import copy2
+from shutil import copy2, copyfile
 from enum import Enum
 from datetime import datetime
 from glob import glob
@@ -20,6 +20,8 @@ from label_studio_converter.utils import (
 )
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest
+
+from utils import get_local_path
 
 logger = logging.getLogger(__name__)
 
@@ -528,6 +530,8 @@ class Converter(object):
                 logger.warning('No completions found for item #' + str(item_idx))
                 continue
             image_path = item['input'][data_key]
+            image_path = get_local_path(image_path)
+            copyfile(image_path, os.path.join(output_image_dir, os.path.basename(image_path)))
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
