@@ -217,13 +217,16 @@ class Converter(object):
         all_formats = [f.name for f in Format]
         if not ('Text' in input_tag_types and 'Labels' in output_tag_types):
             all_formats.remove(Format.CONLL2003.name)
-        if not ('Image' in input_tag_types and 'RectangleLabels' in output_tag_types):
+        if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
+                                                'Rectangle' in output_tag_types and 'Labels' in output_tag_types)):
             all_formats.remove(Format.VOC.name)
             all_formats.remove(Format.YOLO.name)
         if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
-                                                'PolygonLabels' in output_tag_types)):
+                                                'PolygonLabels' in output_tag_types) or
+                                                'Rectangle' in output_tag_types and 'Labels' in output_tag_types):
             all_formats.remove(Format.COCO.name)
-        if not ('Image' in input_tag_types and ('BrushLabels' in output_tag_types or 'brushlabels' in output_tag_types)):
+        if not ('Image' in input_tag_types and ('BrushLabels' in output_tag_types or 'brushlabels' in output_tag_types or
+                                                'Brush' in output_tag_types and 'Labels' in output_tag_types)):
             all_formats.remove(Format.BRUSH_TO_NUMPY.name)
             all_formats.remove(Format.BRUSH_TO_PNG.name)
         if not (('Audio' in input_tag_types or 'AudioPlus' in input_tag_types) and 'TextArea' in output_tag_types):
@@ -417,9 +420,14 @@ class Converter(object):
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
-            labels = next(iter(item['output'].values()))
+
+            # concatentate results over all tag names
+            labels = []
+            for key in item['output']:
+                labels += item['output'][key]
+
             if len(labels) == 0:
-                logger.error('Empty bboxes.')
+                logger.warning(f'Empty bboxes for {item["output"]}')
                 continue
 
             first = True
@@ -429,6 +437,8 @@ class Converter(object):
                     category_name = label['rectanglelabels'][0]
                 elif 'polygonlabels' in label:
                     category_name = label['polygonlabels'][0]
+                elif 'labels' in label:
+                    category_name = label['labels'][0]
                 else:
                     logger.warning("Unknown label type: " + str(label))
                     continue
@@ -456,7 +466,7 @@ class Converter(object):
 
                 annotation_id = len(annotations)
 
-                if "rectanglelabels" in label:
+                if 'rectanglelabels' in label or 'labels' in label:
                     x = int(label['x'] / 100 * width)
                     y = int(label['y'] / 100 * height)
                     w = int(label['width'] / 100 * width)
@@ -536,17 +546,26 @@ class Converter(object):
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
-            labels = next(iter(item['output'].values()))
+
+            # concatentate results over all tag names
+            labels = []
+            for key in item['output']:
+                labels += item['output'][key]
+
             if len(labels) == 0:
-                logger.error('Empty bboxes.')
+                logger.warning(f'Empty bboxes for {item["output"]}')
                 continue
+
             label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0]+'.txt')
             annotations = []
             for label in labels:
                 if 'rectanglelabels' in label:
                     category_name = label['rectanglelabels'][0]
+                elif 'labels' in label:
+                    category_name = label['labels'][0]
                 else:
-                    raise ValueError("Unknown label type")
+                    logger.warning(f"Unknown label type {label}")
+                    continue
                 if category_name not in category_name_to_id:
                     category_id = len(categories)
                     category_name_to_id[category_name] = category_id
@@ -556,14 +575,14 @@ class Converter(object):
                     })
                 category_id = category_name_to_id[category_name]
 
-                if "rectanglelabels" in label:
+                if "rectanglelabels" in label or 'labels' in label:
                     x = (label['x'] + label['width']/2) / 100
                     y = (label['y'] + label['height']/2) / 100
                     w = label['width'] / 100
                     h = label['height'] / 100
                     annotations.append([category_id, x, y, w, h])
                 else:
-                    raise ValueError("Unknown label type")
+                    raise ValueError(f"Unknown label type {label}")
             with open(label_path, 'w') as f:
                 for annotation in annotations:
                     for idx, l in enumerate(annotation):
@@ -627,8 +646,14 @@ class Converter(object):
                     _, _, channels = get_image_size_and_channels(full_image_path)
 
             bboxes = next(iter(item['output'].values()))
+
+            # concatentate results over all tag names
+            bboxes = []
+            for key in item['output']:
+                bboxes += item['output'][key]
+
             if len(bboxes) == 0:
-                logger.error('Empty bboxes.')
+                logger.warning(f'Empty bboxes for {item["output"]}')
                 continue
 
             width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
@@ -662,7 +687,11 @@ class Converter(object):
             create_child_node(doc, 'segmented', '0', root_node)
 
             for bbox in bboxes:
-                name = bbox['rectanglelabels'][0]
+                key = 'rectanglelabels' if 'rectanglelabels' in bbox else ('labels' if 'labels' in bbox else None)
+                if key is None:
+                    continue
+
+                name = bbox[key][0]
                 x = int(bbox['x'] / 100 * width)
                 y = int(bbox['y'] / 100 * height)
                 w = int(bbox['width'] / 100 * width)

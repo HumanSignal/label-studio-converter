@@ -1,3 +1,3 @@
 from .converter import Converter
 
-__version__ = '0.0.29rc1'
+__version__ = '0.0.29'

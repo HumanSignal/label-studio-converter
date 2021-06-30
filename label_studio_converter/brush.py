@@ -98,13 +98,15 @@ def decode_from_annotation(from_name, results):
     layers = {}
     counters = defaultdict(int)
     for result in results:
-        if result['type'].lower() != 'brushlabels':
+        key = 'brushlabels' if result['type'].lower() == 'brushlabels' else \
+            ('labels' if result['type'].lower() == 'labels' else None)
+        if key is None:
             continue
 
         rle = result['rle']
         width = result['original_width']
         height = result['original_height']
-        labels = result['brushlabels']
+        labels = result[key] if key in result else ['no_label']
         name = from_name + '-' + '-'.join(labels)
 
         # result count
