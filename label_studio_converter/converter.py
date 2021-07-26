@@ -223,7 +223,9 @@ class Converter(object):
             all_formats.remove(Format.YOLO.name)
         if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
                                                 'PolygonLabels' in output_tag_types) or
-                                                'Rectangle' in output_tag_types and 'Labels' in output_tag_types):
+                                                'Rectangle' in output_tag_types and 'Labels' in output_tag_types or
+                                                'PolygonLabels' in output_tag_types and 'Labels' in output_tag_types):
+
             all_formats.remove(Format.COCO.name)
         if not ('Image' in input_tag_types and ('BrushLabels' in output_tag_types or 'brushlabels' in output_tag_types or
                                                 'Brush' in output_tag_types and 'Labels' in output_tag_types)):
