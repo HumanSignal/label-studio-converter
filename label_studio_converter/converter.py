@@ -306,7 +306,10 @@ class Converter(object):
                 'input': inputs,
                 'output': outputs,
                 'completed_by': annotation.get('completed_by', {}),
-                'annotation_id': annotation.get('id')
+                'annotation_id': annotation.get('id'),
+                'created_at': annotation.get('created_at'),
+                'updated_at': annotation.get('updated_at'),
+                'lead_time': annotation.get('lead_time')
             }
 
     def _check_format(self, fmt):
@@ -320,9 +323,11 @@ class Converter(object):
             tag_type = j.pop('type')
             if tag_type == 'Choices' and len(j['choices']) == 1:
                 out.append(j['choices'][0])
+            elif tag_type == 'TextArea' and len(j['text']) == 1:
+                out.append(j['text'][0])
             else:
                 out.append(j)
-        return out[0] if tag_type == 'Choices' and len(out) == 1 else out
+        return out[0] if tag_type in ('Choices', 'TextArea') and len(out) == 1 else out
 
     def convert_to_json(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.JSON)
@@ -353,6 +358,9 @@ class Converter(object):
                 record[name] = self._prettify(value)
             record['annotator'] = item['completed_by'].get('email')
             record['annotation_id'] = item['annotation_id']
+            record['created_at'] = item['created_at']
+            record['updated_at'] = item['updated_at']
+            record['lead_time'] = item['lead_time']
             records.append(record)
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
@@ -374,6 +382,9 @@ class Converter(object):
                 record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value)
             record['annotator'] = item['completed_by'].get('email')
             record['annotation_id'] = item['annotation_id']
+            record['created_at'] = item['created_at']
+            record['updated_at'] = item['updated_at']
+            record['lead_time'] = item['lead_time']
             records.append(record)
 
         pd.DataFrame.from_records(records).to_csv(output_file, index=False, **kwargs)
