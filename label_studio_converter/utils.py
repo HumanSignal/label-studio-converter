@@ -87,7 +87,8 @@ def _get_upload_dir(project_dir=None, upload_dir=None):
     return upload_dir
 
 
-def download(url, output_dir, filename=None, project_dir=None, return_relative_path=False, upload_dir=None):
+def download(url, output_dir, filename=None, project_dir=None, return_relative_path=False, upload_dir=None,
+             download_resources=True):
     is_local_file = url.startswith('/data/') and '?d=' in url
     is_uploaded_file = url.startswith('/data/upload')
 
@@ -96,7 +97,8 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
         filename = url.replace('/data/upload/', '')
         filepath = os.path.join(upload_dir, filename)
         logger.debug('Copy {filepath} to {output_dir}'.format(filepath=filepath, output_dir=output_dir))
-        shutil.copy(filepath, output_dir)
+        if download_resources:
+            shutil.copy(filepath, output_dir)
         if return_relative_path:
             return os.path.join(os.path.basename(output_dir), filename)
         return filepath
@@ -117,10 +119,11 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
     filepath = os.path.join(output_dir, filename)
     if not os.path.exists(filepath):
         logger.info('Download {url} to {filepath}'.format(url=url, filepath=filepath))
-        r = requests.get(url)
-        r.raise_for_status()
-        with io.open(filepath, mode='wb') as fout:
-            fout.write(r.content)
+        if download_resources:
+            r = requests.get(url)
+            r.raise_for_status()
+            with io.open(filepath, mode='wb') as fout:
+                fout.write(r.content)
     if return_relative_path:
         return os.path.join(os.path.basename(output_dir), filename)
     return filepath
