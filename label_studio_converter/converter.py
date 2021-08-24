@@ -129,9 +129,10 @@ class Converter(object):
     def all_formats(self):
         return self._FORMAT_INFO
 
-    def __init__(self, config, project_dir, output_tags=None, upload_dir=None):
+    def __init__(self, config, project_dir, output_tags=None, upload_dir=None, download_resources=True):
         self.project_dir = project_dir
         self.upload_dir = upload_dir
+        self.download_resources = download_resources
         if isinstance(config, dict):
             self._schema = config
         elif isinstance(config, str):
@@ -184,7 +185,7 @@ class Converter(object):
             items = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
             convert_to_asr_json_manifest(
                 items, output_data, data_key=self._data_keys[0], project_dir=self.project_dir,
-                upload_dir=self.upload_dir)
+                upload_dir=self.upload_dir, download_resources=self.download_resources)
 
     def _get_data_keys_and_output_tags(self, output_tags=None):
         data_keys = set()
@@ -428,7 +429,8 @@ class Converter(object):
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
-                                          return_relative_path=True, upload_dir=self.upload_dir)
+                                          return_relative_path=True, upload_dir=self.upload_dir,
+                                          download_resources=self.download_resources)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
@@ -554,7 +556,8 @@ class Converter(object):
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
-                                          return_relative_path=True, upload_dir=self.upload_dir)
+                                          return_relative_path=True, upload_dir=self.upload_dir,
+                                          download_resources=self.download_resources)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
@@ -647,7 +650,7 @@ class Converter(object):
                 try:
                     image_path = download(
                         image_path, output_image_dir, project_dir=self.project_dir,
-                        upload_dir=self.upload_dir, return_relative_path=True)
+                        upload_dir=self.upload_dir, return_relative_path=True, download_resources=self.download_resources)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)
