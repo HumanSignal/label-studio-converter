@@ -8,6 +8,7 @@ import urllib
 import numpy as np
 import wave
 import shutil
+import argparse
 
 from operator import itemgetter
 from PIL import Image
@@ -16,6 +17,11 @@ from nltk.tokenize import WhitespaceTokenizer
 
 
 logger = logging.getLogger(__name__)
+
+
+class ExpandFullPath(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))
 
 
 def tokenize(text):

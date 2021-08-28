@@ -180,7 +180,7 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
     """ Encode a 1d array to rle
 
 
-    :param arr : flattened np.array from a 4d image (R, G, B, alpha)
+    :param arr: flattened np.array from a 4d image (R, G, B, alpha)
     :type arr: np.array
     :param wordsize: wordsize bits for decoding, default is 8
     :type wordsize: int
