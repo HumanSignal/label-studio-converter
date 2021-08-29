@@ -14,7 +14,7 @@ LABELING_CONFIG = """<View>
   <Image name="{# TO_NAME #}" value="$image"/>
   <RectangleLabels name="{# FROM_NAME #}" toName="image">
   
-    {# LABELS #}
+{# LABELS #}
   </RectangleLabels>
 </View>
 """
@@ -24,7 +24,7 @@ def generate_label_config(categories, to_name='image', from_name='label', filena
     labels = ''
     for key in sorted(categories.keys()):
         color = COLORS[key % len(COLORS)]
-        label = f'<Label value="{categories[key]}" background="rgba({color[0]}, {color[1]}, {color[2]}, 1)"/>\n'
+        label = f'    <Label value="{categories[key]}" background="rgba({color[0]}, {color[1]}, {color[2]}, 1)"/>\n'
         labels += label
 
     config = LABELING_CONFIG \
