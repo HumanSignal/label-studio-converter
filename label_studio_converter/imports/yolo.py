@@ -5,9 +5,38 @@ import logging
 from PIL import Image
 
 from label_studio_converter.utils import ExpandFullPath
-
+from label_studio_converter.imports.colors import COLORS
 
 logger = logging.getLogger('root')
+
+
+LABELING_CONFIG = """<View>
+  <Image name="{# TO_NAME #}" value="$image"/>
+  <RectangleLabels name="{# FROM_NAME #}" toName="image">
+  
+    {# LABELS #}
+  </RectangleLabels>
+</View>
+"""
+
+
+def generate_label_config(categories, to_name='image', from_name='label', filename=None):
+    labels = ''
+    for key in sorted(categories.keys()):
+        color = COLORS[key % len(COLORS)]
+        label = f'<Label value="{categories[key]}" background="rgba({color[0]}, {color[1]}, {color[2]}, 1)"/>\n'
+        labels += label
+
+    config = LABELING_CONFIG \
+        .replace('{# LABELS #}', labels) \
+        .replace('{# TO_NAME #}', to_name) \
+        .replace('{# FROM_NAME #}', from_name)
+
+    if filename:
+        with open(filename, 'w') as f:
+            f.write(config)
+
+    return config
 
 
 def convert_yolo_to_ls(input_dir, out_file,
@@ -29,10 +58,15 @@ def convert_yolo_to_ls(input_dir, out_file,
     logger.info('Reading YOLO notes and categories from %s', input_dir)
 
     # build categories=>labels dict
-    notes_file = os.path.join(input_dir, 'notes.json')
+    notes_file = os.path.join(input_dir, 'classes.txt')
     with open(notes_file) as f:
-        notes = json.load(f)
-    categories = {str(label['id']): label['name'] for label in notes['categories']}
+        lines = [line.strip() for line in f.readlines()]
+    categories = {i: line for i, line in enumerate(lines)}
+    logger.info(f'Found {len(categories)} categories')
+
+    # generate and save labeling config
+    label_config_file = out_file.replace('.json', '') + '.label_config.xml'
+    generate_label_config(categories, to_name, from_name, label_config_file)
 
     # labels, one label per image
     labels_dir = os.path.join(input_dir, 'labels')
@@ -83,7 +117,7 @@ def convert_yolo_to_ls(input_dir, out_file,
                         "height": height * 100,
                         "rotation": 0,
                         "rectanglelabels": [
-                            categories[label_id]
+                            categories[int(label_id)]
                         ]
                     },
                     "to_name": to_name,
@@ -102,12 +136,14 @@ def convert_yolo_to_ls(input_dir, out_file,
             json.dump(tasks, out)
 
         print('\n'
-              '  1. Create a new project in Label Studio\n'
-              '  2. You can use Local Storage (or others) to serve your images:\n'
-              '     https://labelstud.io/guide/storage.html#Local-storage\n'
-              f'  3. Import to the project "{out_file}"\n')
+              f'  1. Create a new project in Label Studio\n'
+              f'  2. Use Labeling Config from "{label_config_file}"\n'
+              f'  3. Setup serving for images [e.g. you can use Local Storage (or others):\n'
+              f'     https://labelstud.io/guide/storage.html#Local-storage]\n'
+              f'  4. Import "{out_file}" to the project\n')
     else:
-        logger.error('No labels converted')
+        logger.error('No labels converted, maybe ')
+
 
 def add_parser(subparsers):
     yolo = subparsers.add_parser('yolo')
@@ -145,6 +181,6 @@ def add_parser(subparsers):
     )
     yolo.add_argument(
         '--image-ext', dest='image_ext',
-        help='image extension to search: .jpg, .png,',
+        help='image extension to search: .jpg, .png',
         default='.jpg',
     )

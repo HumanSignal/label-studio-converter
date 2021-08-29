@@ -198,3 +198,4 @@ def get_polygon_bounding_box(x, y):
 
     x1, y1, x2, y2 = min(x), min(y), max(x), max(y)
     return [x1, y1, x2 - x1, y2 - y1]
+
