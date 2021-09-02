@@ -13,6 +13,7 @@ from glob import glob
 from collections import Mapping, defaultdict
 from operator import itemgetter
 from copy import deepcopy
+from PIL import Image
 
 from label_studio_converter.utils import (
     parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir,
@@ -424,13 +425,25 @@ class Converter(object):
         for item_idx, item in enumerate(item_iterator):
             if not item['output']:
                 logger.warning('No annotations found for item #' + str(item_idx))
-                continue
+
+            image_id = len(images)
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
                                           return_relative_path=True, upload_dir=self.upload_dir,
                                           download_resources=self.download_resources)
+                    
+                    #add image to list:
+                    with Image.open(os.path.join(output_dir, image_path)) as img:
+                        width, height = img.size
+                    
+                    images.append({
+                        'width': width,
+                        'height': height,
+                        'id': image_id,
+                        'file_name': image_path
+                    })
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
@@ -445,8 +458,6 @@ class Converter(object):
                 logger.warning(f'Empty bboxes for {item["output"]}')
                 continue
 
-            first = True
-
             for label in labels:
                 if 'rectanglelabels' in label:
                     category_name = label['rectanglelabels'][0]
@@ -458,17 +469,7 @@ class Converter(object):
                     logger.warning("Unknown label type: " + str(label))
                     continue
 
-                # get image sizes
-                if first:
-                    width, height = label['original_width'], label['original_height']
-                    image_id = len(images)
-                    images.append({
-                        'width': width,
-                        'height': height,
-                        'id': image_id,
-                        'file_name': image_path
-                    })
-                    first = False
+                width, height = label['original_width'], label['original_height']
 
                 if category_name not in category_name_to_id:
                     category_id = len(categories)
