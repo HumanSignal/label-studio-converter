@@ -475,7 +475,8 @@ class Converter(object):
                     category_name_to_id[category_name] = category_id
                     categories.append({
                         'id': category_id,
-                        'name': category_name
+                        'name': category_name,
+                        'supercategory': category_name
                     })
                 category_id = category_name_to_id[category_name]
 
