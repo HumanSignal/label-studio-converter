@@ -419,6 +419,13 @@ class Converter(object):
             os.makedirs(output_image_dir, exist_ok=True)
         images, categories, annotations = [], [], []
         category_name_to_id = {}
+        labels = self._get_labels()
+        for num, value in enumerate(labels):
+            categories.append({
+                'id': num,
+                'name': value
+            })
+            category_name_to_id[value] = num
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
@@ -470,14 +477,14 @@ class Converter(object):
                     })
                     first = False
 
-                if category_name not in category_name_to_id:
+                '''if category_name not in category_name_to_id:
                     category_id = len(categories)
                     category_name_to_id[category_name] = category_id
                     categories.append({
                         'id': category_id,
                         'name': category_name,
                         'supercategory': category_name
-                    })
+                    })'''
                 category_id = category_name_to_id[category_name]
 
                 annotation_id = len(annotations)
@@ -730,3 +737,9 @@ class Converter(object):
 
             with io.open(xml_filepath, mode='w', encoding='utf8') as fout:
                 doc.writexml(fout, addindent='' * 4, newl='\n', encoding='utf-8')
+
+    def _get_labels(self):
+        labels = set()
+        for name, info in self._schema.items():
+            labels |= set(info['labels'])
+        return sorted(list(labels))
