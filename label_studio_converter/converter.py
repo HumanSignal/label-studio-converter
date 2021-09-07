@@ -418,7 +418,7 @@ class Converter(object):
             output_image_dir = os.path.join(output_dir, 'images')
             os.makedirs(output_image_dir, exist_ok=True)
         images, categories, annotations = [], [], []
-        category_name_to_id = {}
+        categories, category_name_to_id = self._get_labels()
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
@@ -470,14 +470,14 @@ class Converter(object):
                     })
                     first = False
 
-                if category_name not in category_name_to_id:
+                '''if category_name not in category_name_to_id:
                     category_id = len(categories)
                     category_name_to_id[category_name] = category_id
                     categories.append({
                         'id': category_id,
                         'name': category_name,
                         'supercategory': category_name
-                    })
+                    })'''
                 category_id = category_name_to_id[category_name]
 
                 annotation_id = len(annotations)
@@ -730,3 +730,34 @@ class Converter(object):
 
             with io.open(xml_filepath, mode='w', encoding='utf8') as fout:
                 doc.writexml(fout, addindent='' * 4, newl='\n', encoding='utf-8')
+
+    def _get_labels(self):
+        labels = set()
+        categories = list()
+        category_name_to_id = dict()
+
+        for name, info in self._schema.items():
+            labels |= set(info['labels'])
+            attrs = info['labels_attrs']
+            for label in attrs:
+                if attrs[label].get('category'):
+                    categories.append({
+                        'id': attrs[label].get('category'),
+                        'name': label
+                    })
+                    category_name_to_id[label] = attrs[label].get('category')
+        labels_to_add = set(labels) - set(list(category_name_to_id.keys()))
+        labels_to_add = sorted(list(labels_to_add))
+        idx = 0
+        while idx in list(category_name_to_id.values()):
+            idx += 1
+        for label in labels_to_add:
+            categories.append({
+                'id': idx,
+                'name': label
+            })
+            category_name_to_id[label] = idx
+            idx += 1
+            while idx in list(category_name_to_id.values()):
+                idx += 1
+        return categories, category_name_to_id
