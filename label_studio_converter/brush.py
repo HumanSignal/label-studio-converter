@@ -100,7 +100,7 @@ def decode_from_annotation(from_name, results):
     for result in results:
         key = 'brushlabels' if result['type'].lower() == 'brushlabels' else \
             ('labels' if result['type'].lower() == 'labels' else None)
-        if key is None:
+        if key is None or 'rle' not in result:
             continue
 
         rle = result['rle']
