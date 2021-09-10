@@ -175,6 +175,22 @@ def bits2byte(arr_str, n=8):
         rle.append(int(i, 2))
     return rle
 
+# Shamelessly plagiarized from https://stackoverflow.com/a/32681075/6051733
+def base_rle_encode(inarray):
+        """ run length encoding. Partial credit to R rle function.
+            Multi datatype arrays catered for including non Numpy
+            returns: tuple (runlengths, startpositions, values) """
+        ia = np.asarray(inarray)                # force numpy
+        n = len(ia)
+        if n == 0:
+            return (None, None, None)
+        else:
+            y = ia[1:] != ia[:-1]               # pairwise unequal (string safe)
+            i = np.append(np.where(y), n - 1)   # must include last element posi
+            z = np.diff(np.append(-1, i))       # run lengths
+            p = np.cumsum(np.append(0, z))[:-1] # positions
+            return(z, p, ia[i])
+
 
 def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
     """ Encode a 1d array to rle
@@ -205,9 +221,7 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
 
     # start with creating the rle bite string
     out_str = ''
-    for key, val in groupby(arr):
-        val_arr = list(val)
-        length_reeks = len(val_arr)
+    for length_reeks, p, value in zip(*base_rle_encode(arr)):
         # TODO: A nice to have but --> this can be optimized but works
         if length_reeks == 1:
             # we state with the first 0 that it has a length of 1
@@ -219,7 +233,6 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
             out_str += '000'
 
             # put the value in a 8 bit string
-            value = val_arr[0]
             out_str += f'{value:08b}'
             state = 'single_val'
 
@@ -236,8 +249,6 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
                 # length of array to bits
                 out_str += f'{length_reeks - 1:03b}'
 
-                # get values
-                value = val_arr[0]
                 out_str += f'{value:08b}'
 
             # rle size = 4
@@ -249,8 +260,6 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
                 # length of array to bits
                 out_str += f'{length_reeks - 1:04b}'
 
-                # Get values
-                value = val_arr[0]
                 out_str += f'{value:08b}'
 
             # rle size = 8
@@ -263,8 +272,6 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
                 # length of array to bits
                 out_str += f'{length_reeks - 1:08b}'
 
-                # Get values
-                value = val_arr[0]
                 out_str += f'{value:08b}'
 
             # rle size = 16 or longer
@@ -278,8 +285,6 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
                     out_str += '11'
                     out_str += f'{2 ** 16 - 1:016b}'
 
-                    # add the value in 8 bit string
-                    value = val_arr[0]
                     out_str += f'{value:08b}'
                     length_temp -= 2 ** 16
 
@@ -290,8 +295,6 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
                 # length of array to bits
                 out_str += f'{length_temp - 1:016b}'
 
-                # get value
-                value = val_arr[0]
                 out_str += f'{value:08b}'
 
     # make sure that we have an 8 fold lenght otherwise add 0's at the end
