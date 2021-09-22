@@ -422,9 +422,7 @@ class Converter(object):
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
-            if not item['output']:
-                logger.warning('No annotations found for item #' + str(item_idx))
-                continue
+            # download all images of the dataset, including 
             image_path = item['input'][data_key]
             if not os.path.exists(image_path):
                 try:
@@ -435,7 +433,10 @@ class Converter(object):
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
-
+            # skip tasks without annotations
+            if not item['output']:
+                logger.warning('No annotations found for item #' + str(item_idx))
+                continue
             # concatentate results over all tag names
             labels = []
             for key in item['output']:
