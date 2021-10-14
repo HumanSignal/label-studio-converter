@@ -237,6 +237,15 @@ class Converter(object):
 
         return all_formats
 
+    @staticmethod
+    def _get_annotator(item):
+        """ Get annotator id or email from annotation
+        """
+        annotator = item['completed_by']
+        if isinstance(annotator, dict):
+            annotator = annotator.get('email')
+        return annotator
+
     @property
     def supported_formats(self):
         return self._supported_formats
@@ -357,7 +366,7 @@ class Converter(object):
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 record[name] = self._prettify(value)
-            record['annotator'] = item['completed_by'].get('email')
+            record['annotator'] = self._get_annotator(item)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
@@ -381,7 +390,7 @@ class Converter(object):
             for name, value in item['output'].items():
                 pretty_value = self._prettify(value)
                 record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value)
-            record['annotator'] = item['completed_by'].get('email')
+            record['annotator'] = self._get_annotator(item)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
