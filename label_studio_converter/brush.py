@@ -122,7 +122,10 @@ def decode_from_annotation(from_name, results):
 def save_brush_images_from_annotation(task_id, annotation_id, completed_by,
                                       from_name, results, out_dir, out_format='numpy'):
     layers = decode_from_annotation(from_name, results)
-    email = completed_by.get('email', 'none')
+    if isinstance(completed_by, dict):
+        email = completed_by.get('email', '')
+    else:
+        email = str(completed_by)
     email = "".join(x for x in email if x.isalnum() or x == '@' or x == '.')  # sanitize filename
 
     for name in layers:

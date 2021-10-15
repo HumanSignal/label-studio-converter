@@ -199,3 +199,11 @@ def get_polygon_bounding_box(x, y):
     x1, y1, x2, y2 = min(x), min(y), max(x), max(y)
     return [x1, y1, x2 - x1, y2 - y1]
 
+
+def _get_annotator(item, default=None):
+    """ Get annotator id or email from annotation
+    """
+    annotator = item['completed_by']
+    if isinstance(annotator, dict):
+        annotator = annotator.get('email', default)
+    return annotator

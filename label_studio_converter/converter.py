@@ -16,7 +16,7 @@ from copy import deepcopy
 
 from label_studio_converter.utils import (
     parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir,
-    get_polygon_area, get_polygon_bounding_box
+    get_polygon_area, get_polygon_bounding_box, _get_annotator
 )
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest
@@ -237,15 +237,6 @@ class Converter(object):
 
         return all_formats
 
-    @staticmethod
-    def _get_annotator(item):
-        """ Get annotator id or email from annotation
-        """
-        annotator = item['completed_by']
-        if isinstance(annotator, dict):
-            annotator = annotator.get('email')
-        return annotator
-
     @property
     def supported_formats(self):
         return self._supported_formats
@@ -366,7 +357,7 @@ class Converter(object):
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 record[name] = self._prettify(value)
-            record['annotator'] = self._get_annotator(item)
+            record['annotator'] = _get_annotator(item)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
@@ -390,7 +381,7 @@ class Converter(object):
             for name, value in item['output'].items():
                 pretty_value = self._prettify(value)
                 record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value)
-            record['annotator'] = self._get_annotator(item)
+            record['annotator'] = _get_annotator(item)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
@@ -525,7 +516,7 @@ class Converter(object):
                     raise ValueError("Unknown label type")
 
                 if os.getenv('LABEL_STUDIO_FORCE_ANNOTATOR_EXPORT'):
-                    annotations[-1].update({'annotator': item['completed_by'].get('email')})
+                    annotations[-1].update({'annotator': _get_annotator(item)})
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump({
@@ -659,6 +650,8 @@ class Converter(object):
             annotations_dir = os.path.join(output_dir, 'Annotations')
             if not os.path.exists(annotations_dir):
                 os.makedirs(annotations_dir)
+
+            channels = 3
             if not os.path.exists(image_path):
                 try:
                     image_path = download(
@@ -667,8 +660,6 @@ class Converter(object):
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)
-                    # On error, use default number of channels
-                    channels = 3
                 else:
                     full_image_path = os.path.join(output_image_dir, os.path.basename(image_path))
                     # retrieve number of channels from downloaded image
@@ -701,7 +692,7 @@ class Converter(object):
             create_child_node(doc, 'annotation', 'COCO2017', source_node)
             create_child_node(doc, 'image', 'flickr', source_node)
             create_child_node(doc, 'flickrid', 'NULL', source_node)
-            create_child_node(doc, 'annotator', item['completed_by'].get('email', 'none'), source_node)
+            create_child_node(doc, 'annotator', _get_annotator(item, ''), source_node)
             root_node.appendChild(source_node)
 
             owner_node = doc.createElement('owner')
