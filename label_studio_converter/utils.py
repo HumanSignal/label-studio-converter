@@ -206,4 +206,4 @@ def _get_annotator(item, default=None):
     annotator = item['completed_by']
     if isinstance(annotator, dict):
         annotator = annotator.get('email', default)
-    return annotator
+    return str(annotator)
