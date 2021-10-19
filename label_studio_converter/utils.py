@@ -200,10 +200,15 @@ def get_polygon_bounding_box(x, y):
     return [x1, y1, x2 - x1, y2 - y1]
 
 
-def _get_annotator(item, default=None):
+def _get_annotator(item, default=None, int_id=False):
     """ Get annotator id or email from annotation
     """
     annotator = item['completed_by']
     if isinstance(annotator, dict):
         annotator = annotator.get('email', default)
+        return annotator
+
+    if isinstance(annotator, int) and int_id:
+        return annotator
+
     return str(annotator)

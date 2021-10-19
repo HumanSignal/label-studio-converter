@@ -271,7 +271,7 @@ class Converter(object):
     def annotation_result_from_task(self, task):
         has_annotations = 'completions' in task or 'annotations' in task
         if not has_annotations:
-            raise KeyError('Each task dict item should contain "annotations" or "completions" [deprecated],'
+            raise KeyError('Each task dict item should contain "annotations" or "completions" [deprecated], '
                            'where value is list of dicts')
 
         # get last not skipped completion and make result from it
@@ -357,7 +357,7 @@ class Converter(object):
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 record[name] = self._prettify(value)
-            record['annotator'] = _get_annotator(item)
+            record['annotator'] = _get_annotator(item, int_id=True)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
@@ -567,7 +567,7 @@ class Converter(object):
                         image_path=image_path, item=item
                     ), exc_info=True)
 
-            # concatentate results over all tag names
+            # concatenate results over all tag names
             labels = []
             for key in item['output']:
                 labels += item['output'][key]
@@ -667,7 +667,7 @@ class Converter(object):
 
             bboxes = next(iter(item['output'].values()))
 
-            # concatentate results over all tag names
+            # concaentate results over all tag names
             bboxes = []
             for key in item['output']:
                 bboxes += item['output'][key]
