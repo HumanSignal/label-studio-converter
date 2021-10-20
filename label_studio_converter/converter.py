@@ -149,7 +149,7 @@ class Converter(object):
     def convert(self, input_data, output_data, format, is_dir=True, **kwargs):
         if isinstance(format, str):
             format = Format.from_string(format)
-            
+
         if format == Format.JSON:
             self.convert_to_json(input_data, output_data, is_dir=is_dir)
         elif format == Format.JSON_MIN:
@@ -271,18 +271,19 @@ class Converter(object):
     def annotation_result_from_task(self, task):
         has_annotations = 'completions' in task or 'annotations' in task
         if not has_annotations:
-            raise KeyError('Each task dict item should contain "annotations" or "completions" [deprecated], '
+            logger.warning('Each task dict item should contain "annotations" or "completions" [deprecated], '
                            'where value is list of dicts')
+            return None
 
         # get last not skipped completion and make result from it
         annotations = task['annotations'] if 'annotations' in task else task['completions']
-        
+
         # skip cancelled annotations
         cancelled = lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False))
         annotations = list(filter(cancelled, annotations))
         if not annotations:
             return None
-        
+
         # sort by creation time
         annotations = sorted(annotations, key=lambda x: x.get('created_at', 0), reverse=True)
 
@@ -436,7 +437,7 @@ class Converter(object):
                         image_path=image_path, item=item
                     ), exc_info=True)
 
-            # concatentate results over all tag names
+            # concatenate results over all tag names
             labels = []
             for key in item['output']:
                 labels += item['output'][key]
@@ -460,6 +461,11 @@ class Converter(object):
 
                 # get image sizes
                 if first:
+
+                    if 'original_width' not in label or 'original_height' not in label:
+                        logger.warning(f'original_width or original_height not found in {image_path}')
+                        continue
+
                     width, height = label['original_width'], label['original_height']
                     image_id = len(images)
                     images.append({
@@ -663,11 +669,14 @@ class Converter(object):
                 else:
                     full_image_path = os.path.join(output_image_dir, os.path.basename(image_path))
                     # retrieve number of channels from downloaded image
-                    _, _, channels = get_image_size_and_channels(full_image_path)
+                    try:
+                        _, _, channels = get_image_size_and_channels(full_image_path)
+                    except:
+                        logger.warning(f"Can't read channels from image {image_path}")
 
-            bboxes = next(iter(item['output'].values()))
+            image_name = os.path.splitext(os.path.basename(image_path))[0]
 
-            # concaentate results over all tag names
+            # concatenate results over all tag names
             bboxes = []
             for key in item['output']:
                 bboxes += item['output'][key]
@@ -676,9 +685,11 @@ class Converter(object):
                 logger.warning(f'Empty bboxes for {item["output"]}')
                 continue
 
-            width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
+            if 'original_width' not in bboxes[0] or 'original_height' not in bboxes[0]:
+                logger.warning(f'original_width or original_height not found in {image_name}')
+                continue
 
-            image_name = os.path.splitext(os.path.basename(image_path))[0]
+            width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
             xml_filepath = os.path.join(annotations_dir, image_name + '.xml')
 
             my_dom = xml.dom.getDOMImplementation()
