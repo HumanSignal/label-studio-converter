@@ -527,7 +527,10 @@ class Converter(object):
                 'info': {
                     'year': datetime.now().year,
                     'version': '1.0',
-                    'contributor': 'Label Studio'
+                    'description': '',
+                    'contributor': 'Label Studio',
+                    'url': '',
+                    'date_created': str(datetime.now())
                 }
             }, fout, indent=2)
 
