@@ -13,6 +13,7 @@ from glob import glob
 from collections import Mapping, defaultdict
 from operator import itemgetter
 from copy import deepcopy
+from PIL import Image
 
 from label_studio_converter.utils import (
     parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir,
@@ -444,6 +445,21 @@ class Converter(object):
 
             if len(labels) == 0:
                 logger.warning(f'Empty bboxes for {item["output"]}')
+                # add image to final export
+                image_id = len(images)
+                try:
+                    with Image.open(os.path.join(output_dir, image_path)) as img:
+                        width, height = img.size
+                except Exception as e:
+                    logger.warning(f'Could not retrieve image width and height.')
+                    width, height = 0, 0
+                # add image to list
+                images.append({
+                        'width': width,
+                        'height': height,
+                        'id': image_id,
+                        'file_name': image_path
+                    })
                 continue
 
             first = True
@@ -471,14 +487,6 @@ class Converter(object):
                     })
                     first = False
 
-                '''if category_name not in category_name_to_id:
-                    category_id = len(categories)
-                    category_name_to_id[category_name] = category_id
-                    categories.append({
-                        'id': category_id,
-                        'name': category_name,
-                        'supercategory': category_name
-                    })'''
                 category_id = category_name_to_id[category_name]
 
                 annotation_id = len(annotations)
