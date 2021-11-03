@@ -381,7 +381,7 @@ class Converter(object):
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 pretty_value = self._prettify(value)
-                record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value)
+                record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value, ensure_ascii=False)
             record['annotator'] = _get_annotator(item)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
