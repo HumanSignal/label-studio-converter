@@ -102,7 +102,7 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
         upload_dir = _get_upload_dir(project_dir, upload_dir)
         filename = url.replace('/data/upload/', '')
         filepath = os.path.join(upload_dir, filename)
-        logger.debug('Copy {filepath} to {output_dir}'.format(filepath=filepath, output_dir=output_dir))
+        logger.debug(f'Copy {filepath} to {output_dir}'.format(filepath=filepath, output_dir=output_dir))
         if download_resources:
             shutil.copy(filepath, output_dir)
         if return_relative_path:

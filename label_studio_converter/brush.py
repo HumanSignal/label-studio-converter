@@ -28,7 +28,7 @@ const arrayForWordSize = (ws: number, n: number) => {
 };
 """
 import os
-import json
+import uuid
 import numpy as np
 import logging
 
@@ -325,3 +325,64 @@ def mask2rle(contours, contour_id, img_width, img_height):
     rle_out = encode_rle(mask_contours.ravel().astype(int))
     return rle_out
 
+
+def image2rle(path):
+    """ Convert image to RLE
+
+    1. Read image as grayscale
+    2. Flatten to 1d array
+    3. Threshold > 128
+    4. Encode
+    """
+    with Image.open(path).convert('L') as image:
+        mask = np.array((np.array(image) > 128) * 255, dtype=np.uint8)
+        array = mask.ravel()
+        array = np.repeat(array, 4)
+        rle = encode_rle(array)
+        return rle, image.size[0], image.size[1]
+
+
+def image2annotation(path, label_name, from_name, to_name, ground_truth=False, model_version=None, score=None):
+    """ Convert image with mask to brush RLE annotation
+
+    :param path: path to image with mask (jpg, png)
+    :param label_name: label name from labeling config (<Label>)
+    :param from_name: brush tag name (<BrushLabels>)
+    :param to_name: image tag name (<Image>)
+    :param ground_truth: ground truth annotation true/false
+    :param model_version: any string, only for predictions
+    :param score: model score as float, only for predictions
+    """
+    rle, width, height = image2rle(path)
+    result = {
+        "result": [
+            {
+                "id": str(uuid.uuid4())[0:8],
+                "type": "brushlabels",
+                "value": {
+                    "rle": rle,
+                    "format": "rle",
+                    "brushlabels": [
+                        label_name
+                    ]
+                },
+                "origin": "manual",
+                "to_name": to_name,
+                "from_name": from_name,
+                "image_rotation": 0,
+                "original_width": width,
+                "original_height": height
+            }
+        ],
+    }
+
+    # prediction
+    if model_version:
+        result["model_version"] = model_version
+        result["score"] = score
+
+    # annotation
+    else:
+        result["ground_truth"] = ground_truth
+
+    return result
