@@ -307,7 +307,7 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
     return rle
 
 
-def mask2rle(contours, contour_id, img_width, img_height):
+def contour2rle(contours, contour_id, img_width, img_height):
     """
     :param contours:  list of contours
     :type contours: list
@@ -317,7 +317,7 @@ def mask2rle(contours, contour_id, img_width, img_height):
     :type img_width: int
     :param img_height: image shape height
     :type img_height: int
-    :return:
+    :return: list of ints in RLE format 
     """
     import cv2  # opencv
     mask_im = np.zeros((img_width, img_height, 4))
@@ -326,6 +326,20 @@ def mask2rle(contours, contour_id, img_width, img_height):
     return rle_out
 
 
+def mask2rle(mask):
+    """ Convert mask to RLE
+    
+    :param mask: uint8 or int np.array mask with len(shape) == 2 like grayscale image
+    :return: list of ints in RLE format 
+    """
+    assert len(mask.shape) == 2, 'mask must be 2D np.array'
+    assert mask.dtype == np.uint8 or mask.dtype == int, 'mask must be uint8 or int'
+    array = mask.ravel()
+    array = np.repeat(array, 4)  # must be 4 channels 
+    rle = encode_rle(array)
+    return rle
+    
+    
 def image2rle(path):
     """ Convert image to RLE
 
@@ -333,6 +347,8 @@ def image2rle(path):
     2. Flatten to 1d array
     3. Threshold > 128
     4. Encode
+    
+    :return: list of ints in RLE format 
     """
     with Image.open(path).convert('L') as image:
         mask = np.array((np.array(image) > 128) * 255, dtype=np.uint8)
@@ -352,6 +368,8 @@ def image2annotation(path, label_name, from_name, to_name, ground_truth=False, m
     :param ground_truth: ground truth annotation true/false
     :param model_version: any string, only for predictions
     :param score: model score as float, only for predictions
+    
+    :return: dict with Label Studio Annotation or Prediction (Pre-annotation)
     """
     rle, width, height = image2rle(path)
     result = {
