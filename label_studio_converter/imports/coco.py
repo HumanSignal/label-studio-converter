@@ -10,29 +10,41 @@ from label_studio_converter.imports.label_config import generate_label_config
 logger = logging.getLogger('root')
 
 
-def convert_yolo_to_ls(input_dir, out_file,
+def convert_coco_to_ls(input_file, out_file,
                        to_name='image', from_name='label', out_type="annotations",
-                       image_root_url='/data/local-files/?d=', image_ext='.jpg'):
+                       image_root_url='/data/local-files/?d=', image_ext='.jpg',
+                       use_super_categories=False):
 
-    """ Convert YOLO labeling to Label Studio JSON
+    """ Convert COCO labeling to Label Studio JSON
 
-    :param input_dir: directory with YOLO where images, labels, notes.json are located
+    :param input_file: file with COCO json
     :param out_file: output file with Label Studio JSON tasks
     :param to_name: object name from Label Studio labeling config
     :param from_name: control tag name from Label Studio labeling config
     :param out_type: annotation type - "annotations" or "predictions"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
     :param image_ext: image extension to search: .jpg, .png
+    :param use_super_categories: use super categories from categories if they are presented
     """
 
     tasks = []
-    logger.info('Reading YOLO notes and categories from %s', input_dir)
+    logger.info('Reading COCO notes and categories from %s', input_file)
+
+    with open(input_file, encoding='utf8') as f:
+        coco = json.load(f)
 
     # build categories=>labels dict
-    notes_file = os.path.join(input_dir, 'classes.txt')
-    with open(notes_file) as f:
-        lines = [line.strip() for line in f.readlines()]
-    categories = {i: line for i, line in enumerate(lines)}
+    categories = coco['categories']
+    new_categories = {}
+    ids = sorted(category['id'] for category in categories)
+    for i in ids:
+        name = categories[i]['name']
+        if use_super_categories and 'supercategory' in categories[i]:
+            name = categories[i]['supercategory'] + ':' + name
+
+        new_categories[i] = name
+    categories = new_categories
+
     logger.info(f'Found {len(categories)} categories')
 
     # generate and save labeling config
@@ -40,20 +52,10 @@ def convert_yolo_to_ls(input_dir, out_file,
     generate_label_config(categories, to_name, from_name, label_config_file)
 
     # labels, one label per image
-    labels_dir = os.path.join(input_dir, 'labels')
     logger.info('Converting labels from %s', labels_dir)
 
-    for f in os.listdir(labels_dir):
-        image_file_base = f[0:-4] + image_ext
-        image_file = os.path.join(input_dir, 'images', image_file_base)
-        label_file = os.path.join(labels_dir, f)
-
-        if not f.endswith('.txt'):
-            continue
-
-        if not os.path.exists(image_file):
-            logger.error("Can't convert YOLO to Label Studio JSON without image source: %s", image_file)
-            continue
+    for annotation in coco['annotations']:
+        image_file = annotation['']
 
         task = {
             # 'annotations' or 'predictions'
@@ -72,32 +74,31 @@ def convert_yolo_to_ls(input_dir, out_file,
         im = Image.open(image_file)
         image_width, image_height = im.size
 
-        with open(label_file) as file:
-            # convert all bounding boxes to Label Studio Results
-            lines = file.readlines()
-            for line in lines:
-                label_id, x, y, width, height = line.split()
-                x, y, width, height = float(x), float(y), float(width), float(height)
-                item = {
-                    "id": uuid.uuid4().hex[0:10],
-                    "type": "rectanglelabels",
-                    "value": {
-                        "x": (x-width/2) * 100,
-                        "y": (y-height/2) * 100,
-                        "width": width * 100,
-                        "height": height * 100,
-                        "rotation": 0,
-                        "rectanglelabels": [
-                            categories[int(label_id)]
-                        ]
-                    },
-                    "to_name": to_name,
-                    "from_name": from_name,
-                    "image_rotation": 0,
-                    "original_width": image_width,
-                    "original_height": image_height
-                }
-                task['annotations'][0]['result'].append(item)
+        # convert all bounding boxes to Label Studio Results
+        lines = coco['annotations']
+        for line in lines:
+            label_id, x, y, width, height = line.split()
+            x, y, width, height = float(x), float(y), float(width), float(height)
+            item = {
+                "id": uuid.uuid4().hex[0:10],
+                "type": "rectanglelabels",
+                "value": {
+                    "x": (x-width/2) * 100,
+                    "y": (y-height/2) * 100,
+                    "width": width * 100,
+                    "height": height * 100,
+                    "rotation": 0,
+                    "rectanglelabels": [
+                        categories[int(label_id)]
+                    ]
+                },
+                "to_name": to_name,
+                "from_name": from_name,
+                "image_rotation": 0,
+                "original_width": image_width,
+                "original_height": image_height
+            }
+            task['annotations'][0]['result'].append(item)
 
         tasks.append(task)
 
@@ -117,40 +118,40 @@ def convert_yolo_to_ls(input_dir, out_file,
 
 
 def add_parser(subparsers):
-    yolo = subparsers.add_parser('yolo')
+    coco = subparsers.add_parser('coco')
 
-    yolo.add_argument(
+    coco.add_argument(
         '-i', '--input', dest='input', required=True,
-        help='directory with YOLO where images, labels, notes.json are located',
+        help='directory with COCO where images, labels, notes.json are located',
         action=ExpandFullPath
     )
-    yolo.add_argument(
+    coco.add_argument(
         '-o', '--output', dest='output',
         help='output file with Label Studio JSON tasks',
         default='output.json',
         action=ExpandFullPath
     )
-    yolo.add_argument(
+    coco.add_argument(
         '--to-name', dest='to_name',
         help='object name from Label Studio labeling config',
         default='image',
     )
-    yolo.add_argument(
+    coco.add_argument(
         '--from-name', dest='from_name',
         help='control tag name from Label Studio labeling config',
         default='label',
     )
-    yolo.add_argument(
+    coco.add_argument(
         '--out-type', dest='out_type',
         help='annotation type - "annotations" or "predictions"',
         default='annotations',
     )
-    yolo.add_argument(
+    coco.add_argument(
         '--image-root-url', dest='image_root_url',
         help='root URL path where images will be hosted, e.g.: http://example.com/images',
         default='/data/local-files/?d=',
     )
-    yolo.add_argument(
+    coco.add_argument(
         '--image-ext', dest='image_ext',
         help='image extension to search: .jpg, .png',
         default='.jpg',
