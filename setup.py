@@ -1,5 +1,4 @@
 import setuptools
-import label_studio_converter
 
 # Readme
 with open('README.md', 'r') as f:
@@ -8,10 +7,13 @@ with open('README.md', 'r') as f:
 # Module dependencies
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
+	
+with open('label_studio_converter/__init__.py') as f:
+    version = re.search("__version__ ?= ?'(.*?)'", f.read()).group(1)
 
 setuptools.setup(
     name='label-studio-converter',
-    version=label_studio_converter.__version__,
+    version=version,
     author='Heartex',
     author_email="hello@heartex.ai",
     description='Format converter add-on for Label Studio',
