@@ -1,4 +1,5 @@
 import setuptools
+import re
 
 # Readme
 with open('README.md', 'r') as f:
