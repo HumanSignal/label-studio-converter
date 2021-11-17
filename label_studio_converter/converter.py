@@ -129,7 +129,13 @@ class Converter(object):
     def all_formats(self):
         return self._FORMAT_INFO
 
-    def __init__(self, config, project_dir, output_tags=None, upload_dir=None, download_resources=True):
+    def __init__(self,
+                 config,
+                 project_dir,
+                 output_tags=None,
+                 upload_dir=None,
+                 download_resources=True,
+                 enterprise=False):
         self.project_dir = project_dir
         self.upload_dir = upload_dir
         self.download_resources = download_resources
@@ -145,6 +151,7 @@ class Converter(object):
 
         self._data_keys, self._output_tags = self._get_data_keys_and_output_tags(output_tags)
         self._supported_formats = self._get_supported_formats()
+        self._enterprise = enterprise
 
     def convert(self, input_data, output_data, format, is_dir=True, **kwargs):
         if isinstance(format, str):
@@ -364,7 +371,8 @@ class Converter(object):
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
             record['lead_time'] = item['lead_time']
-            record['agreement'] = item['agreement']
+            if self._enterprise:
+                record['agreement'] = item['agreement']
             records.append(record)
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
@@ -389,7 +397,8 @@ class Converter(object):
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
             record['lead_time'] = item['lead_time']
-            record['agreement'] = item['agreement']
+            if self._enterprise:
+                record['agreement'] = item['agreement']
             records.append(record)
 
         pd.DataFrame.from_records(records).to_csv(output_file, index=False, **kwargs)
