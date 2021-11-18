@@ -11,6 +11,7 @@ from enum import Enum
 from datetime import datetime
 from glob import glob
 from collections.abc import Mapping, MutableMapping
+from collections import defaultdict
 from operator import itemgetter
 from copy import deepcopy
 
@@ -303,7 +304,7 @@ class Converter(object):
                         v['original_height'] = r['original_height']
                     outputs[r['from_name']].append(v)
 
-            yield {
+            data = {
                 'id': task['id'],
                 'input': inputs,
                 'output': outputs,
@@ -313,6 +314,9 @@ class Converter(object):
                 'updated_at': annotation.get('updated_at'),
                 'lead_time': annotation.get('lead_time')
             }
+            if 'agreement' in task:
+                data['agreement'] = task['agreement']
+            yield data
 
     def _check_format(self, fmt):
         pass
@@ -363,6 +367,8 @@ class Converter(object):
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
             record['lead_time'] = item['lead_time']
+            if 'agreement' in item:
+                record['agreement'] = item['agreement']
             records.append(record)
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
@@ -387,6 +393,8 @@ class Converter(object):
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
             record['lead_time'] = item['lead_time']
+            if 'agreement' in item:
+                record['agreement'] = item['agreement']
             records.append(record)
 
         pd.DataFrame.from_records(records).to_csv(output_file, index=False, **kwargs)
