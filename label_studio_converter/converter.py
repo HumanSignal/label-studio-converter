@@ -10,7 +10,7 @@ from shutil import copy2
 from enum import Enum
 from datetime import datetime
 from glob import glob
-from collections import Mapping, defaultdict
+from collections.abc import Mapping, MutableMapping
 from operator import itemgetter
 from copy import deepcopy
 
