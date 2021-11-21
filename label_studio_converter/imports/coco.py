@@ -10,9 +10,24 @@ from label_studio_converter.imports.label_config import generate_label_config
 logger = logging.getLogger('root')
 
 
+def new_task(out_type, root_url, file_name):
+    return {
+        "data": {
+            "image": os.path.join(root_url, file_name)
+        },
+        # 'annotations' or 'predictions'
+        out_type: [
+            {
+                "result": [],
+                "ground_truth": False,
+            }
+        ]
+    }
+
+
 def convert_coco_to_ls(input_file, out_file,
                        to_name='image', from_name='label', out_type="annotations",
-                       image_root_url='/data/local-files/?d=', image_ext='.jpg',
+                       image_root_url='/data/local-files/?d=',
                        use_super_categories=False):
 
     """ Convert COCO labeling to Label Studio JSON
@@ -23,73 +38,85 @@ def convert_coco_to_ls(input_file, out_file,
     :param from_name: control tag name from Label Studio labeling config
     :param out_type: annotation type - "annotations" or "predictions"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
-    :param image_ext: image extension to search: .jpg, .png
     :param use_super_categories: use super categories from categories if they are presented
     """
 
-    tasks = []
+    tasks = {}  # image_id => task
     logger.info('Reading COCO notes and categories from %s', input_file)
 
     with open(input_file, encoding='utf8') as f:
         coco = json.load(f)
 
-    # build categories=>labels dict
-    categories = coco['categories']
+    # build categories => labels dict
     new_categories = {}
-    ids = sorted(category['id'] for category in categories)
+    # list to dict conversion: [...] => {category_id: category_item}
+    categories = {category['id']: category for category in coco['categories']}
+    ids = sorted(categories.keys())  # sort labels by their origin ids
+
     for i in ids:
         name = categories[i]['name']
         if use_super_categories and 'supercategory' in categories[i]:
             name = categories[i]['supercategory'] + ':' + name
-
         new_categories[i] = name
+
+    # mapping: id => category name
     categories = new_categories
 
-    logger.info(f'Found {len(categories)} categories')
+    # mapping: image id => image
+    images = {item['id']: item for item in coco['images']}
+
+    logger.info(f'Found {len(categories)} categories, {len(images)} images and {len(coco["annotations"])} annotations')
 
     # generate and save labeling config
     label_config_file = out_file.replace('.json', '') + '.label_config.xml'
     generate_label_config(categories, to_name, from_name, label_config_file)
 
-    # labels, one label per image
-    logger.info('Converting labels from %s', labels_dir)
+    # flags for labeling config composing
+    segmentation = bbox = keypoints = rle = False
+    rle_once, segmentation_once, keypoints_once = False
 
-    for annotation in coco['annotations']:
-        image_file = annotation['']
+    for i, annotation in enumerate(coco['annotations']):
+        segmentation |= 'segmentation' in annotation
+        bbox |= 'bbox' in annotation
+        keypoints |= 'keypoints' in annotation
+        rle |= annotation['iscrowd'] == 1  # 0 - polygons are inside of segmentation, otherwise rle
 
-        task = {
-            # 'annotations' or 'predictions'
-            out_type: [
-                {
-                    "result": [],
-                    "ground_truth": False,
-                }
-            ],
-            "data": {
-                "image": os.path.join(image_root_url, image_file_base)
-            }
-        }
+        # not supported
+        if rle and not rle_once:
+            logger.warning('RLE in segmentation is not yet supported in COCO')
+            rle_once = True
+        if keypoints and not keypoints_once:
+            logger.warning('Keypoints are partially supported without skeletons')
+            keypoints_once = True
+        # not supported
+        if segmentation and not segmentation_once:
+            logger.warning('Segmentation is not yet supported in COCO')
+            segmentation_once = True
 
         # read image sizes
-        im = Image.open(image_file)
-        image_width, image_height = im.size
+        image_id = annotation['image_id']
+        image = images[image_id]
+        image_file_name, image_width, image_height = image['file_name'], image['width'], image['height']
 
-        # convert all bounding boxes to Label Studio Results
-        lines = coco['annotations']
-        for line in lines:
-            label_id, x, y, width, height = line.split()
+        # get or create new task
+        task = tasks[image_id] if image_id in tasks else new_task(out_type, image_root_url, image_file_name)
+
+        if 'bbox' in annotation:
+            # convert all bounding boxes to Label Studio Results
+            label = categories[int(annotation['category_id'])]
+            x, y, width, height = annotation['bbox']
             x, y, width, height = float(x), float(y), float(width), float(height)
             item = {
                 "id": uuid.uuid4().hex[0:10],
                 "type": "rectanglelabels",
                 "value": {
-                    "x": (x-width/2) * 100,
-                    "y": (y-height/2) * 100,
-                    "width": width * 100,
-                    "height": height * 100,
+                    "x": x / 100.0,
+                    "y": y / 100.0,
+                    "width": width / 100.0,
+                    "height": height / 100.0,
                     "rotation": 0,
                     "rectanglelabels": [
-                        categories[int(label_id)]
+                        label
                     ]
                 },
                 "to_name": to_name,
@@ -98,11 +125,12 @@ def convert_coco_to_ls(input_file, out_file,
                 "original_width": image_width,
                 "original_height": image_height
             }
-            task['annotations'][0]['result'].append(item)
+            task[out_type][0]['result'].append(item)
 
-        tasks.append(task)
+        tasks[image_id] = task
 
     if len(tasks) > 0:
+        tasks = [tasks[key] for key in sorted(tasks.keys())]
         logger.info('Saving Label Studio JSON to %s', out_file)
         with open(out_file, 'w') as out:
             json.dump(tasks, out)
@@ -150,9 +178,4 @@ def add_parser(subparsers):
         '--image-root-url', dest='image_root_url',
         help='root URL path where images will be hosted, e.g.: http://example.com/images',
         default='/data/local-files/?d=',
-    )
-    coco.add_argument(
-        '--image-ext', dest='image_ext',
-        help='image extension to search: .jpg, .png',
-        default='.jpg',
     )

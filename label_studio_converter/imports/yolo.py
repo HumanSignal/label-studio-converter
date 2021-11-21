@@ -56,16 +56,16 @@ def convert_yolo_to_ls(input_dir, out_file,
             continue
 
         task = {
+            "data": {
+                "image": os.path.join(image_root_url, image_file_base)
+            },
             # 'annotations' or 'predictions'
             out_type: [
                 {
                     "result": [],
                     "ground_truth": False,
                 }
-            ],
-            "data": {
-                "image": os.path.join(image_root_url, image_file_base)
-            }
+            ]
         }
 
         # read image sizes
@@ -97,7 +97,7 @@ def convert_yolo_to_ls(input_dir, out_file,
                     "original_width": image_width,
                     "original_height": image_height
                 }
-                task['annotations'][0]['result'].append(item)
+                task[out_type][0]['result'].append(item)
 
         tasks.append(task)
 

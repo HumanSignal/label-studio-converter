@@ -1,12 +1,11 @@
 import os
-import io
 import logging
 import argparse
 
 from label_studio_converter.converter import Format, FormatNotSupportedError
 from label_studio_converter.exports.csv import ExportToCSV
 from label_studio_converter.utils import ExpandFullPath
-from label_studio_converter.imports import yolo as import_yolo
+from label_studio_converter.imports import yolo as import_yolo, coco as import_coco
 
 
 logging.basicConfig(level=logging.INFO)
@@ -54,6 +53,7 @@ def get_args():
     parser_import = subparsers.add_parser('import')
     import_format = parser_import.add_subparsers(dest='import_format')
     import_yolo.add_parser(import_format)
+    import_coco.add_parser(import_format)
 
     return parser.parse_args()
 
@@ -66,11 +66,19 @@ def export(args):
     else:
         raise FormatNotSupportedError()
 
+
 def imports(args):
     if args.import_format == 'yolo':
         import_yolo.convert_yolo_to_ls(input_dir=args.input, out_file=args.output,
-                                to_name=args.to_name, from_name=args.from_name, out_type=args.out_type,
-                                image_root_url=args.image_root_url, image_ext=args.image_ext)
+                                       to_name=args.to_name, from_name=args.from_name, out_type=args.out_type,
+                                       image_root_url=args.image_root_url, image_ext=args.image_ext)
+
+    elif args.import_format == 'coco':
+        import_coco.convert_coco_to_ls(input_file=args.input, out_file=args.output,
+                                       to_name=args.to_name, from_name=args.from_name, out_type=args.out_type,
+                                       image_root_url=args.image_root_url)
+    else:
+        raise FormatNotSupportedError()
 
 
 def main():
@@ -79,3 +87,7 @@ def main():
         export(args)
     if args.command == 'import':
         imports(args)
+
+    print('Please, use "import" or "export" or "-h" command')
+
+
