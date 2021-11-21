@@ -341,13 +341,15 @@ def mask2rle(mask):
     
     
 def image2rle(path):
-    """ Convert image to RLE
+    """ Convert mask image (jpg, png) to RLE
 
     1. Read image as grayscale
     2. Flatten to 1d array
     3. Threshold > 128
     4. Encode
     
+    :param path: path to image with mask (jpg, png), this image will be thresholded with values > 128 to obtain mask, 
+                 so you can mark background as black and foreground as white
     :return: list of ints in RLE format 
     """
     with Image.open(path).convert('L') as image:
@@ -361,7 +363,8 @@ def image2rle(path):
 def image2annotation(path, label_name, from_name, to_name, ground_truth=False, model_version=None, score=None):
     """ Convert image with mask to brush RLE annotation
 
-    :param path: path to image with mask (jpg, png)
+    :param path: path to image with mask (jpg, png), this image will be thresholded with values > 128 to obtain mask, 
+                 so you can mark background as black and foreground as white
     :param label_name: label name from labeling config (<Label>)
     :param from_name: brush tag name (<BrushLabels>)
     :param to_name: image tag name (<Image>)
