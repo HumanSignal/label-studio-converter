@@ -17,7 +17,7 @@ except ImportError:
 
 
 def get_labels():
-    return {}
+    return {i: 'Other' for i in range(0, 1000)}
 
 
 def get_info(path):
@@ -119,16 +119,17 @@ def create_config(from_name='box', to_name='video', source_value='video'):
    <Video name="{to_name}" value="${source_value}" framerate="24"/>
    <VideoRectangle name="{from_name}" toName="{to_name}" />
    <Labels name="videoLabels" toName="{to_name}" allowEmpty="true">
-     <Label value="Man" background="green"/>
-     <Label value="Woman" background="blue"/>
-     <Label value="Other" background="blue"/>
+     <Label value="Man" background="blue"/>
+     <Label value="Woman" background="red"/>
+     <Label value="Other" background="green"/>
    </Labels>
 </View>
     """
 
 
 def convert_shot(input_url, label_file, info_file,
-                 from_name='box', to_name='video', source_value='video'):
+                 from_name='box', to_name='video', source_value='video',
+                 target_fps=None):
     """ Convert bounding boxes from PathTrack to Label Studio video format
 
     :param input_url: video file
@@ -137,9 +138,13 @@ def convert_shot(input_url, label_file, info_file,
     :param from_name: control tag name from Label Studio labeling config
     :param to_name: object name from Label Studio labeling config
     :param source_value: source name for Video tag, e.g. $video
+    :param target_fps: keep video with this fps only
     """
     logger.info('Convert shot start: %s', input_url)
     info = get_info(info_file)
+    if target_fps is not None and info.fps != target_fps:
+        return None
+
     label_map = get_labels()  # todo: implement get_labels()
     regions = {}
     keyframe_count = 0
@@ -165,7 +170,7 @@ def convert_shot(input_url, label_file, info_file,
     return new_task(data, result=list(regions.values()))
 
 
-def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source_value='video'):
+def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source_value='video', target_fps=None):
     """ Convert PathTrack dataset to Label Studio video labeling format
 
     :param root_dir: root dir with video folders, e.g.: 'pathtrack/train' or 'pathtrack/test'
@@ -173,6 +178,7 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
     :param to_name: object name from Label Studio labeling config
     :param from_name: control tag name from Label Studio labeling config
     :param source_value: source name for Video tag, e.g. $video
+    :param target_fps: keep video with this fps only
     """
     logger.info('Convert dataset start: %s', root_dir)
     tasks = []
@@ -189,9 +195,11 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
         label_file = os.path.join(shot_dir, 'gt/gt.txt')
         info_file = os.path.join(shot_dir, 'info.xml')
 
-        tasks.append(
-            convert_shot(input_url, label_file, info_file, from_name, to_name, source_value)
-        )
+        task = convert_shot(input_url, label_file, info_file, from_name, to_name, source_value, target_fps)
+        if task is None:
+            continue
+
+        tasks.append(task)
 
     path = os.path.join(root_dir, 'import.json')
     logger.info('Saving Label Studio JSON: %s', path)
@@ -206,8 +214,14 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
 
 
 if __name__ == '__main__':
+    # convert_dataset('../../tests', 'https://data.heartex.net/pathtrack/train/')
+    # exit()
+
     import sys
+    print(f'Usage: {sys.argv[0]} root_url target_fps\n')
+
     url = sys.argv[1] if len(sys.argv) > 1 else 'https://data.heartex.net/pathtrack/train/'
+    fps = float(sys.argv[2]) if len(sys.argv) > 2 else None
     convert_dataset('./', url)
 
-    # convert_dataset('../../tests', 'https://data.heartex.net/pathtrack/train/')
+
