@@ -2,13 +2,21 @@
 https://www.trace.ethz.ch/publications/2017/pathtrack/index.html
 """
 import os
+import sys
 import json
 import uuid
 import logging
 
 from types import SimpleNamespace
 
-logger = logging.getLogger('root')
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 try:
     import bs4
@@ -113,10 +121,10 @@ def generator(path):
         )
 
 
-def create_config(from_name='box', to_name='video', source_value='video'):
+def create_config(from_name='box', to_name='video', source_value='video', target_fps=None):
     return f"""<View>
    <Header>Label the video:</Header>
-   <Video name="{to_name}" value="${source_value}" framerate="24"/>
+   <Video name="{to_name}" value="${source_value}" framerate="{target_fps}"/>
    <VideoRectangle name="{from_name}" toName="{to_name}" />
    <Labels name="videoLabels" toName="{to_name}" allowEmpty="true">
      <Label value="Man" background="blue"/>
@@ -201,14 +209,15 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
 
         tasks.append(task)
 
-    path = os.path.join(root_dir, 'import.json')
+    fps_name = int(target_fps)
+    path = os.path.join(root_dir, f'import-{fps_name}.json')
     logger.info('Saving Label Studio JSON: %s', path)
     with open(path, 'w') as f:
         json.dump(tasks, f)
 
-    path = os.path.join(root_dir, 'config.xml')
+    path = os.path.join(root_dir, f'config-{fps_name}.xml')
     logger.info('Saving Labeling Config: %s', path)
-    config = create_config(from_name, to_name, source_value)
+    config = create_config(from_name, to_name, source_value, target_fps)
     with open(path, 'w') as f:
         f.write(config)
 
@@ -216,12 +225,10 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
 if __name__ == '__main__':
     # convert_dataset('../../tests', 'https://data.heartex.net/pathtrack/train/')
     # exit()
-
-    import sys
     print(f'Usage: {sys.argv[0]} root_url target_fps\n')
 
     url = sys.argv[1] if len(sys.argv) > 1 else 'https://data.heartex.net/pathtrack/train/'
     fps = float(sys.argv[2]) if len(sys.argv) > 2 else None
-    convert_dataset('./', url)
+    convert_dataset('./', url, target_fps=fps)
 
 
