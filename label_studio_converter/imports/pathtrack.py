@@ -113,10 +113,10 @@ def generator(path):
         )
 
 
-def create_config(from_name='box', to_name='video', source_value='$video'):
+def create_config(from_name='box', to_name='video', source_value='video'):
     return f"""<View>
    <Header>Label the video:</Header>
-   <Video name="{to_name}" value="{source_value}" framerate="24"/>
+   <Video name="{to_name}" value="${source_value}" framerate="24"/>
    <VideoRectangle name="{from_name}" toName="{to_name}" />
    <Labels name="videoLabels" toName="{to_name}" allowEmpty="true">
      <Label value="Man" background="green"/>
@@ -165,7 +165,7 @@ def convert_shot(input_url, label_file, info_file,
     return new_task(data, result=list(regions.values()))
 
 
-def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source_value='$video'):
+def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source_value='video'):
     """ Convert PathTrack dataset to Label Studio video labeling format
 
     :param root_dir: root dir with video folders, e.g.: 'pathtrack/train' or 'pathtrack/test'
