@@ -31,12 +31,11 @@ def get_labels():
 def get_info(path):
     with open(path) as f:
         b = bs4.BeautifulSoup(f.read())
-        ratio = 24 / float(b.root.doc.fps.get_text())  # todo: remove it
         return SimpleNamespace(
-            fps=24,  # float(b.root.doc.fps.get_text()),  # todo: back!
+            fps=float(b.root.doc.fps.get_text()),
             original_width=int(b.root.doc.imw.get_text()),
             original_height=int(b.root.doc.imh.get_text()),
-            frame_count=int(int(b.root.doc.num_frames.get_text()) * ratio)  # todo: remove ratio
+            frame_count=int(b.root.doc.num_frames.get_text())
         )
 
 
@@ -153,7 +152,7 @@ def convert_shot(input_url, label_file, info_file,
     if target_fps is not None and info.fps != target_fps:
         return None
 
-    label_map = get_labels()  # todo: implement get_labels()
+    label_map = get_labels()
     regions = {}
     keyframe_count = 0
 
