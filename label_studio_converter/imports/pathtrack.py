@@ -136,7 +136,7 @@ def create_config(from_name='box', to_name='video', source_value='video', target
 
 def convert_shot(input_url, label_file, info_file,
                  from_name='box', to_name='video', source_value='video',
-                 target_fps=None):
+                 target_fps=None, hop_keyframes=0):
     """ Convert bounding boxes from PathTrack to Label Studio video format
 
     :param input_url: video file
@@ -146,8 +146,12 @@ def convert_shot(input_url, label_file, info_file,
     :param to_name: object name from Label Studio labeling config
     :param source_value: source name for Video tag, e.g. $video
     :param target_fps: keep video with this fps only
+    :param hop_keyframes: how many keyframes to skip
     """
-    logger.info('Convert shot start: %s', input_url)
+    logger.info('Converting of the shot is starting: %s', input_url)
+    if not os.path.exists(label_file):
+        return None
+
     info = get_info(info_file)
     if target_fps is not None and info.fps != target_fps:
         return None
@@ -172,12 +176,21 @@ def convert_shot(input_url, label_file, info_file,
         regions[idx] = new_keyframe(region, bbox=v, info=info)
         keyframe_count += 1
 
+    # keep only each <hop> keyframe
+    if hop_keyframes > 1:
+        for r in regions:
+            last = regions[r]['value']['sequence'][-1]
+            regions[r]['value']['sequence'] = regions[r]['value']['sequence'][0:-1:hop_keyframes]
+            if regions[r]['value']['sequence'][-1] != last:
+                regions[r]['value']['sequence'].append(last)
+
     logger.info('Shot with %i regions and %i keyframes created', len(regions), keyframe_count)
     data = {source_value: input_url}
     return new_task(data, result=list(regions.values()))
 
 
-def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source_value='video', target_fps=None):
+def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source_value='video',
+                    target_fps=None, hop_keyframes=0):
     """ Convert PathTrack dataset to Label Studio video labeling format
 
     :param root_dir: root dir with video folders, e.g.: 'pathtrack/train' or 'pathtrack/test'
@@ -186,6 +199,7 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
     :param from_name: control tag name from Label Studio labeling config
     :param source_value: source name for Video tag, e.g. $video
     :param target_fps: keep video with this fps only
+    :param hop_keyframes: how many keyframes to skip
     """
     logger.info('Convert dataset start: %s', root_dir)
     tasks = []
@@ -202,7 +216,9 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
         label_file = os.path.join(shot_dir, 'gt/gt.txt')
         info_file = os.path.join(shot_dir, 'info.xml')
 
-        task = convert_shot(input_url, label_file, info_file, from_name, to_name, source_value, target_fps)
+        task = convert_shot(input_url, label_file, info_file,
+                            from_name, to_name, source_value,
+                            target_fps, hop_keyframes)
         if task is None:
             continue
 
@@ -228,6 +244,7 @@ if __name__ == '__main__':
 
     url = sys.argv[1] if len(sys.argv) > 1 else 'https://data.heartex.net/pathtrack/train/'
     fps = float(sys.argv[2]) if len(sys.argv) > 2 else None
-    convert_dataset('./', url, target_fps=fps)
+    hop = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    convert_dataset('./', url, target_fps=fps, hop_keyframes=hop)
 
 
