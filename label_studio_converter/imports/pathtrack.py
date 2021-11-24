@@ -185,7 +185,7 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
         if not os.path.isdir(shot_dir):
             continue
 
-        input_url = 'https://data.heartex.net/pathtrack/train/3NNyX76PV1o_729_734/video.mp4'  # root_url + d + '/video.mp4'
+        input_url = root_url + d + '/video.mp4'
         label_file = os.path.join(shot_dir, 'gt/gt.txt')
         info_file = os.path.join(shot_dir, 'info.xml')
 
@@ -206,5 +206,8 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
 
 
 if __name__ == '__main__':
+    import sys
+    url = sys.argv[1] if len(sys.argv) > 1 else 'https://data.heartex.net/pathtrack/train/'
+    convert_dataset('./', url)
+
     # convert_dataset('../../tests', 'https://data.heartex.net/pathtrack/train/')
-    convert_dataset('./', 'https://data.heartex.net/pathtrack/train/')
