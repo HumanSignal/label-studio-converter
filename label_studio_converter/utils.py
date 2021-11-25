@@ -65,7 +65,7 @@ def create_tokens_and_tags(text, spans):
                         break
 
 
-            if not span or token_end < span_start:
+            if not span or token_end < span_start or span.get('labels') is None:
                 tags.append('O')
             elif span_start <= token_end and span_end >= token_start_ind:
                 tags.append(prefix + span['labels'][0])
