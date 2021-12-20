@@ -63,9 +63,11 @@ def create_tokens_and_tags(text, spans):
                     prefix = 'B-'
                     if token_start <= span_end:
                         break
-
-
-            if not span or token_end < span_start or span.get('labels') is None:
+            # Add tag "O" for spans that:
+            # - are empty
+            # - span start has passed over token_end
+            # - do not have any label (None or empty list)
+            if not span or token_end < span_start or not span.get('labels'):
                 tags.append('O')
             elif span_start <= token_end and span_end >= token_start_ind:
                 tags.append(prefix + span['labels'][0])
