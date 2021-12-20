@@ -10,14 +10,15 @@ from shutil import copy2
 from enum import Enum
 from datetime import datetime
 from glob import glob
-from collections import Mapping, defaultdict
+from collections.abc import Mapping, MutableMapping
+from collections import defaultdict
 from operator import itemgetter
 from copy import deepcopy
 from PIL import Image
 
 from label_studio_converter.utils import (
     parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir,
-    get_polygon_area, get_polygon_bounding_box
+    get_polygon_area, get_polygon_bounding_box, _get_annotator
 )
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest
@@ -150,7 +151,7 @@ class Converter(object):
     def convert(self, input_data, output_data, format, is_dir=True, **kwargs):
         if isinstance(format, str):
             format = Format.from_string(format)
-            
+
         if format == Format.JSON:
             self.convert_to_json(input_data, output_data, is_dir=is_dir)
         elif format == Format.JSON_MIN:
@@ -272,18 +273,19 @@ class Converter(object):
     def annotation_result_from_task(self, task):
         has_annotations = 'completions' in task or 'annotations' in task
         if not has_annotations:
-            raise KeyError('Each task dict item should contain "annotations" or "completions" [deprecated],'
+            logger.warning('Each task dict item should contain "annotations" or "completions" [deprecated], '
                            'where value is list of dicts')
+            return None
 
         # get last not skipped completion and make result from it
         annotations = task['annotations'] if 'annotations' in task else task['completions']
-        
+
         # skip cancelled annotations
         cancelled = lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False))
         annotations = list(filter(cancelled, annotations))
         if not annotations:
             return None
-        
+
         # sort by creation time
         annotations = sorted(annotations, key=lambda x: x.get('created_at', 0), reverse=True)
 
@@ -303,7 +305,7 @@ class Converter(object):
                         v['original_height'] = r['original_height']
                     outputs[r['from_name']].append(v)
 
-            yield {
+            data = {
                 'id': task['id'],
                 'input': inputs,
                 'output': outputs,
@@ -313,6 +315,9 @@ class Converter(object):
                 'updated_at': annotation.get('updated_at'),
                 'lead_time': annotation.get('lead_time')
             }
+            if 'agreement' in task:
+                data['agreement'] = task['agreement']
+            yield data
 
     def _check_format(self, fmt):
         pass
@@ -358,11 +363,13 @@ class Converter(object):
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 record[name] = self._prettify(value)
-            record['annotator'] = item['completed_by'].get('email')
+            record['annotator'] = _get_annotator(item, int_id=True)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
             record['lead_time'] = item['lead_time']
+            if 'agreement' in item:
+                record['agreement'] = item['agreement']
             records.append(record)
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
@@ -381,12 +388,14 @@ class Converter(object):
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 pretty_value = self._prettify(value)
-                record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value)
-            record['annotator'] = item['completed_by'].get('email')
+                record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value, ensure_ascii=False)
+            record['annotator'] = _get_annotator(item)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
             record['lead_time'] = item['lead_time']
+            if 'agreement' in item:
+                record['agreement'] = item['agreement']
             records.append(record)
 
         pd.DataFrame.from_records(records).to_csv(output_file, index=False, **kwargs)
@@ -434,10 +443,12 @@ class Converter(object):
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
+
             # skip tasks without annotations
             if not item['output']:
                 logger.warning('No annotations found for item #' + str(item_idx))
                 continue
+          
             # concatentate results over all tag names
             labels = []
             for key in item['output']:
@@ -477,6 +488,11 @@ class Converter(object):
 
                 # get image sizes
                 if first:
+
+                    if 'original_width' not in label or 'original_height' not in label:
+                        logger.warning(f'original_width or original_height not found in {image_path}')
+                        continue
+
                     width, height = label['original_width'], label['original_height']
                     image_id = len(images)
                     images.append({
@@ -525,7 +541,7 @@ class Converter(object):
                     raise ValueError("Unknown label type")
 
                 if os.getenv('LABEL_STUDIO_FORCE_ANNOTATOR_EXPORT'):
-                    annotations[-1].update({'annotator': item['completed_by'].get('email')})
+                    annotations[-1].update({'annotator': _get_annotator(item)})
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump({
@@ -576,7 +592,7 @@ class Converter(object):
                         image_path=image_path, item=item
                     ), exc_info=True)
 
-            # concatentate results over all tag names
+            # concatenate results over all tag names
             labels = []
             for key in item['output']:
                 labels += item['output'][key]
@@ -659,6 +675,8 @@ class Converter(object):
             annotations_dir = os.path.join(output_dir, 'Annotations')
             if not os.path.exists(annotations_dir):
                 os.makedirs(annotations_dir)
+
+            channels = 3
             if not os.path.exists(image_path):
                 try:
                     image_path = download(
@@ -667,16 +685,17 @@ class Converter(object):
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)
-                    # On error, use default number of channels
-                    channels = 3
                 else:
                     full_image_path = os.path.join(output_image_dir, os.path.basename(image_path))
                     # retrieve number of channels from downloaded image
-                    _, _, channels = get_image_size_and_channels(full_image_path)
+                    try:
+                        _, _, channels = get_image_size_and_channels(full_image_path)
+                    except:
+                        logger.warning(f"Can't read channels from image {image_path}")
 
-            bboxes = next(iter(item['output'].values()))
+            image_name = os.path.splitext(os.path.basename(image_path))[0]
 
-            # concatentate results over all tag names
+            # concatenate results over all tag names
             bboxes = []
             for key in item['output']:
                 bboxes += item['output'][key]
@@ -685,9 +704,11 @@ class Converter(object):
                 logger.warning(f'Empty bboxes for {item["output"]}')
                 continue
 
-            width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
+            if 'original_width' not in bboxes[0] or 'original_height' not in bboxes[0]:
+                logger.warning(f'original_width or original_height not found in {image_name}')
+                continue
 
-            image_name = os.path.splitext(os.path.basename(image_path))[0]
+            width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
             xml_filepath = os.path.join(annotations_dir, image_name + '.xml')
 
             my_dom = xml.dom.getDOMImplementation()
@@ -701,7 +722,7 @@ class Converter(object):
             create_child_node(doc, 'annotation', 'COCO2017', source_node)
             create_child_node(doc, 'image', 'flickr', source_node)
             create_child_node(doc, 'flickrid', 'NULL', source_node)
-            create_child_node(doc, 'annotator', item['completed_by'].get('email', 'none'), source_node)
+            create_child_node(doc, 'annotator', _get_annotator(item, ''), source_node)
             root_node.appendChild(source_node)
 
             owner_node = doc.createElement('owner')

@@ -102,7 +102,7 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
         upload_dir = _get_upload_dir(project_dir, upload_dir)
         filename = url.replace('/data/upload/', '')
         filepath = os.path.join(upload_dir, filename)
-        logger.debug('Copy {filepath} to {output_dir}'.format(filepath=filepath, output_dir=output_dir))
+        logger.debug(f'Copy {filepath} to {output_dir}'.format(filepath=filepath, output_dir=output_dir))
         if download_resources:
             shutil.copy(filepath, output_dir)
         if return_relative_path:
@@ -199,3 +199,16 @@ def get_polygon_bounding_box(x, y):
     x1, y1, x2, y2 = min(x), min(y), max(x), max(y)
     return [x1, y1, x2 - x1, y2 - y1]
 
+
+def _get_annotator(item, default=None, int_id=False):
+    """ Get annotator id or email from annotation
+    """
+    annotator = item['completed_by']
+    if isinstance(annotator, dict):
+        annotator = annotator.get('email', default)
+        return annotator
+
+    if isinstance(annotator, int) and int_id:
+        return annotator
+
+    return str(annotator)

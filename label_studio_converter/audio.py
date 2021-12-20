@@ -4,7 +4,7 @@ import logging
 import json
 
 
-from .utils import get_audio_duration, ensure_dir, download
+from .utils import get_audio_duration, ensure_dir, download, _get_annotator
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def convert_to_asr_json_manifest(input_data, output_dir, data_key, project_dir, 
                 'audio_filepath': audio_path,
                 'duration': duration,
                 'text': transcript,
-                'annotator': item['completed_by'].get('email', 'none')
+                'annotator': _get_annotator(item, default='')
             }
             json.dump(metadata, fout)
             fout.write('\n')
