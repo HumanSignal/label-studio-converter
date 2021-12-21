@@ -432,17 +432,32 @@ class Converter(object):
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
-            # download all images of the dataset, including 
             image_path = item['input'][data_key]
+            image_id = len(images)
+            # download all images of the dataset, including the ones without annotations
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
                                           return_relative_path=True, upload_dir=self.upload_dir,
                                           download_resources=self.download_resources)
                 except:
-                    logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
+                    logger.error('Unable to download {image_path}. The image of {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
+            # add image to final images list
+            try:
+                with Image.open(os.path.join(output_dir, image_path)) as img:
+                    width, height = img.size
+                images.append({
+                        'width': width,
+                        'height': height,
+                        'id': image_id,
+                        'file_name': image_path
+                    })
+            except:
+                logger.error('Unable to open {image_path}. The image of {item} will be skipped'.format(
+                    image_path=image_path, item=item
+                ), exc_info=True)
 
             # skip tasks without annotations
             if not item['output']:
@@ -456,24 +471,7 @@ class Converter(object):
 
             if len(labels) == 0:
                 logger.warning(f'Empty bboxes for {item["output"]}')
-                # add image to final export
-                image_id = len(images)
-                try:
-                    with Image.open(os.path.join(output_dir, image_path)) as img:
-                        width, height = img.size
-                except Exception as e:
-                    logger.warning(f'Could not retrieve image width and height.')
-                    width, height = 0, 0
-                # add image to list
-                images.append({
-                        'width': width,
-                        'height': height,
-                        'id': image_id,
-                        'file_name': image_path
-                    })
                 continue
-
-            first = True
 
             for label in labels:
                 if 'rectanglelabels' in label:
@@ -486,22 +484,10 @@ class Converter(object):
                     logger.warning("Unknown label type: " + str(label))
                     continue
 
-                # get image sizes
-                if first:
-
-                    if 'original_width' not in label or 'original_height' not in label:
-                        logger.warning(f'original_width or original_height not found in {image_path}')
-                        continue
-
-                    width, height = label['original_width'], label['original_height']
-                    image_id = len(images)
-                    images.append({
-                        'width': width,
-                        'height': height,
-                        'id': image_id,
-                        'file_name': image_path
-                    })
-                    first = False
+                if 'original_width' not in label or 'original_height' not in label:
+                    logger.warning(f'original_width or original_height not found in {image_path}')
+                    continue
+                width, height = label['original_width'], label['original_height']
 
                 category_id = category_name_to_id[category_name]
 
