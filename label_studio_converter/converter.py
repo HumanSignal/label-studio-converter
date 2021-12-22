@@ -434,6 +434,8 @@ class Converter(object):
         for item_idx, item in enumerate(item_iterator):
             image_path = item['input'][data_key]
             image_id = len(images)
+            width = None
+            height = None
             # download all images of the dataset, including the ones without annotations
             if not os.path.exists(image_path):
                 try:
@@ -484,10 +486,18 @@ class Converter(object):
                     logger.warning("Unknown label type: " + str(label))
                     continue
 
-                if 'original_width' not in label or 'original_height' not in label:
-                    logger.warning(f'original_width or original_height not found in {image_path}')
-                    continue
-                width, height = label['original_width'], label['original_height']
+                if not height or not width:
+                    if 'original_width' not in label or 'original_height' not in label:
+                        logger.warning(f'original_width or original_height not found in {image_path}')
+                        continue
+
+                    width, height = label['original_width'], label['original_height']
+                    images.append({
+                        'width': width,
+                        'height': height,
+                        'id': image_id,
+                        'file_name': image_path
+                    })
 
                 category_id = category_name_to_id[category_name]
 
