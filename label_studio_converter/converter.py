@@ -1,6 +1,7 @@
 import os
 import json
 import io
+import math
 import logging
 import pandas as pd
 import xml.dom
@@ -610,10 +611,42 @@ class Converter(object):
                 category_id = category_name_to_id[category_name]
 
                 if "rectanglelabels" in label or 'labels' in label:
-                    x = (label['x'] + label['width']/2) / 100
-                    y = (label['y'] + label['height']/2) / 100
-                    w = label['width'] / 100
-                    h = label['height'] / 100
+                    label_x, label_y, label_w, label_h, label_r = (
+                        label["x"],
+                        label["y"],
+                        label["width"],
+                        label["height"],
+                        label["rotation"],
+                    )
+                    if abs(label_r) > 1:
+                        r = math.pi * label_r / 180
+                        sin_r = math.sin(r)
+                        cos_r = math.cos(r)
+                        h_sin_r, h_cos_r = label_h * sin_r, label_h * cos_r
+                        x_top_right = label_x + label_w * cos_r
+                        y_top_right = label_y + label_w * sin_r
+                        
+                        x_ls = [
+                            label_x,
+                            x_top_right,
+                            x_top_right - h_sin_r,
+                            label_x - h_sin_r,
+                        ]
+                        y_ls = [
+                            label_y,
+                            y_top_right,
+                            y_top_right + h_cos_r,
+                            label_y + h_cos_r,
+                        ]
+                        label_x = max(0, min(*x_ls))
+                        label_y = max(0, min(*y_ls))
+                        label_w = min(100, max(*x_ls)) - label_x
+                        label_h = min(100, max(*y_ls)) - label_y
+                        
+                    x = (label_x + label_w / 2) / 100
+                    y = (label_y + label_h / 2) / 100
+                    w = label_w / 100
+                    h = label_h / 100
                     annotations.append([category_id, x, y, w, h])
                 else:
                     raise ValueError(f"Unknown label type {label}")
