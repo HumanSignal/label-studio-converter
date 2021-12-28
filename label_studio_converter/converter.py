@@ -16,11 +16,12 @@ from operator import itemgetter
 from copy import deepcopy
 
 from label_studio_converter.utils import (
-    parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir,
+    create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir,
     get_polygon_area, get_polygon_bounding_box, _get_annotator
 )
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest
+from label_studio_tools.core.label_config import parse_config
 
 logger = logging.getLogger(__name__)
 
