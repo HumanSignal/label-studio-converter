@@ -638,10 +638,10 @@ class Converter(object):
                             y_top_right + h_cos_r,
                             label_y + h_cos_r,
                         ]
-                        label_x = max(0, min(*x_ls))
-                        label_y = max(0, min(*y_ls))
-                        label_w = min(100, max(*x_ls)) - label_x
-                        label_h = min(100, max(*y_ls)) - label_y
+                        label_x = max(0, min(x_ls))
+                        label_y = max(0, min(y_ls))
+                        label_w = min(100, max(x_ls)) - label_x
+                        label_h = min(100, max(y_ls)) - label_y
                         
                     x = (label_x + label_w / 2) / 100
                     y = (label_y + label_h / 2) / 100
