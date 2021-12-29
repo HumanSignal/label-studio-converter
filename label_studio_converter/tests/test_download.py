@@ -1,4 +1,4 @@
-from utils import download
+from label_studio_converter.utils import download
 import os
 from pathlib import Path
 
