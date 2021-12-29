@@ -24,7 +24,7 @@ def test_local_download(tmp_path):
                  return_relative_path=return_relative_path,
                  upload_dir=upload_dir,
                  download_resources=download_resources)
-    assert f == str(Path('images/Highway.jpg'))
+    assert f == str(Path('images/10/Highway.jpg'))
 
 
 def test_local_serving_download(tmp_path):
