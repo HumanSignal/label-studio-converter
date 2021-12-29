@@ -1,4 +1,4 @@
-from utils import download
+from .utils import download
 import os
 from pathlib import Path
 
