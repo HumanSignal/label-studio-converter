@@ -1,14 +1,9 @@
-import io
 import os
 import warnings
 
-import requests
-import hashlib
 import logging
-import urllib
 import numpy as np
 import wave
-import shutil
 import argparse
 
 from pathlib import Path
@@ -113,7 +108,6 @@ def download(url,
     filepath = get_local_path(url=url,
                               cache_dir=output_dir,
                               image_dir=_get_upload_dir(project_dir, upload_dir),
-                              access_token="access_token",
                               download_resources=download_resources)
     new_filename = Path(filepath)
 

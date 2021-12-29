@@ -1,4 +1,4 @@
-from label_studio_converter.utils import download
+from utils import download
 import os
 from pathlib import Path
 
@@ -24,7 +24,7 @@ def test_local_download(tmp_path):
                  return_relative_path=return_relative_path,
                  upload_dir=upload_dir,
                  download_resources=download_resources)
-    assert f == str(Path('images/10/Highway.jpg'))
+    assert f == str(Path('images/Highway.jpg'))
 
 
 def test_local_serving_download(tmp_path):
@@ -98,4 +98,4 @@ def test_external_download_not_relative(tmp_path):
                  return_relative_path=return_relative_path,
                  upload_dir=upload_dir,
                  download_resources=download_resources)
-    assert os.path.join(output_dir, os.path.basename(url).split(".")[0]) in f
+    assert os.path.basename(url).split(".")[0] in f and str(output_dir) in f
