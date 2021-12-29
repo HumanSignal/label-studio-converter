@@ -11,12 +11,12 @@ import wave
 import shutil
 import argparse
 
+from pathlib import Path
 from operator import itemgetter
 from PIL import Image
-from urllib.parse import urlparse
 from nltk.tokenize import WhitespaceTokenizer
 import label_studio_tools.core.label_config as label_config
-#from label_studio_tools.core.utils.io import get_local_path
+from label_studio_tools.core.utils.io import get_local_path
 
 logger = logging.getLogger(__name__)
 
@@ -109,44 +109,20 @@ def download(url,
              upload_dir=None,
              download_resources=True):
     is_local_file = url.startswith('/data/') and '?d=' in url
-    is_uploaded_file = url.startswith('/data/upload')
 
-    #filepath = get_local_path(url=url, )
-
-    if is_uploaded_file:
-        upload_dir = _get_upload_dir(project_dir, upload_dir)
-        filename = url.replace('/data/upload/', '')
-        filepath = os.path.join(upload_dir, filename)
-        logger.debug(f'Copy {filepath} to {output_dir}'.format(filepath=filepath, output_dir=output_dir))
-        if download_resources:
-            shutil.copy(filepath, output_dir)
-        if return_relative_path:
-            return os.path.join(os.path.basename(output_dir), filename)
-        return filepath
+    filepath = get_local_path(url=url,
+                              cache_dir=output_dir,
+                              image_dir=_get_upload_dir(project_dir, upload_dir),
+                              access_token="access_token",
+                              download_resources=download_resources)
+    new_filename = Path(filepath)
 
     if is_local_file:
-        filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
-        dir_path = str(urllib.parse.unquote(dir_path))
-        if not os.path.exists(dir_path):
-            raise FileNotFoundError(dir_path)
-        filepath = os.path.join(dir_path, filename)
         if return_relative_path:
             raise NotImplementedError()
         return filepath
-
-    if filename is None:
-        basename, ext = os.path.splitext(os.path.basename(urlparse(url).path))
-        filename = basename + '_' + hashlib.md5(url.encode()).hexdigest()[:4] + ext
-    filepath = os.path.join(output_dir, filename)
-    if not os.path.exists(filepath):
-        logger.info('Download {url} to {filepath}'.format(url=url, filepath=filepath))
-        if download_resources:
-            r = requests.get(url)
-            r.raise_for_status()
-            with io.open(filepath, mode='wb') as fout:
-                fout.write(r.content)
     if return_relative_path:
-        return os.path.join(os.path.basename(output_dir), filename)
+        return os.path.join(os.path.basename(output_dir), new_filename.name)
     return filepath
 
 
