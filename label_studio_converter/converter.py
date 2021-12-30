@@ -562,8 +562,7 @@ class Converter(object):
         else:
             output_label_dir = os.path.join(output_dir, 'labels')
             os.makedirs(output_label_dir, exist_ok=True)
-        categories = []
-        category_name_to_id = {}
+        categories, category_name_to_id = self._get_labels()
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
@@ -600,6 +599,7 @@ class Converter(object):
                 else:
                     logger.warning(f"Unknown label type {label}")
                     continue
+
                 if category_name not in category_name_to_id:
                     category_id = len(categories)
                     category_name_to_id[category_name] = category_id
