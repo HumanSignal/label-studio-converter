@@ -618,7 +618,7 @@ class Converter(object):
                         label["height"],
                         label["rotation"],
                     )
-                    if abs(label_r) > 1:
+                    if abs(label_r) > 0:
                         r = math.pi * label_r / 180
                         sin_r = math.sin(r)
                         cos_r = math.cos(r)
