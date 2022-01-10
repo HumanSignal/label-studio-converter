@@ -1,16 +1,15 @@
 import os
 import warnings
-
 import logging
 import numpy as np
 import wave
 import argparse
+import label_studio_tools.core.label_config as label_config
 
 from pathlib import Path
 from operator import itemgetter
 from PIL import Image
 from nltk.tokenize import WhitespaceTokenizer
-import label_studio_tools.core.label_config as label_config
 from label_studio_tools.core.utils.io import get_local_path
 
 logger = logging.getLogger(__name__)
