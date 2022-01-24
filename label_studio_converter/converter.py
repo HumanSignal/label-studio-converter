@@ -410,9 +410,10 @@ class Converter(object):
             item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
 
             for item in item_iterator(input_data):
+                filtered_output = list(filter(lambda x: x[0]['type'].lower() == 'labels', item['output'].values()))
                 tokens, tags = create_tokens_and_tags(
                     text=item['input'][data_key],
-                    spans=next(iter(item['output'].values()), None)
+                    spans=next(iter(filtered_output), None)
                 )
                 for token, tag in zip(tokens, tags):
                     fout.write('{token} -X- _ {tag}\n'.format(token=token, tag=tag))
