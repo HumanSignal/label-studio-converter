@@ -13,3 +13,7 @@ jobs:
         python-root-list: ./label_studio_converter
         extra-pylint-options: --fail-under=5
         extra-pycodestyle-options: --ignore=E501,E722,W503,E261,W291,W293,W504,E731,E226,E225
+        use-flake8: false
+        use-black: false
+        use-mypy: false
+        use-isort: false
