@@ -20,7 +20,8 @@ from collections import defaultdict
 logger = logging.getLogger(__name__)
 
 _LABEL_TAGS = {'Label', 'Choice'}
-_NOT_CONTROL_TAGS = {'Filter',}
+_NOT_CONTROL_TAGS = {'Filter', }
+
 
 class ExpandFullPath(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -40,7 +41,7 @@ def tokenize(text):
 
 
 def create_tokens_and_tags(text, spans):
-    #tokens_and_idx = tokenize(text) # This function doesn't work properly if text contains multiple whitespaces...
+    # tokens_and_idx = tokenize(text) # This function doesn't work properly if text contains multiple whitespaces...
     token_index_tuples = [token for token in WhitespaceTokenizer().span_tokenize(text)]
     tokens_and_idx = [(text[start:end], start) for start, end in token_index_tuples]
     spans = [span for span in spans if span.get('type') == 'labels']
@@ -53,12 +54,12 @@ def create_tokens_and_tags(text, spans):
         tokens, tags = [], []
         for token, token_start in tokens_and_idx:
             tokens.append(token)
-            token_end = token_start + len(token) #"- 1" - This substraction is wrong. token already uses the index E.g. "Hello" is 0-4
-            token_start_ind = token_start  #It seems like the token start is too early.. for whichever reason
+            token_end = token_start + len(token) # "- 1" - This substraction is wrong. token already uses the index E.g. "Hello" is 0-4
+            token_start_ind = token_start  # It seems like the token start is too early.. for whichever reason
 
-            #if for some reason end of span is missed.. pop the new span (Which is quite probable due to this method)
-            #Attention it seems like span['end'] is the index of first char afterwards. In case the whitespace is part of the
-            #labell we need to subtract one. Otherwise next token won't trigger the span update.. only the token after next..
+            # if for some reason end of span is missed.. pop the new span (Which is quite probable due to this method)
+            # Attention it seems like span['end'] is the index of first char afterwards. In case the whitespace is part of the
+            # labell we need to subtract one. Otherwise next token won't trigger the span update.. only the token after next..
             if token_start_ind > span_end:
                 while spans:
                     span = spans.pop(0)
