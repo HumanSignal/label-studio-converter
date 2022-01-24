@@ -12,4 +12,4 @@ jobs:
       with:
         python-root-list: ./label_studio_converter
         extra-pylint-options: --fail-under=5
-        extra-pycodestyle-options: --ignore=E501
+        extra-pycodestyle-options: --ignore=E501,E722,W503,E261,W291,W293
