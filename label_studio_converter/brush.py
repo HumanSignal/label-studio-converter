@@ -100,13 +100,13 @@ def decode_from_annotation(from_name, results):
     for result in results:
         key = 'brushlabels' if result['type'].lower() == 'brushlabels' else \
             ('labels' if result['type'].lower() == 'labels' else None)
-        if key is None or 'rle' not in result:
+        if key is None or 'rle' not in result['value']:
             continue
 
-        rle = result['rle']
+        rle = result['value']['rle']
         width = result['original_width']
         height = result['original_height']
-        labels = result[key] if key in result else ['no_label']
+        labels = result['value'][key] if key in result['value'] else ['no_label']
         name = from_name + '-' + '-'.join(labels)
 
         # result count
