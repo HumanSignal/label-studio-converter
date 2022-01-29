@@ -459,14 +459,15 @@ class Converter(object):
             first = True
 
             for label in labels:
-                if 'rectanglelabels' in label:
-                    category_name = label['rectanglelabels'][0]
-                elif 'polygonlabels' in label:
-                    category_name = label['polygonlabels'][0]
-                elif 'labels' in label:
-                    category_name = label['labels'][0]
-                else:
-                    logger.warning("Unknown label type: " + str(label))
+
+                category_name = None
+                for key in ['rectanglelabels', 'polygonlabels', 'labels']:
+                    if key in label and len(label[key]) > 0:
+                        category_name = label[key][0]
+                        break
+
+                if category_name is None:
+                    logger.warning("Unknown label type or labels are empty: " + str(label))
                     continue
 
                 # get image sizes
@@ -594,13 +595,17 @@ class Converter(object):
             label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0]+'.txt')
             annotations = []
             for label in labels:
-                if 'rectanglelabels' in label:
-                    category_name = label['rectanglelabels'][0]
-                elif 'labels' in label:
-                    category_name = label['labels'][0]
-                else:
-                    logger.warning(f"Unknown label type {label}")
+
+                category_name = None
+                for key in ['rectanglelabels', 'polygonlabels', 'labels']:
+                    if key in label and len(label[key]) > 0:
+                        category_name = label[key][0]
+                        break
+
+                if category_name is None:
+                    logger.warning("Unknown label type or labels are empty: " + str(label))
                     continue
+
 
                 if category_name not in category_name_to_id:
                     category_id = len(categories)
@@ -761,7 +766,7 @@ class Converter(object):
 
             for bbox in bboxes:
                 key = 'rectanglelabels' if 'rectanglelabels' in bbox else ('labels' if 'labels' in bbox else None)
-                if key is None:
+                if key is None or len(bbox[key]) == 0:
                     continue
 
                 name = bbox[key][0]
