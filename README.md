@@ -28,7 +28,7 @@ python backend/converter/cli.py --input examples/sentiment_analysis/completions/
 
 Running from python:
 ```python
-from converter import Converter
+from label_studio_converter import Converter
 
 c = Converter('examples/sentiment_analysis/config.xml')
 c.convert_to_json('examples/sentiment_analysis/completions/', 'tmp/output.json')
@@ -63,7 +63,7 @@ python backend/converter/cli.py --input examples/sentiment_analysis/completions/
 
 Running from python:
 ```python
-from converter import Converter
+from label_studio_converter import Converter
 
 c = Converter('examples/sentiment_analysis/config.xml')
 c.convert_to_csv('examples/sentiment_analysis/completions/', 'output_dir', sep='\t', header=True)
@@ -88,7 +88,7 @@ python backend/converter/cli.py --input examples/named_entity/completions/ --con
 
 Running from python:
 ```python
-from converter import Converter
+from label_studio_converter import Converter
 
 c = Converter('examples/named_entity/config.xml')
 c.convert_to_conll2003('examples/named_entity/completions/', 'tmp/output.conll')
@@ -121,7 +121,7 @@ python backend/converter/cli.py --input examples/image_bbox/completions/ --confi
 
 Running from python:
 ```python
-from converter import Converter
+from label_studio_converter import Converter
 
 c = Converter('examples/image_bbox/config.xml')
 c.convert_to_coco('examples/image_bbox/completions/', 'tmp/output.conll', output_image_dir='tmp/images')
@@ -200,7 +200,7 @@ python backend/converter/cli.py --input examples/image_bbox/completions/ --confi
 
 Running from python:
 ```python
-from converter import Converter
+from label_studio_converter import Converter
 
 c = Converter('examples/image_bbox/config.xml')
 c.convert_to_voc('examples/image_bbox/completions/', 'tmp/output.conll', output_image_dir='tmp/images')
