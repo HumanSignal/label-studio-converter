@@ -14,10 +14,13 @@ from operator import itemgetter
 from PIL import Image
 from urllib.parse import urlparse
 from nltk.tokenize import WhitespaceTokenizer
-
+from lxml import etree
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
+_LABEL_TAGS = {'Label', 'Choice'}
+_NOT_CONTROL_TAGS = {'Filter',}
 
 class ExpandFullPath(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -40,7 +43,7 @@ def create_tokens_and_tags(text, spans):
     #tokens_and_idx = tokenize(text) # This function doesn't work properly if text contains multiple whitespaces...
     token_index_tuples = [token for token in WhitespaceTokenizer().span_tokenize(text)]
     tokens_and_idx = [(text[start:end], start) for start, end in token_index_tuples]
-    if spans:
+    if spans and all([span.get('start') is not None and span.get('end') is not None for span in spans]):
         spans = list(sorted(spans, key=itemgetter('start')))
         span = spans.pop(0)
         span_start = span['start']
@@ -63,9 +66,11 @@ def create_tokens_and_tags(text, spans):
                     prefix = 'B-'
                     if token_start <= span_end:
                         break
-
-
-            if not span or token_end < span_start:
+            # Add tag "O" for spans that:
+            # - are empty
+            # - span start has passed over token_end
+            # - do not have any label (None or empty list)
+            if not span or token_end < span_start or not span.get('labels'):
                 tags.append('O')
             elif span_start <= token_end and span_end >= token_start_ind:
                 tags.append(prefix + span['labels'][0])
@@ -157,31 +162,85 @@ def ensure_dir(dir_path):
 
 
 def parse_config(config_string):
+    """
+        :param config_string: Label config string
+        :return: structured config of the form:
+        {
+            "<ControlTag>.name": {
+                "type": "ControlTag",
+                "to_name": ["<ObjectTag1>.name", "<ObjectTag2>.name"],
+                "inputs: [
+                    {"type": "ObjectTag1", "value": "<ObjectTag1>.value"},
+                    {"type": "ObjectTag2", "value": "<ObjectTag2>.value"}
+                ],
+                "labels": ["Label1", "Label2", "Label3"] // taken from "alias" if exists or "value"
+        }
+        """
+    if not config_string:
+        return {}
 
     def _is_input_tag(tag):
-        return tag.attrib.get('name') and tag.attrib.get('value', '').startswith('$')
+        return tag.attrib.get('name') and tag.attrib.get('value')
 
     def _is_output_tag(tag):
-        return tag.attrib.get('name') and tag.attrib.get('toName')
+        return tag.attrib.get('name') and tag.attrib.get('toName') and tag.tag not in _NOT_CONTROL_TAGS
 
-    xml_tree = xml.etree.ElementTree.fromstring(config_string)
+    def _get_parent_output_tag_name(tag, outputs):
+        # Find parental <Choices> tag for nested tags like <Choices><View><View><Choice>...
+        parent = tag
+        while True:
+            parent = parent.getparent()
+            if parent is None:
+                return
+            name = parent.attrib.get('name')
+            if name in outputs:
+                return name
 
-    inputs, outputs = {}, {}
+    try:
+        xml_tree = etree.fromstring(config_string)
+    except etree.XMLSyntaxError as e:
+        raise ValueError(str(e))
+
+    inputs, outputs, labels = {}, {}, defaultdict(dict)
     for tag in xml_tree.iter():
-        if _is_input_tag(tag):
+        if _is_output_tag(tag):
+            tag_info = {'type': tag.tag, 'to_name': tag.attrib['toName'].split(',')}
+            # Grab conditionals if any
+            conditionals = {}
+            if tag.attrib.get('perRegion') == 'true':
+                if tag.attrib.get('whenTagName'):
+                    conditionals = {'type': 'tag', 'name': tag.attrib['whenTagName']}
+                elif tag.attrib.get('whenLabelValue'):
+                    conditionals = {'type': 'label', 'name': tag.attrib['whenLabelValue']}
+                elif tag.attrib.get('whenChoiceValue'):
+                    conditionals = {'type': 'choice', 'name': tag.attrib['whenChoiceValue']}
+            if conditionals:
+                tag_info['conditionals'] = conditionals
+            outputs[tag.attrib['name']] = tag_info
+        elif _is_input_tag(tag):
             inputs[tag.attrib['name']] = {'type': tag.tag, 'value': tag.attrib['value'].lstrip('$')}
-        elif _is_output_tag(tag):
-            outputs[tag.attrib['name']] = {'type': tag.tag, 'to_name': tag.attrib['toName'].split(',')}
-
+        if tag.tag not in _LABEL_TAGS:
+            continue
+        parent_name = _get_parent_output_tag_name(tag, outputs)
+        if parent_name is not None:
+            actual_value = tag.attrib.get('alias') or tag.attrib.get('value')
+            if not actual_value:
+                logger.debug(
+                    'Inspecting tag {tag_name}... found no "value" or "alias" attributes.'.format(
+                        tag_name=etree.tostring(tag, encoding='unicode').strip()[:50]))
+            else:
+                labels[parent_name][actual_value] = dict(tag.attrib)
     for output_tag, tag_info in outputs.items():
         tag_info['inputs'] = []
         for input_tag_name in tag_info['to_name']:
             if input_tag_name not in inputs:
-                raise KeyError(
-                    'to_name={input_tag_name} is specified for output tag name={output_tag}, but we can\'t find it '
-                    'among input tags'.format(input_tag_name=input_tag_name, output_tag=output_tag))
+                logger.warning(
+                    f'to_name={input_tag_name} is specified for output tag name={output_tag}, '
+                    'but we can\'t find it among input tags')
+                continue
             tag_info['inputs'].append(inputs[input_tag_name])
-
+        tag_info['labels'] = list(labels[output_tag])
+        tag_info['labels_attrs'] = labels[output_tag]
     return outputs
 
 
