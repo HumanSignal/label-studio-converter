@@ -55,7 +55,6 @@ class Format(Enum):
 
 
 class Converter(object):
-
     _FORMAT_INFO = {
         Format.JSON: {
             'title': 'JSON',
@@ -215,6 +214,9 @@ class Converter(object):
         for info in self._schema.values():
             output_tag_types.add(info['type'])
             for input_tag in info['inputs']:
+                # exclude Text tags if valueType is url as we don't have texts on backend
+                if input_tag['type'] == 'Text' and input_tag.get('valueType') == 'url':
+                    continue
                 input_tag_types.add(input_tag['type'])
 
         all_formats = [f.name for f in Format]
@@ -226,12 +228,12 @@ class Converter(object):
             all_formats.remove(Format.YOLO.name)
         if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
                                                 'PolygonLabels' in output_tag_types) or
-                                                'Rectangle' in output_tag_types and 'Labels' in output_tag_types or
-                                                'PolygonLabels' in output_tag_types and 'Labels' in output_tag_types):
-
+                'Rectangle' in output_tag_types and 'Labels' in output_tag_types or
+                'PolygonLabels' in output_tag_types and 'Labels' in output_tag_types):
             all_formats.remove(Format.COCO.name)
-        if not ('Image' in input_tag_types and ('BrushLabels' in output_tag_types or 'brushlabels' in output_tag_types or
-                                                'Brush' in output_tag_types and 'Labels' in output_tag_types)):
+        if not ('Image' in input_tag_types and (
+                'BrushLabels' in output_tag_types or 'brushlabels' in output_tag_types or
+                'Brush' in output_tag_types and 'Labels' in output_tag_types)):
             all_formats.remove(Format.BRUSH_TO_NUMPY.name)
             all_formats.remove(Format.BRUSH_TO_PNG.name)
         if not (('Audio' in input_tag_types or 'AudioPlus' in input_tag_types) and 'TextArea' in output_tag_types):
@@ -388,7 +390,8 @@ class Converter(object):
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 pretty_value = self._prettify(value)
-                record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value, ensure_ascii=False)
+                record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value,
+                                                                                             ensure_ascii=False)
             record['annotator'] = _get_annotator(item)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
@@ -592,7 +595,7 @@ class Converter(object):
                 logger.warning(f'Empty bboxes for {item["output"]}')
                 continue
 
-            label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0]+'.txt')
+            label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0] + '.txt')
             annotations = []
             for label in labels:
 
@@ -631,7 +634,7 @@ class Converter(object):
                         h_sin_r, h_cos_r = label_h * sin_r, label_h * cos_r
                         x_top_right = label_x + label_w * cos_r
                         y_top_right = label_y + label_w * sin_r
-                        
+
                         x_ls = [
                             label_x,
                             x_top_right,
@@ -648,7 +651,7 @@ class Converter(object):
                         label_y = max(0, min(y_ls))
                         label_w = min(100, max(x_ls)) - label_x
                         label_h = min(100, max(y_ls)) - label_y
-                        
+
                     x = (label_x + label_w / 2) / 100
                     y = (label_y + label_h / 2) / 100
                     w = label_w / 100
@@ -659,13 +662,13 @@ class Converter(object):
             with open(label_path, 'w') as f:
                 for annotation in annotations:
                     for idx, l in enumerate(annotation):
-                        if idx == len(annotation) -1:
+                        if idx == len(annotation) - 1:
                             f.write(f"{l}\n")
                         else:
                             f.write(f"{l} ")
         with open(class_file, 'w', encoding='utf8') as f:
             for c in categories:
-                f.write(c['name']+'\n')
+                f.write(c['name'] + '\n')
         with io.open(notes_file, mode='w', encoding='utf8') as fout:
             json.dump({
                 'categories': categories,
@@ -709,7 +712,8 @@ class Converter(object):
                 try:
                     image_path = download(
                         image_path, output_image_dir, project_dir=self.project_dir,
-                        upload_dir=self.upload_dir, return_relative_path=True, download_resources=self.download_resources)
+                        upload_dir=self.upload_dir, return_relative_path=True,
+                        download_resources=self.download_resources)
                 except:
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)

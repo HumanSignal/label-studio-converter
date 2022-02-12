@@ -39,7 +39,7 @@ from itertools import groupby
 logger = logging.getLogger(__name__)
 
 
-### Brush Export ###
+# Brush Export
 
 
 class InputStream:
@@ -160,7 +160,7 @@ def convert_task_dir(items, out_dir, out_format='numpy'):
 # convert_task_dir('/ls/test/completions', '/ls/test/completions/output', 'numpy')
 
 
-### Brush Import ###
+# Brush Import
 
 def bits2byte(arr_str, n=8):
     """ Convert bits back to byte
@@ -178,21 +178,24 @@ def bits2byte(arr_str, n=8):
         rle.append(int(i, 2))
     return rle
 
+
 # Shamelessly plagiarized from https://stackoverflow.com/a/32681075/6051733
 def base_rle_encode(inarray):
-        """ run length encoding. Partial credit to R rle function.
-            Multi datatype arrays catered for including non Numpy
-            returns: tuple (runlengths, startpositions, values) """
-        ia = np.asarray(inarray)                # force numpy
-        n = len(ia)
-        if n == 0:
-            return (None, None, None)
-        else:
-            y = ia[1:] != ia[:-1]               # pairwise unequal (string safe)
-            i = np.append(np.where(y), n - 1)   # must include last element posi
-            z = np.diff(np.append(-1, i))       # run lengths
-            p = np.cumsum(np.append(0, z))[:-1] # positions
-            return(z, p, ia[i])
+    """
+    run length encoding. Partial credit to R rle function.
+    Multi datatype arrays catered for including non Numpy
+    returns: tuple (runlengths, startpositions, values)
+    """
+    ia = np.asarray(inarray)  # force numpy
+    n = len(ia)
+    if n == 0:
+        return (None, None, None)
+    else:
+        y = ia[1:] != ia[:-1]  # pairwise unequal (string safe)
+        i = np.append(np.where(y), n - 1)  # must include last element posi
+        z = np.diff(np.append(-1, i))  # run lengths
+        p = np.cumsum(np.append(0, z))[:-1]  # positions
+        return (z, p, ia[i])
 
 
 def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
