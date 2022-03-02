@@ -1,6 +1,7 @@
 import os
 import json
 import io
+import math
 import logging
 import pandas as pd
 import xml.dom
@@ -569,8 +570,7 @@ class Converter(object):
         else:
             output_label_dir = os.path.join(output_dir, 'labels')
             os.makedirs(output_label_dir, exist_ok=True)
-        categories = []
-        category_name_to_id = {}
+        categories, category_name_to_id = self._get_labels()
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
@@ -607,6 +607,7 @@ class Converter(object):
                 else:
                     logger.warning(f"Unknown label type {label}")
                     continue
+
                 if category_name not in category_name_to_id:
                     category_id = len(categories)
                     category_name_to_id[category_name] = category_id
@@ -617,10 +618,42 @@ class Converter(object):
                 category_id = category_name_to_id[category_name]
 
                 if "rectanglelabels" in label or 'labels' in label:
-                    x = (label['x'] + label['width']/2) / 100
-                    y = (label['y'] + label['height']/2) / 100
-                    w = label['width'] / 100
-                    h = label['height'] / 100
+                    label_x, label_y, label_w, label_h, label_r = (
+                        label["x"],
+                        label["y"],
+                        label["width"],
+                        label["height"],
+                        label["rotation"],
+                    )
+                    if abs(label_r) > 0:
+                        r = math.pi * label_r / 180
+                        sin_r = math.sin(r)
+                        cos_r = math.cos(r)
+                        h_sin_r, h_cos_r = label_h * sin_r, label_h * cos_r
+                        x_top_right = label_x + label_w * cos_r
+                        y_top_right = label_y + label_w * sin_r
+                        
+                        x_ls = [
+                            label_x,
+                            x_top_right,
+                            x_top_right - h_sin_r,
+                            label_x - h_sin_r,
+                        ]
+                        y_ls = [
+                            label_y,
+                            y_top_right,
+                            y_top_right + h_cos_r,
+                            label_y + h_cos_r,
+                        ]
+                        label_x = max(0, min(x_ls))
+                        label_y = max(0, min(y_ls))
+                        label_w = min(100, max(x_ls)) - label_x
+                        label_h = min(100, max(y_ls)) - label_y
+                        
+                    x = (label_x + label_w / 2) / 100
+                    y = (label_y + label_h / 2) / 100
+                    w = label_w / 100
+                    h = label_h / 100
                     annotations.append([category_id, x, y, w, h])
                 else:
                     raise ValueError(f"Unknown label type {label}")
