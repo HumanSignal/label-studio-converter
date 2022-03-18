@@ -66,7 +66,7 @@ def create_tokens_and_tags(text, spans):
         tokens, tags = [], []
         for token, token_start in tokens_and_idx:
             tokens.append(token)
-            token_end = token_start + len(token) #"- 1" - This substraction is wrong. token already uses the index E.g. "Hello" is 0-4
+            token_end = token_start + len(token) - 1#"- 1" - This substraction is wrong. token already uses the index E.g. "Hello" is 0-4
             token_start_ind = token_start  #It seems like the token start is too early.. for whichever reason
 
             #if for some reason end of span is missed.. pop the new span (Which is quite probable due to this method)
