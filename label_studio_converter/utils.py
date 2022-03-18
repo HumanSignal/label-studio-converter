@@ -9,11 +9,12 @@ import numpy as np
 import wave
 import shutil
 import argparse
+import re
 
 from operator import itemgetter
 from PIL import Image
 from urllib.parse import urlparse
-from nltk.tokenize import WhitespaceTokenizer
+from nltk.tokenize.treebank import TreebankWordTokenizer
 from lxml import etree
 from collections import defaultdict
 
@@ -21,6 +22,19 @@ logger = logging.getLogger(__name__)
 
 _LABEL_TAGS = {'Label', 'Choice'}
 _NOT_CONTROL_TAGS = {'Filter',}
+
+TreebankWordTokenizer.PUNCTUATION = [
+        (re.compile(r"([:,])([^\d])"), r" \1 \2"),
+        (re.compile(r"([:,])$"), r" \1 "),
+        (re.compile(r"\.\.\."), r" ... "),
+        (re.compile(r"[;@#$/%&]"), r" \g<0> "),
+        (
+            re.compile(r'([^\.])(\.)([\]\)}>"\']*)\s*$'),
+            r"\1 \2\3 ",
+        ),  # Handles the final period.
+        (re.compile(r"[?!]"), r" \g<0> "),
+        (re.compile(r"([^'])' "), r"\1 ' "),
+    ]
 
 class ExpandFullPath(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -41,7 +55,7 @@ def tokenize(text):
 
 def create_tokens_and_tags(text, spans):
     #tokens_and_idx = tokenize(text) # This function doesn't work properly if text contains multiple whitespaces...
-    token_index_tuples = [token for token in WhitespaceTokenizer().span_tokenize(text)]
+    token_index_tuples = [token for token in TreebankWordTokenizer().span_tokenize(text)]
     tokens_and_idx = [(text[start:end], start) for start, end in token_index_tuples]
     if spans and all([span.get('start') is not None and span.get('end') is not None for span in spans]):
         spans = list(sorted(spans, key=itemgetter('start')))
