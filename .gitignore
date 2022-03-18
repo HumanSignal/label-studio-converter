@@ -1,1 +1,15 @@
 __pycache__/
+
+# mobile/builds
+db/
+logfile
+env/
+venv/
+.venv
+.vscode
+.autoenv
+.env
+.envrc
+*.idea/*
+.vscode/*
+build/
