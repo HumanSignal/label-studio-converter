@@ -595,67 +595,68 @@ class Converter(object):
             label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0]+'.txt')
             annotations = []
             for label in labels:
-
                 category_name = None
+                category_names = []     # considering multi-label
                 for key in ['rectanglelabels', 'polygonlabels', 'labels']:
                     if key in label and len(label[key]) > 0:
-                        category_name = label[key][0]
-                        break
+                        # change to save multi-label
+                        for item in label[key]:
+                            category_names.append(item)
 
-                if category_name is None:
+                if len(category_names) == 0:
                     logger.warning("Unknown label type or labels are empty: " + str(label))
                     continue
 
+                for category_name in category_names:
+                    if category_name not in category_name_to_id:
+                        category_id = len(categories)
+                        category_name_to_id[category_name] = category_id
+                        categories.append({
+                            'id': category_id,
+                            'name': category_name
+                        })
+                    category_id = category_name_to_id[category_name]
 
-                if category_name not in category_name_to_id:
-                    category_id = len(categories)
-                    category_name_to_id[category_name] = category_id
-                    categories.append({
-                        'id': category_id,
-                        'name': category_name
-                    })
-                category_id = category_name_to_id[category_name]
+                    if "rectanglelabels" in label or 'labels' in label:
+                        label_x, label_y, label_w, label_h, label_r = (
+                            label["x"],
+                            label["y"],
+                            label["width"],
+                            label["height"],
+                            label["rotation"],
+                        )
+                        if abs(label_r) > 0:
+                            r = math.pi * label_r / 180
+                            sin_r = math.sin(r)
+                            cos_r = math.cos(r)
+                            h_sin_r, h_cos_r = label_h * sin_r, label_h * cos_r
+                            x_top_right = label_x + label_w * cos_r
+                            y_top_right = label_y + label_w * sin_r
 
-                if "rectanglelabels" in label or 'labels' in label:
-                    label_x, label_y, label_w, label_h, label_r = (
-                        label["x"],
-                        label["y"],
-                        label["width"],
-                        label["height"],
-                        label["rotation"],
-                    )
-                    if abs(label_r) > 0:
-                        r = math.pi * label_r / 180
-                        sin_r = math.sin(r)
-                        cos_r = math.cos(r)
-                        h_sin_r, h_cos_r = label_h * sin_r, label_h * cos_r
-                        x_top_right = label_x + label_w * cos_r
-                        y_top_right = label_y + label_w * sin_r
-                        
-                        x_ls = [
-                            label_x,
-                            x_top_right,
-                            x_top_right - h_sin_r,
-                            label_x - h_sin_r,
-                        ]
-                        y_ls = [
-                            label_y,
-                            y_top_right,
-                            y_top_right + h_cos_r,
-                            label_y + h_cos_r,
-                        ]
-                        label_x = max(0, min(x_ls))
-                        label_y = max(0, min(y_ls))
-                        label_w = min(100, max(x_ls)) - label_x
-                        label_h = min(100, max(y_ls)) - label_y
-                        
-                    x = (label_x + label_w / 2) / 100
-                    y = (label_y + label_h / 2) / 100
-                    w = label_w / 100
-                    h = label_h / 100
-                    annotations.append([category_id, x, y, w, h])
-                else:
-                    raise ValueError(f"Unknown label type {label}")
+                            x_ls = [
+                                label_x,
+                                x_top_right,
+                                x_top_right - h_sin_r,
+                                label_x - h_sin_r,
+                            ]
+                            y_ls = [
+                                label_y,
+                                y_top_right,
+                                y_top_right + h_cos_r,
+                                label_y + h_cos_r,
+                            ]
+                            label_x = max(0, min(x_ls))
+                            label_y = max(0, min(y_ls))
+                            label_w = min(100, max(x_ls)) - label_x
+                            label_h = min(100, max(y_ls)) - label_y
+
+                        x = (label_x + label_w / 2) / 100
+                        y = (label_y + label_h / 2) / 100
+                        w = label_w / 100
+                        h = label_h / 100
+                        annotations.append([category_id, x, y, w, h])
+                    else:
+                        raise ValueError(f"Unknown label type {label}")
             with open(label_path, 'w') as f:
                 for annotation in annotations:
                     for idx, l in enumerate(annotation):
