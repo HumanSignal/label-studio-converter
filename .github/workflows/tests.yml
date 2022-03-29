@@ -1,0 +1,37 @@
+name: tests
+on:
+  push:
+    branches: ['*', '*/*', master]
+
+jobs:
+  run_pytest:
+    name: Run pytest for label-studio-converter
+    runs-on: ubuntu-latest
+    env:
+      LOG_DIR: pytest_logs
+      collect_analytics: false
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get clean
+          sudo apt-get update
+          sudo apt-get install virtualenv libsasl2-dev python-dev libldap2-dev libssl-dev
+          pip install -U pip==20.2
+          pip install -r requirements.txt -r requirements-test.txt 
+
+      - name: Run functional tests
+        run: |
+          cd label_studio_converter/tests/
+          pytest --junitxml report.xml --cov=. -m "not integration_tests"
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
