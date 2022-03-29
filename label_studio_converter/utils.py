@@ -39,8 +39,7 @@ def create_tokens_and_tags(text, spans):
     #tokens_and_idx = tokenize(text) # This function doesn't work properly if text contains multiple whitespaces...
     token_index_tuples = [token for token in WhitespaceTokenizer().span_tokenize(text)]
     tokens_and_idx = [(text[start:end], start) for start, end in token_index_tuples]
-    spans = [span for span in spans if span.get('type') == 'labels']
-    if spans:
+    if spans and all([span.get('start') is not None and span.get('end') is not None for span in spans]):
         spans = list(sorted(spans, key=itemgetter('start')))
         span = spans.pop(0)
         span_start = span['start']
