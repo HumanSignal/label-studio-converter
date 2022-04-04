@@ -10,7 +10,7 @@ from label_studio_converter.brush import encode_rle, image2annotation
 
 def test_image2annotation():
     annotation = image2annotation(
-        'test.png',
+        'tests/test.png',
         label_name='Airplane', from_name='tag', to_name='image',
         model_version='v1', score=0.5
     )

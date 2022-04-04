@@ -42,3 +42,27 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(tags[3], "B-Person")
         self.assertEqual(tokens[4], "please")
         self.assertEqual(tags[4], "O")
+
+    def test_create_tokens_and_tags_for_full_token(self):
+
+        text = 'We gave Jane Smith the ball.'
+        spans = [{'end': 12, 'labels': ['Person'], 'start': 9, 'text': 'ane'}]
+        tokens,tags = utils.create_tokens_and_tags(text,spans)
+        self.assertEqual(tokens, ['We','gave','Jane','Smith','the','ball.'])
+        self.assertEqual(tags, ['O','O','B-Person','O','O','O'])
+
+    def test_create_tokens_and_tags_with_leading_space(self):
+
+        text = 'We gave Jane Smith the ball.'
+        spans = [{'end': 18, 'labels': ['Person'], 'start': 7, 'text': ' Jane Smith'}]
+        tokens,tags = utils.create_tokens_and_tags(text,spans)
+        self.assertEqual(tokens, ['We','gave','Jane','Smith','the','ball.'])
+        self.assertEqual(tags, ['O','O','B-Person','I-Person','O','O'])
+
+    def test_create_tokens_and_tags_with_trailing_space(self):
+
+        text = 'We gave Jane Smith the ball.'
+        spans = [{'end': 19, 'labels': ['Person'], 'start': 8, 'text': 'Jane Smith '}]
+        tokens,tags = utils.create_tokens_and_tags(text,spans)
+        self.assertEqual(tokens, ['We','gave','Jane','Smith','the','ball.'])
+        self.assertEqual(tags, ['O','O','B-Person','I-Person','O','O'])
