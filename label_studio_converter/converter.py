@@ -411,15 +411,26 @@ class Converter(object):
             item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
 
             for item in item_iterator(input_data):
+                filtered_output = list(filter(lambda x: x[0]['type'].lower() == 'labels', item['output'].values()))
                 tokens, tags = create_tokens_and_tags(
                     text=item['input'][data_key],
-                    spans=next(iter(item['output'].values()), None)
+                    spans=next(iter(filtered_output), None)
                 )
                 for token, tag in zip(tokens, tags):
                     fout.write('{token} -X- _ {tag}\n'.format(token=token, tag=tag))
                 fout.write('\n')
 
     def convert_to_coco(self, input_data, output_dir, output_image_dir=None, is_dir=True):
+
+        def add_image(images, width, height, image_id, image_path):
+            images.append({
+                'width': width,
+                'height': height,
+                'id': image_id,
+                'file_name': image_path
+            })
+            return images
+
         self._check_format(Format.COCO)
         ensure_dir(output_dir)
         output_file = os.path.join(output_dir, 'result.json')
@@ -451,19 +462,18 @@ class Converter(object):
             try:
                 with Image.open(os.path.join(output_dir, image_path)) as img:
                     width, height = img.size
-                images.append({
-                        'width': width,
-                        'height': height,
-                        'id': image_id,
-                        'file_name': image_path
-                    })
+                images = add_image(images, width, height, image_id, image_path)
             except:
-                logger.error('Unable to open {image_path}. The image of {item} will be skipped'.format(
+                logger.error("Unable to open {image_path}, can't extract width and height for COCO export".format(
                     image_path=image_path, item=item
                 ), exc_info=True)
 
             # skip tasks without annotations
             if not item['output']:
+                # image wasn't load and there are no labels
+                if not width:
+                    images = add_image(images, width, height, image_id, image_path)
+
                 logger.warning('No annotations found for item #' + str(item_idx))
                 continue
           
@@ -477,14 +487,15 @@ class Converter(object):
                 continue
 
             for label in labels:
-                if 'rectanglelabels' in label:
-                    category_name = label['rectanglelabels'][0]
-                elif 'polygonlabels' in label:
-                    category_name = label['polygonlabels'][0]
-                elif 'labels' in label:
-                    category_name = label['labels'][0]
-                else:
-                    logger.warning("Unknown label type: " + str(label))
+
+                category_name = None
+                for key in ['rectanglelabels', 'polygonlabels', 'labels']:
+                    if key in label and len(label[key]) > 0:
+                        category_name = label[key][0]
+                        break
+
+                if category_name is None:
+                    logger.warning("Unknown label type or labels are empty: " + str(label))
                     continue
 
                 if not height or not width:
@@ -493,12 +504,7 @@ class Converter(object):
                         continue
 
                     width, height = label['original_width'], label['original_height']
-                    images.append({
-                        'width': width,
-                        'height': height,
-                        'id': image_id,
-                        'file_name': image_path
-                    })
+                    images = add_image(images, width, height, image_id, image_path)
 
                 category_id = category_name_to_id[category_name]
 
@@ -600,63 +606,68 @@ class Converter(object):
             label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0]+'.txt')
             annotations = []
             for label in labels:
-                if 'rectanglelabels' in label:
-                    category_name = label['rectanglelabels'][0]
-                elif 'labels' in label:
-                    category_name = label['labels'][0]
-                else:
-                    logger.warning(f"Unknown label type {label}")
+                category_name = None
+                category_names = []     # considering multi-label
+                for key in ['rectanglelabels', 'polygonlabels', 'labels']:
+                    if key in label and len(label[key]) > 0:
+                        # change to save multi-label
+                        for item in label[key]:
+                            category_names.append(item)
+
+                if len(category_names) == 0:
+                    logger.warning("Unknown label type or labels are empty: " + str(label))
                     continue
 
-                if category_name not in category_name_to_id:
-                    category_id = len(categories)
-                    category_name_to_id[category_name] = category_id
-                    categories.append({
-                        'id': category_id,
-                        'name': category_name
-                    })
-                category_id = category_name_to_id[category_name]
+                for category_name in category_names:
+                    if category_name not in category_name_to_id:
+                        category_id = len(categories)
+                        category_name_to_id[category_name] = category_id
+                        categories.append({
+                            'id': category_id,
+                            'name': category_name
+                        })
+                    category_id = category_name_to_id[category_name]
 
-                if "rectanglelabels" in label or 'labels' in label:
-                    label_x, label_y, label_w, label_h, label_r = (
-                        label["x"],
-                        label["y"],
-                        label["width"],
-                        label["height"],
-                        label["rotation"],
-                    )
-                    if abs(label_r) > 0:
-                        r = math.pi * label_r / 180
-                        sin_r = math.sin(r)
-                        cos_r = math.cos(r)
-                        h_sin_r, h_cos_r = label_h * sin_r, label_h * cos_r
-                        x_top_right = label_x + label_w * cos_r
-                        y_top_right = label_y + label_w * sin_r
-                        
-                        x_ls = [
-                            label_x,
-                            x_top_right,
-                            x_top_right - h_sin_r,
-                            label_x - h_sin_r,
-                        ]
-                        y_ls = [
-                            label_y,
-                            y_top_right,
-                            y_top_right + h_cos_r,
-                            label_y + h_cos_r,
-                        ]
-                        label_x = max(0, min(x_ls))
-                        label_y = max(0, min(y_ls))
-                        label_w = min(100, max(x_ls)) - label_x
-                        label_h = min(100, max(y_ls)) - label_y
-                        
-                    x = (label_x + label_w / 2) / 100
-                    y = (label_y + label_h / 2) / 100
-                    w = label_w / 100
-                    h = label_h / 100
-                    annotations.append([category_id, x, y, w, h])
-                else:
-                    raise ValueError(f"Unknown label type {label}")
+                    if "rectanglelabels" in label or 'labels' in label:
+                        label_x, label_y, label_w, label_h, label_r = (
+                            label["x"],
+                            label["y"],
+                            label["width"],
+                            label["height"],
+                            label["rotation"],
+                        )
+                        if abs(label_r) > 0:
+                            r = math.pi * label_r / 180
+                            sin_r = math.sin(r)
+                            cos_r = math.cos(r)
+                            h_sin_r, h_cos_r = label_h * sin_r, label_h * cos_r
+                            x_top_right = label_x + label_w * cos_r
+                            y_top_right = label_y + label_w * sin_r
+
+                            x_ls = [
+                                label_x,
+                                x_top_right,
+                                x_top_right - h_sin_r,
+                                label_x - h_sin_r,
+                            ]
+                            y_ls = [
+                                label_y,
+                                y_top_right,
+                                y_top_right + h_cos_r,
+                                label_y + h_cos_r,
+                            ]
+                            label_x = max(0, min(x_ls))
+                            label_y = max(0, min(y_ls))
+                            label_w = min(100, max(x_ls)) - label_x
+                            label_h = min(100, max(y_ls)) - label_y
+
+                        x = (label_x + label_w / 2) / 100
+                        y = (label_y + label_h / 2) / 100
+                        w = label_w / 100
+                        h = label_h / 100
+                        annotations.append([category_id, x, y, w, h])
+                    else:
+                        raise ValueError(f"Unknown label type {label}")
             with open(label_path, 'w') as f:
                 for annotation in annotations:
                     for idx, l in enumerate(annotation):
@@ -767,7 +778,7 @@ class Converter(object):
 
             for bbox in bboxes:
                 key = 'rectanglelabels' if 'rectanglelabels' in bbox else ('labels' if 'labels' in bbox else None)
-                if key is None:
+                if key is None or len(bbox[key]) == 0:
                     continue
 
                 name = bbox[key][0]
