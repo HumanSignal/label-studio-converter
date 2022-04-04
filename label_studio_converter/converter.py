@@ -280,6 +280,20 @@ class Converter(object):
         # get last not skipped completion and make result from it
         annotations = task['annotations'] if 'annotations' in task else task['completions']
 
+        # return task with empty annotations
+        if not annotations:
+            data = {
+                'id': task['id'],
+                'input': task['data'],
+                'output': {},
+                'completed_by': {},
+                'annotation_id': None,
+                'created_at': None,
+                'updated_at': None,
+                'lead_time': None
+            }
+            return data
+        
         # skip cancelled annotations
         cancelled = lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False))
         annotations = list(filter(cancelled, annotations))
