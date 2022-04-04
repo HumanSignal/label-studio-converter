@@ -292,8 +292,8 @@ class Converter(object):
                 'updated_at': None,
                 'lead_time': None
             }
-            return data
-        
+            yield data
+
         # skip cancelled annotations
         cancelled = lambda x: not (x.get('skipped', False) or x.get('was_cancelled', False))
         annotations = list(filter(cancelled, annotations))
