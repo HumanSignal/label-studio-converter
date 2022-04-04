@@ -15,6 +15,7 @@ from collections.abc import Mapping, MutableMapping
 from collections import defaultdict
 from operator import itemgetter
 from copy import deepcopy
+from PIL import Image
 
 from label_studio_converter.utils import (
     parse_config, create_tokens_and_tags, download, get_image_size, get_image_size_and_channels, ensure_dir,
@@ -429,6 +430,16 @@ class Converter(object):
                 fout.write('\n')
 
     def convert_to_coco(self, input_data, output_dir, output_image_dir=None, is_dir=True):
+
+        def add_image(images, width, height, image_id, image_path):
+            images.append({
+                'width': width,
+                'height': height,
+                'id': image_id,
+                'file_name': image_path
+            })
+            return images
+
         self._check_format(Format.COCO)
         ensure_dir(output_dir)
         output_file = os.path.join(output_dir, 'result.json')
@@ -442,21 +453,40 @@ class Converter(object):
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
-            if not item['output']:
-                logger.warning('No annotations found for item #' + str(item_idx))
-                continue
             image_path = item['input'][data_key]
+            image_id = len(images)
+            width = None
+            height = None
+            # download all images of the dataset, including the ones without annotations
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
                                           return_relative_path=True, upload_dir=self.upload_dir,
                                           download_resources=self.download_resources)
                 except:
-                    logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
+                    logger.error('Unable to download {image_path}. The image of {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
+            # add image to final images list
+            try:
+                with Image.open(os.path.join(output_dir, image_path)) as img:
+                    width, height = img.size
+                images = add_image(images, width, height, image_id, image_path)
+            except:
+                logger.error("Unable to open {image_path}, can't extract width and height for COCO export".format(
+                    image_path=image_path, item=item
+                ), exc_info=True)
 
-            # concatenate results over all tag names
+            # skip tasks without annotations
+            if not item['output']:
+                # image wasn't load and there are no labels
+                if not width:
+                    images = add_image(images, width, height, image_id, image_path)
+
+                logger.warning('No annotations found for item #' + str(item_idx))
+                continue
+          
+            # concatentate results over all tag names
             labels = []
             for key in item['output']:
                 labels += item['output'][key]
@@ -464,8 +494,6 @@ class Converter(object):
             if len(labels) == 0:
                 logger.warning(f'Empty bboxes for {item["output"]}')
                 continue
-
-            first = True
 
             for label in labels:
 
@@ -479,31 +507,14 @@ class Converter(object):
                     logger.warning("Unknown label type or labels are empty: " + str(label))
                     continue
 
-                # get image sizes
-                if first:
-
+                if not height or not width:
                     if 'original_width' not in label or 'original_height' not in label:
                         logger.warning(f'original_width or original_height not found in {image_path}')
                         continue
 
                     width, height = label['original_width'], label['original_height']
-                    image_id = len(images)
-                    images.append({
-                        'width': width,
-                        'height': height,
-                        'id': image_id,
-                        'file_name': image_path
-                    })
-                    first = False
+                    images = add_image(images, width, height, image_id, image_path)
 
-                '''if category_name not in category_name_to_id:
-                    category_id = len(categories)
-                    category_name_to_id[category_name] = category_id
-                    categories.append({
-                        'id': category_id,
-                        'name': category_name,
-                        'supercategory': category_name
-                    })'''
                 category_id = category_name_to_id[category_name]
 
                 annotation_id = len(annotations)
