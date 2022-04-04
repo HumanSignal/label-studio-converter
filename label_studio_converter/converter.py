@@ -282,16 +282,7 @@ class Converter(object):
 
         # return task with empty annotations
         if not annotations:
-            data = {
-                'id': task['id'],
-                'input': task['data'],
-                'output': {},
-                'completed_by': {},
-                'annotation_id': None,
-                'created_at': None,
-                'updated_at': None,
-                'lead_time': None
-            }
+            data = Converter.get_data(task, {}, {})
             yield data
 
         # skip cancelled annotations
@@ -304,7 +295,6 @@ class Converter(object):
         annotations = sorted(annotations, key=lambda x: x.get('created_at', 0), reverse=True)
 
         for annotation in annotations:
-            inputs = task['data']
             result = annotation['result']
             outputs = defaultdict(list)
 
@@ -319,19 +309,24 @@ class Converter(object):
                         v['original_height'] = r['original_height']
                     outputs[r['from_name']].append(v)
 
-            data = {
-                'id': task['id'],
-                'input': inputs,
-                'output': outputs,
-                'completed_by': annotation.get('completed_by', {}),
-                'annotation_id': annotation.get('id'),
-                'created_at': annotation.get('created_at'),
-                'updated_at': annotation.get('updated_at'),
-                'lead_time': annotation.get('lead_time')
-            }
+            data = Converter.get_data(task, outputs, annotation)
             if 'agreement' in task:
                 data['agreement'] = task['agreement']
             yield data
+
+    @staticmethod
+    def get_data(task, outputs, annotation):
+        return {
+            'id': task['id'],
+            'input': task['data'],
+            'output': outputs or {},
+            'completed_by': annotation.get('completed_by', {}),
+            'annotation_id': annotation.get('id'),
+            'created_at': annotation.get('created_at'),
+            'updated_at': annotation.get('updated_at'),
+            'lead_time': annotation.get('lead_time')
+        }
+
 
     def _check_format(self, fmt):
         pass
