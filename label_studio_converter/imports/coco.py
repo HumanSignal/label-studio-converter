@@ -73,7 +73,7 @@ def convert_coco_to_ls(input_file, out_file,
 
     # flags for labeling config composing
     segmentation = bbox = keypoints = rle = False
-    rle_once, segmentation_once, keypoints_once = False
+    rle_once = segmentation_once = keypoints_once = False
 
     for i, annotation in enumerate(coco['annotations']):
         segmentation |= 'segmentation' in annotation
