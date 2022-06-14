@@ -23,7 +23,7 @@ def convert_to_asr_json_manifest(input_data, output_dir, data_key, project_dir, 
                                       return_relative_path=True, download_resources=download_resources)
                 duration = get_audio_duration(os.path.join(output_audio_dir, os.path.basename(audio_path)))
             except:
-                logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
+                logger.error('Unable to download {image_path} or get audio duration. The item {item} will be skipped'.format(
                     image_path=audio_path, item=item
                 ), exc_info=True)
                 continue
