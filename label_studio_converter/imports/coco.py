@@ -110,10 +110,10 @@ def convert_coco_to_ls(input_file, out_file,
                 "id": uuid.uuid4().hex[0:10],
                 "type": "rectanglelabels",
                 "value": {
-                    "x": x / 100.0,
-                    "y": y / 100.0,
-                    "width": width / 100.0,
-                    "height": height / 100.0,
+                    "x": x / image_width * 100.0,
+                    "y": y / image_height * 100.0,
+                    "width": width / image_width * 100.0,
+                    "height": height / image_height * 100.0,
                     "rotation": 0,
                     "rectanglelabels": [
                         label
