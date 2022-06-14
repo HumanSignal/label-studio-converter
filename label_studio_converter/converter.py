@@ -408,7 +408,10 @@ class Converter(object):
                 record['agreement'] = item['agreement']
             records.append(record)
 
-        pd.DataFrame.from_records(records).to_csv(output_file, index=False, **kwargs)
+        df = pd.DataFrame.from_records(records)
+        # convert annotation_id with Null values as Int, refer to https://pandas.pydata.org/pandas-docs/stable/user_guide/gotchas.html#support-for-integer-na
+        df['annotation_id'] = df['annotation_id'].astype(pd.Int64Dtype())
+        df.to_csv(output_file, index=False, **kwargs)
 
     def convert_to_conll2003(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.CONLL2003)
