@@ -126,7 +126,7 @@ def convert_yolo_to_ls(input_dir, out_file,
                     "original_width": image_width,
                     "original_height": image_height
                 }
-                task['annotations'][0]['result'].append(item)
+                task[out_type][0]['result'].append(item)
 
         tasks.append(task)
 
