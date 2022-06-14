@@ -745,7 +745,8 @@ class Converter(object):
                     except:
                         logger.warning(f"Can't read channels from image {image_path}")
 
-            image_name = os.path.splitext(os.path.basename(image_path))[0]
+            image_name = os.path.basename(image_path)
+            xml_name = os.path.splitext(image_name)[0] + '.xml'
 
             # concatenate results over all tag names
             bboxes = []
@@ -761,7 +762,7 @@ class Converter(object):
                 continue
 
             width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
-            xml_filepath = os.path.join(annotations_dir, image_name + '.xml')
+            xml_filepath = os.path.join(annotations_dir, xml_name)
 
             my_dom = xml.dom.getDOMImplementation()
             doc = my_dom.createDocument(None, 'annotation', None)
