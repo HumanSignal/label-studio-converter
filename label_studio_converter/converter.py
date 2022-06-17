@@ -409,8 +409,9 @@ class Converter(object):
             records.append(record)
 
         df = pd.DataFrame.from_records(records)
-        # convert annotation_id with Null values as Int, refer to https://pandas.pydata.org/pandas-docs/stable/user_guide/gotchas.html#support-for-integer-na
-        df['annotation_id'] = df['annotation_id'].astype(pd.Int64Dtype())
+        if records:
+            # convert annotation_id with Null values as Int, refer to https://pandas.pydata.org/pandas-docs/stable/user_guide/gotchas.html#support-for-integer-na
+            df['annotation_id'] = df['annotation_id'].astype(pd.Int64Dtype())
         df.to_csv(output_file, index=False, **kwargs)
 
     def convert_to_conll2003(self, input_data, output_dir, is_dir=True):
