@@ -12,6 +12,8 @@ on:
     types: [ opened, synchronize, reopened, ready_for_review ]
     branches: [ '*', '*/*', master ]
 
+env:
+  CACHE_NAME_PREFIX: v1
 
 jobs:
   run_pytest:
