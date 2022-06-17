@@ -1,7 +1,17 @@
 name: tests
+
 on:
   push:
-    branches: ['*', '*/*', master]
+    paths:
+      - 'label_studio_converter/**'
+      - '.github/workflows/tests.yml'
+      - 'requirements**'
+    tags-ignore:
+      - '**'
+  pull_request_target:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+    branches: [ '*', '*/*', master ]
+
 
 jobs:
   run_pytest:
