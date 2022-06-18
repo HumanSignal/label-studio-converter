@@ -91,3 +91,5 @@ def main():
     print('Please, use "import" or "export" or "-h" command')
 
 
+if __name__ == "__main__":
+    main()

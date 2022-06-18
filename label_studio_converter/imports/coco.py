@@ -25,6 +25,66 @@ def new_task(out_type, root_url, file_name):
     }
 
 
+def create_bbox(annotation, categories, from_name, image_height, image_width, to_name):
+    label = categories[int(annotation['category_id'])]
+    x, y, width, height = annotation['bbox']
+    x, y, width, height = float(x), float(y), float(width), float(height)
+    item = {
+        "id": uuid.uuid4().hex[0:10],
+        "type": "rectanglelabels",
+        "value": {
+            "x": x / image_width * 100.0,
+            "y": y / image_height * 100.0,
+            "width": width / image_width * 100.0,
+            "height": height / image_height * 100.0,
+            "rotation": 0,
+            "rectanglelabels": [
+                label
+            ]
+        },
+        "to_name": to_name,
+        "from_name": from_name,
+        "image_rotation": 0,
+        "original_width": image_width,
+        "original_height": image_height
+    }
+    return item
+
+
+def create_keypoints(annotation, categories, from_name, image_height, image_width, to_name):
+    label = categories[int(annotation['category_id'])]
+    points = annotation['keypoints']
+    items = []
+
+    for i in range(0, len(points), 3):
+        x, y, v = points[i:i+3]  # x, y, visibility
+        x, y, v = float(x), float(y), int(v)
+        item = {
+            "id": uuid.uuid4().hex[0:10],
+            "type": "keypointlabels",
+            "value": {
+                "x": x / image_width * 100.0,
+                "y": y / image_height * 100.0,
+                "width": 1.0,
+                "keypointlabels": [
+                    label
+                ]
+            },
+            "to_name": to_name,
+            "from_name": from_name,
+            "image_rotation": 0,
+            "original_width": image_width,
+            "original_height": image_height
+        }
+
+        # visibility
+        if v < 2:
+            item['value']['hidden'] = True
+
+        items.append(item)
+    return items
+
+
 def convert_coco_to_ls(input_file, out_file,
                        to_name='image', from_name='label', out_type="annotations",
                        image_root_url='/data/local-files/?d=',
@@ -50,7 +110,7 @@ def convert_coco_to_ls(input_file, out_file,
     # build categories => labels dict
     new_categories = {}
     # list to dict conversion: [...] => {category_id: category_item}
-    categories = {category['id']: category for category in coco['categories']}
+    categories = {int(category['id']): category for category in coco['categories']}
     ids = sorted(categories.keys())  # sort labels by their origin ids
 
     for i in ids:
@@ -67,31 +127,31 @@ def convert_coco_to_ls(input_file, out_file,
 
     logger.info(f'Found {len(categories)} categories, {len(images)} images and {len(coco["annotations"])} annotations')
 
-    # generate and save labeling config
-    label_config_file = out_file.replace('.json', '') + '.label_config.xml'
-    generate_label_config(categories, to_name, from_name, label_config_file)
-
     # flags for labeling config composing
     segmentation = bbox = keypoints = rle = False
-    rle_once = segmentation_once = keypoints_once = False
+    segmentation_once = bbox_once = keypoints_once = rle_once = False
+    rectangles_from_name, keypoints_from_name = from_name + '_rectangles', from_name + '_keypoints'
+    tags = {}
 
     for i, annotation in enumerate(coco['annotations']):
         segmentation |= 'segmentation' in annotation
         bbox |= 'bbox' in annotation
         keypoints |= 'keypoints' in annotation
-        rle |= annotation['iscrowd'] == 1  # 0 - polygons are inside of segmentation, otherwise rle
+        rle |= annotation.get('iscrowd') == 1  # 0 - polygons are in segmentation, otherwise rle
 
-        # not supported
-        if rle and not rle_once:
-            logger.warning('RLE in segmentation is not yet supported in COCO')
+        if rle and not rle_once:  # not supported
+            logger.error('RLE in segmentation is not yet supported in COCO')
             rle_once = True
         if keypoints and not keypoints_once:
             logger.warning('Keypoints are partially supported without skeletons')
+            tags.update({keypoints_from_name: 'KeyPointLabels'})
             keypoints_once = True
-        # not supported
-        if segmentation and not segmentation_once:
-            logger.warning('Segmentation is not yet supported in COCO')
+        if segmentation and not segmentation_once:  # not supported
+            logger.error('Segmentation is not yet supported in COCO')
             segmentation_once = True
+        if bbox and not bbox_once:
+            tags.update({rectangles_from_name: 'RectangleLabels'})
+            bbox_once = True
 
         # read image sizes
         image_id = annotation['image_id']
@@ -102,32 +162,18 @@ def convert_coco_to_ls(input_file, out_file,
         task = tasks[image_id] if image_id in tasks else new_task(out_type, image_root_url, image_file_name)
 
         if 'bbox' in annotation:
-            # convert all bounding boxes to Label Studio Results
-            label = categories[int(annotation['category_id'])]
-            x, y, width, height = annotation['bbox']
-            x, y, width, height = float(x), float(y), float(width), float(height)
-            item = {
-                "id": uuid.uuid4().hex[0:10],
-                "type": "rectanglelabels",
-                "value": {
-                    "x": x / image_width * 100.0,
-                    "y": y / image_height * 100.0,
-                    "width": width / image_width * 100.0,
-                    "height": height / image_height * 100.0,
-                    "rotation": 0,
-                    "rectanglelabels": [
-                        label
-                    ]
-                },
-                "to_name": to_name,
-                "from_name": from_name,
-                "image_rotation": 0,
-                "original_width": image_width,
-                "original_height": image_height
-            }
+            item = create_bbox(annotation, categories, rectangles_from_name, image_height, image_width, to_name)
             task[out_type][0]['result'].append(item)
 
+        if 'keypoints' in annotation:
+            items = create_keypoints(annotation, categories, keypoints_from_name, image_height, image_width, to_name)
+            task[out_type][0]['result'] += items
+
         tasks[image_id] = task
+
+    # generate and save labeling config
+    label_config_file = out_file.replace('.json', '') + '.label_config.xml'
+    generate_label_config(categories, tags, to_name, from_name, label_config_file)
 
     if len(tasks) > 0:
         tasks = [tasks[key] for key in sorted(tasks.keys())]
