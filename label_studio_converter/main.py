@@ -76,7 +76,7 @@ def imports(args):
     elif args.import_format == 'coco':
         import_coco.convert_coco_to_ls(input_file=args.input, out_file=args.output,
                                        to_name=args.to_name, from_name=args.from_name, out_type=args.out_type,
-                                       image_root_url=args.image_root_url)
+                                       image_root_url=args.image_root_url, point_width=args.point_width)
     else:
         raise FormatNotSupportedError()
 

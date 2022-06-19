@@ -51,7 +51,7 @@ def create_bbox(annotation, categories, from_name, image_height, image_width, to
     return item
 
 
-def create_keypoints(annotation, categories, from_name, image_height, image_width, to_name):
+def create_keypoints(annotation, categories, from_name, to_name, image_height, image_width, point_width):
     label = categories[int(annotation['category_id'])]
     points = annotation['keypoints']
     items = []
@@ -65,7 +65,7 @@ def create_keypoints(annotation, categories, from_name, image_height, image_widt
             "value": {
                 "x": x / image_width * 100.0,
                 "y": y / image_height * 100.0,
-                "width": 1.0,
+                "width": point_width,
                 "keypointlabels": [
                     label
                 ]
@@ -88,7 +88,8 @@ def create_keypoints(annotation, categories, from_name, image_height, image_widt
 def convert_coco_to_ls(input_file, out_file,
                        to_name='image', from_name='label', out_type="annotations",
                        image_root_url='/data/local-files/?d=',
-                       use_super_categories=False):
+                       use_super_categories=False,
+                       point_width=1.0):
 
     """ Convert COCO labeling to Label Studio JSON
 
@@ -99,6 +100,7 @@ def convert_coco_to_ls(input_file, out_file,
     :param out_type: annotation type - "annotations" or "predictions"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
     :param use_super_categories: use super categories from categories if they are presented
+    :param point_width: key point width
     """
 
     tasks = {}  # image_id => task
@@ -166,7 +168,8 @@ def convert_coco_to_ls(input_file, out_file,
             task[out_type][0]['result'].append(item)
 
         if 'keypoints' in annotation:
-            items = create_keypoints(annotation, categories, keypoints_from_name, image_height, image_width, to_name)
+            items = create_keypoints(annotation, categories, keypoints_from_name, to_name,
+                                     image_height, image_width, point_width)
             task[out_type][0]['result'] += items
 
         tasks[image_id] = task
@@ -225,3 +228,10 @@ def add_parser(subparsers):
         help='root URL path where images will be hosted, e.g.: http://example.com/images',
         default='/data/local-files/?d=',
     )
+    coco.add_argument(
+        '--point-width', dest='point_width',
+        help='key point width (size)',
+        default=1.0,
+        type=float
+    )
+
