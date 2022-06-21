@@ -650,6 +650,13 @@ class Converter(object):
                             label["rotation"],
                         )
                         if abs(label_r) > 0:
+
+                            aspect = 1
+                            if 'original_width' in label and 'original_height' in label and label['original_height'] != 0:
+                                aspect = label['original_width'] / label['original_height']
+                                label_x = label_x * aspect
+                                label_w = label_w * aspect
+                            
                             r = math.pi * label_r / 180
                             sin_r = math.sin(r)
                             cos_r = math.cos(r)
@@ -669,9 +676,9 @@ class Converter(object):
                                 y_top_right + h_cos_r,
                                 label_y + h_cos_r,
                             ]
-                            label_x = max(0, min(x_ls))
+                            label_x = max(0, min(x_ls)) / aspect
                             label_y = max(0, min(y_ls))
-                            label_w = min(100, max(x_ls)) - label_x
+                            label_w = min(100*aspect, max(x_ls))/aspect - label_x
                             label_h = min(100, max(y_ls)) - label_y
 
                         x = (label_x + label_w / 2) / 100
