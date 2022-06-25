@@ -67,14 +67,20 @@ def bytes2bit(data):
     return ''.join([str(access_bit(data, i)) for i in range(len(data) * 8)])
 
 
-def decode_rle(rle):
+def decode_rle(rle, print_params: bool = False):
     """ from LS RLE to numpy uint8 3d image [width, height, channel]
+    
+    Args:
+        print_params (bool, optional): If true, a RLE parameters print statement is suppressed
     """
     input = InputStream(bytes2bit(rle))
     num = input.read(32)
     word_size = input.read(5) + 1
     rle_sizes = [input.read(4) + 1 for _ in range(4)]
-    print('RLE params:', num, 'values', word_size, 'word_size', rle_sizes, 'rle_sizes')
+    
+    if print_params:
+        print('RLE params:', num, 'values', word_size, 'word_size', rle_sizes, 'rle_sizes')
+        
     i = 0
     out = np.zeros(num, dtype=np.uint8)
     while i < num:
