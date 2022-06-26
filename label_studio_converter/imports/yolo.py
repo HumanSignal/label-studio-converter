@@ -5,38 +5,9 @@ import logging
 from PIL import Image
 
 from label_studio_converter.utils import ExpandFullPath
-from label_studio_converter.imports.colors import COLORS
+from label_studio_converter.imports.label_config import generate_label_config
 
 logger = logging.getLogger('root')
-
-
-LABELING_CONFIG = """<View>
-  <Image name="{# TO_NAME #}" value="$image"/>
-  <RectangleLabels name="{# FROM_NAME #}" toName="image">
-  
-{# LABELS #}
-  </RectangleLabels>
-</View>
-"""
-
-
-def generate_label_config(categories, to_name='image', from_name='label', filename=None):
-    labels = ''
-    for key in sorted(categories.keys()):
-        color = COLORS[key % len(COLORS)]
-        label = f'    <Label value="{categories[key]}" background="rgba({color[0]}, {color[1]}, {color[2]}, 1)"/>\n'
-        labels += label
-
-    config = LABELING_CONFIG \
-        .replace('{# LABELS #}', labels) \
-        .replace('{# TO_NAME #}', to_name) \
-        .replace('{# FROM_NAME #}', from_name)
-
-    if filename:
-        with open(filename, 'w') as f:
-            f.write(config)
-
-    return config
 
 
 def convert_yolo_to_ls(input_dir, out_file,
@@ -66,7 +37,7 @@ def convert_yolo_to_ls(input_dir, out_file,
 
     # generate and save labeling config
     label_config_file = out_file.replace('.json', '') + '.label_config.xml'
-    generate_label_config(categories, to_name, from_name, label_config_file)
+    generate_label_config(categories, {'labels': 'RectangleLabels'}, to_name, from_name, label_config_file)
 
     # labels, one label per image
     labels_dir = os.path.join(input_dir, 'labels')
@@ -85,16 +56,16 @@ def convert_yolo_to_ls(input_dir, out_file,
             continue
 
         task = {
+            "data": {
+                "image": os.path.join(image_root_url, image_file_base)
+            },
             # 'annotations' or 'predictions'
             out_type: [
                 {
                     "result": [],
                     "ground_truth": False,
                 }
-            ],
-            "data": {
-                "image": os.path.join(image_root_url, image_file_base)
-            }
+            ]
         }
 
         # read image sizes
@@ -142,7 +113,7 @@ def convert_yolo_to_ls(input_dir, out_file,
               f'     https://labelstud.io/guide/storage.html#Local-storage]\n'
               f'  4. Import "{out_file}" to the project\n')
     else:
-        logger.error('No labels converted, maybe ')
+        logger.error('No labels converted')
 
 
 def add_parser(subparsers):
