@@ -263,8 +263,8 @@ Use cases: image object detection
 
 We would love to get your help for creating converters to other models. Please feel free to create pull requests.
 
-- [Contributing Guideline](/CONTRIBUTING.md)
-- [Code Of Conduct](/CODE_OF_CONDUCT.md)
+- [Contributing Guideline](https://github.com/heartexlabs/label-studio/blob/develop/CONTRIBUTING.md)
+- [Code Of Conduct](https://github.com/heartexlabs/label-studio/blob/develop/CODE_OF_CONDUCT.md)
 
 ## License
 
