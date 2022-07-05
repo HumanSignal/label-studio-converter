@@ -593,10 +593,10 @@ class Converter(object):
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
-            if not item['output']:
-                logger.warning('No completions found for item #' + str(item_idx))
-                continue
+            # get image path and label file path
             image_path = item['input'][data_key]
+            label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0] + '.txt')
+            # Download image
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
@@ -606,6 +606,12 @@ class Converter(object):
                     logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
+            # Skip tasks without annotations
+            if not item['output']:
+                logger.warning('No completions found for item #' + str(item_idx))
+                with open(label_path, 'x'):
+                    pass
+                continue
 
             # concatenate results over all tag names
             labels = []
@@ -614,9 +620,10 @@ class Converter(object):
 
             if len(labels) == 0:
                 logger.warning(f'Empty bboxes for {item["output"]}')
+                with open(label_path, 'x'):
+                    pass
                 continue
 
-            label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0]+'.txt')
             annotations = []
             for label in labels:
                 category_name = None
@@ -728,14 +735,11 @@ class Converter(object):
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
-            if not item['output']:
-                logger.warning('No annotations found for item #' + str(item_idx))
-                continue
             image_path = item['input'][data_key]
             annotations_dir = os.path.join(output_dir, 'Annotations')
             if not os.path.exists(annotations_dir):
                 os.makedirs(annotations_dir)
-
+            # Download image
             channels = 3
             if not os.path.exists(image_path):
                 try:
@@ -752,6 +756,11 @@ class Converter(object):
                         _, _, channels = get_image_size_and_channels(full_image_path)
                     except:
                         logger.warning(f"Can't read channels from image {image_path}")
+
+            # skip tasks without annotations
+            if not item['output']:
+                logger.warning('No annotations found for item #' + str(item_idx))
+                continue
 
             image_name = os.path.basename(image_path)
             xml_name = os.path.splitext(image_name)[0] + '.xml'
