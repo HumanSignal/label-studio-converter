@@ -13,6 +13,8 @@ import argparse
 from operator import itemgetter
 from PIL import Image
 from urllib.parse import urlparse
+
+from label_studio_tools.core.utils.params import get_env
 from nltk.tokenize import WhitespaceTokenizer
 from lxml import etree
 from collections import defaultdict
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 _LABEL_TAGS = {'Label', 'Choice'}
 _NOT_CONTROL_TAGS = {'Filter',}
+LOCAL_FILES_DOCUMENT_ROOT = get_env('LOCAL_FILES_DOCUMENT_ROOT', default=os.path.abspath(os.sep))
 
 class ExpandFullPath(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -117,9 +120,9 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
     if is_local_file:
         filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
         dir_path = str(urllib.parse.unquote(dir_path))
-        if not os.path.exists(dir_path):
-            raise FileNotFoundError(dir_path)
-        filepath = os.path.join(dir_path, filename)
+        filepath = os.path.join(dir_path, LOCAL_FILES_DOCUMENT_ROOT)
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(filepath)
         if return_relative_path:
             raise NotImplementedError()
         return filepath
