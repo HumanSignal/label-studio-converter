@@ -123,8 +123,6 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
         filepath = os.path.join(LOCAL_FILES_DOCUMENT_ROOT, dir_path)
         if not os.path.exists(filepath):
             raise FileNotFoundError(filepath)
-        if return_relative_path:
-            raise NotImplementedError()
         return filepath
 
     if filename is None:
