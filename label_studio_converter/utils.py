@@ -120,7 +120,7 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
     if is_local_file:
         filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
         dir_path = str(urllib.parse.unquote(dir_path))
-        filepath = os.path.join(dir_path, LOCAL_FILES_DOCUMENT_ROOT)
+        filepath = os.path.join(LOCAL_FILES_DOCUMENT_ROOT, dir_path)
         if not os.path.exists(filepath):
             raise FileNotFoundError(filepath)
         if return_relative_path:
