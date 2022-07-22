@@ -1,0 +1,141 @@
+name: "Cut off release branch"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+      ref:
+        description: 'Commit SHA or ref name or tag'
+        required: true
+        default: 'master'
+        type: string
+
+env:
+  PYTHON_VERSION_FILE: "setup.py"
+  RELEASE_BRANCH_PREFIX: "release/"
+
+jobs:
+  draft-new-release:
+    name: "Cut off release branch"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hmarr/debug-action@v2.0.1
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GIT_PAT }}
+          ref: ${{ inputs.ref }}
+          submodules: 'recursive'
+          fetch-depth: 0
+
+      - name: Configure git
+        shell: bash
+        run: |
+          set -xeuo pipefail
+          git config --global user.name 'robot-ci-heartex'
+          git config --global user.email 'robot-ci-heartex@users.noreply.github.com'
+
+      - name: Calculate branch name and version
+        id: calculate_branch_name_and_version
+        shell: bash
+        run: |
+          set -xeuo pipefail
+          
+          regexp='^[v]?([0-9]+)\.([0-9]+)\.([0-9]+)$';
+          
+          if [[ "${{ inputs.version }}" =~ $regexp ]]; then
+              first="${BASH_REMATCH[1]}"
+              second="${BASH_REMATCH[2]}"
+              third="${BASH_REMATCH[3]}"
+          else
+              echo "${{ inputs.version }} does not mach the regexp ${regexp}"
+              exit 0
+          fi
+          
+          release_version="${first}.${second}.${third}"
+          release_branch="${{ env.RELEASE_BRANCH_PREFIX }}${first}.${second}.${third}"
+          next_develop_version="${first}.${second}.$(($third + 1)).dev"
+          
+          echo "::set-output name=release_branch::${release_branch}"
+          echo "::set-output name=release_version::${release_version}"
+          echo "::set-output name=next_develop_version::${next_develop_version}"
+
+      - name: Commit version files to release branch
+        id: make-release-commit
+        run: |
+          set -euo pipefail
+          
+          git checkout -b "${{ steps.calculate_branch_name_and_version.outputs.release_branch }}"
+          
+          sed -i "s/^\([ ]*\)version[ ]*=.*/\1version='${{ steps.calculate_branch_name_and_version.outputs.release_version }},'/g" ${{ env.PYTHON_VERSION_FILE }}
+          
+          git add ${{ env.PYTHON_VERSION_FILE }}
+          git commit --message "ci: cut release ${{ steps.calculate_branch_name_and_version.outputs.release_version }}"
+
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+          git push origin HEAD:refs/heads/${{ steps.calculate_branch_name_and_version.outputs.release_branch }}
+
+      - name: Commit version files to 'develop'
+        id: make-develop-commit
+        run: |
+          set -euo pipefail
+          
+          git checkout '${{ github.event.repository.default_branch }}'
+          
+          branch='bump-version-${{ steps.calculate_branch_name_and_version.outputs.next_develop_version }}'
+          echo "::set-output name=branch::${branch}"
+          git checkout -b "${branch}"
+          
+          sed -i "s/^\([ ]*\)version[ ]*=.*/\1version='${{ steps.calculate_branch_name_and_version.outputs.release_version }},'/g" ${{ env.PYTHON_VERSION_FILE }}
+          
+          git add ${{ env.PYTHON_VERSION_FILE }}
+          git commit --message "chore: Bump version to ${{ steps.calculate_branch_name_and_version.outputs.next_develop_version }}"
+
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+          git push origin HEAD:refs/heads/${branch}
+
+      - name: Create PR to 'develop'
+        uses: actions/github-script@v6
+        id: create-pr
+        with:
+          github-token: ${{ secrets.GIT_PAT }}
+          script: |
+            const { repo, owner } = context.repo;
+            const createPullResponse = await github.rest.pulls.create({
+              title: 'chore: Bump version to ${{ steps.calculate_branch_name_and_version.outputs.next_develop_version }}',
+              owner,
+              repo,
+              head: '${{ steps.make-develop-commit.outputs.branch }}',
+              base: '${{ github.event.repository.default_branch }}',
+              body: [
+                'Hi @${{ github.actor }}!',
+                '',
+                'This PR was created in response to a manual trigger of the release workflow here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}.',
+              ].join('\n')
+            });
+            github.rest.pulls.requestReviewers({
+              owner,
+              repo,
+              pull_number: createPullResponse.data.number,
+               reviewers: [ '${{ github.actor }}' ]
+            });
+            return createPullResponse
+
+      - name: Enable AutoMerge
+        id: enable-pr-automerge
+        shell: bash
+        run: |
+          echo ${{ secrets.GIT_PAT }} | gh auth login --with-token
+          gh api graphql -f pull='${{ fromJson(steps.create-pr.outputs.result).data.node_id }}' -f query='
+            mutation($pull: ID!) {
+              enablePullRequestAutoMerge(input: {pullRequestId: $pull, mergeMethod: SQUASH}) {
+                pullRequest {
+                  id
+                  number
+                }
+              }
+            }'
