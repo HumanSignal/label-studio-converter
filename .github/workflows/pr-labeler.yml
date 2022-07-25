@@ -10,7 +10,6 @@ on:
       - ready_for_review
     branches:
       - master
-      - develop
       - 'release/**'
 
 jobs:
