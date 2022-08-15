@@ -196,7 +196,7 @@ class Converter(object):
         if output_tags is not None:
             for tag in output_tags:
                 if tag not in self._schema:
-                    logger.warning(
+                    logger.debug(
                         'Specified tag "{tag}" not found in config schema: '
                         'available options are {schema_keys}'.format(
                             tag=tag, schema_keys=str(list(self._schema.keys()))))
@@ -496,7 +496,7 @@ class Converter(object):
                 labels += item['output'][key]
 
             if len(labels) == 0:
-                logger.warning(f'Empty bboxes for {item["output"]}')
+                logger.debug(f'Empty bboxes for {item["output"]}')
                 continue
 
             for label in labels:
@@ -508,12 +508,12 @@ class Converter(object):
                         break
 
                 if category_name is None:
-                    logger.warning("Unknown label type or labels are empty: " + str(label))
+                    logger.warning("Unknown label type or labels are empty")
                     continue
 
                 if not height or not width:
                     if 'original_width' not in label or 'original_height' not in label:
-                        logger.warning(f'original_width or original_height not found in {image_path}')
+                        logger.debug(f'original_width or original_height not found in {image_path}')
                         continue
 
                     width, height = label['original_width'], label['original_height']
@@ -635,7 +635,7 @@ class Converter(object):
                             category_names.append(item)
 
                 if len(category_names) == 0:
-                    logger.warning("Unknown label type or labels are empty: " + str(label))
+                    logger.debug("Unknown label type or labels are empty: " + str(label))
                     continue
 
                 for category_name in category_names:
@@ -755,7 +755,7 @@ class Converter(object):
                     try:
                         _, _, channels = get_image_size_and_channels(full_image_path)
                     except:
-                        logger.warning(f"Can't read channels from image {image_path}")
+                        logger.warning(f"Can't read channels from image")
 
             # skip tasks without annotations
             if not item['output']:
@@ -771,11 +771,11 @@ class Converter(object):
                 bboxes += item['output'][key]
 
             if len(bboxes) == 0:
-                logger.warning(f'Empty bboxes for {item["output"]}')
+                logger.debug(f'Empty bboxes for {item["output"]}')
                 continue
 
             if 'original_width' not in bboxes[0] or 'original_height' not in bboxes[0]:
-                logger.warning(f'original_width or original_height not found in {image_name}')
+                logger.debug(f'original_width or original_height not found in {image_name}')
                 continue
 
             width, height = bboxes[0]['original_width'], bboxes[0]['original_height']
