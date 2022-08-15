@@ -468,7 +468,7 @@ class Converter(object):
                                           return_relative_path=True, upload_dir=self.upload_dir,
                                           download_resources=self.download_resources)
                 except:
-                    logger.error('Unable to download {image_path}. The image of {item} will be skipped'.format(
+                    logger.info('Unable to download {image_path}. The image of {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
             # add image to final images list
@@ -477,7 +477,7 @@ class Converter(object):
                     width, height = img.size
                 images = add_image(images, width, height, image_id, image_path)
             except:
-                logger.error("Unable to open {image_path}, can't extract width and height for COCO export".format(
+                logger.info("Unable to open {image_path}, can't extract width and height for COCO export".format(
                     image_path=image_path, item=item
                 ), exc_info=True)
 
@@ -603,7 +603,7 @@ class Converter(object):
                                           return_relative_path=True, upload_dir=self.upload_dir,
                                           download_resources=self.download_resources)
                 except:
-                    logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
+                    logger.info('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
             # Skip tasks without annotations
@@ -747,7 +747,7 @@ class Converter(object):
                         image_path, output_image_dir, project_dir=self.project_dir,
                         upload_dir=self.upload_dir, return_relative_path=True, download_resources=self.download_resources)
                 except:
-                    logger.error('Unable to download {image_path}. The item {item} will be skipped'.format(
+                    logger.info('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item), exc_info=True)
                 else:
                     full_image_path = os.path.join(output_image_dir, os.path.basename(image_path))
