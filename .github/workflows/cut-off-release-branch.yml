@@ -71,7 +71,7 @@ jobs:
           
           git checkout -b "${{ steps.calculate_branch_name_and_version.outputs.release_branch }}"
           
-          sed -i "s/^\([ ]*\)version[ ]*=.*/\1version='${{ steps.calculate_branch_name_and_version.outputs.release_version }}'/g" ${{ env.PYTHON_VERSION_FILE }}
+          sed -i "s/^__version__[ ]*=.*/__version__ = '${{ steps.calculate_branch_name_and_version.outputs.release_version }}'/g" ${{ env.PYTHON_VERSION_FILE }}
           
           git add ${{ env.PYTHON_VERSION_FILE }}
           git commit --message "ci: cut release ${{ steps.calculate_branch_name_and_version.outputs.release_version }}"
@@ -90,7 +90,7 @@ jobs:
           echo "::set-output name=branch::${branch}"
           git checkout -b "${branch}"
           
-          sed -i "s/^\([ ]*\)version[ ]*=.*/\1version='${{ steps.calculate_branch_name_and_version.outputs.release_version }}'/g" ${{ env.PYTHON_VERSION_FILE }}
+          sed -i "s/^__version__[ ]*=.*/__version__ = '${{ steps.calculate_branch_name_and_version.outputs.next_develop_version }}'/g" ${{ env.PYTHON_VERSION_FILE }}
           
           git add ${{ env.PYTHON_VERSION_FILE }}
           git commit --message "chore: Bump version to ${{ steps.calculate_branch_name_and_version.outputs.next_develop_version }}"
