@@ -14,7 +14,7 @@ with open(requirements_file, 'r') as f:
 
 setuptools.setup(
     name='label-studio-converter',
-    version=label_studio_converter.__version__,
+    version='0.0.43,'
     author='Heartex',
     author_email="hello@heartex.ai",
     description='Format converter add-on for Label Studio',
