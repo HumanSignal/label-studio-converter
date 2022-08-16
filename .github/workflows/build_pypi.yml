@@ -40,7 +40,7 @@ on:
         required: false
 
 env:
-  PYTHON_VERSION_FILE: "setup.py"
+  PYTHON_VERSION_FILE: "label_studio_converter/__init__.py"
 
 jobs:
   ReleaseNotification:
@@ -60,7 +60,7 @@ jobs:
         run: |
           set -x
           version=$(sed "s/^v//g" <<< ${PROVIDED_VERSION})
-          sed -i "s/^\([ ]*\)version[ ]*=.*/\1version='${version}',/g" ${{ env.PYTHON_VERSION_FILE }}
+          sed -i "s/^__version__[ ]*=.*/__version__ = '${version}'/g" ${{ env.PYTHON_VERSION_FILE }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
