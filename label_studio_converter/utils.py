@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 _LABEL_TAGS = {'Label', 'Choice'}
 _NOT_CONTROL_TAGS = {'Filter',}
+LOCAL_FILES_DOCUMENT_ROOT = get_env('LOCAL_FILES_DOCUMENT_ROOT', default=os.path.abspath(os.sep))
 
 TreebankWordTokenizer.PUNCTUATION = [
         (re.compile(r"([:,])([^\d])"), r" \1 \2"),
@@ -131,11 +132,9 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
     if is_local_file:
         filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
         dir_path = str(urllib.parse.unquote(dir_path))
-        if not os.path.exists(dir_path):
-            raise FileNotFoundError(dir_path)
-        filepath = os.path.join(dir_path, filename)
-        if return_relative_path:
-            raise NotImplementedError()
+        filepath = os.path.join(LOCAL_FILES_DOCUMENT_ROOT, dir_path)
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(filepath)
         return filepath
 
     if filename is None:
