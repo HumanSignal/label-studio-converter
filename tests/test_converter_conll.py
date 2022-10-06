@@ -88,3 +88,14 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(tags[52], 'B-PER')
         self.assertEqual(tags[51], 'O')
         self.assertEqual(tags[53], 'O')
+
+
+    def test_create_tokens_and_tags_for_token_with_hash_sign(self):
+        text = "Mut;ant Ninja Turtles. Teen#age Mutant Ninja Turtles."
+        spans = [{"start":0,"end":3,"text":"Mut","labels":["PER"]},
+                 {"start":5,"end":7,"text":"ant","labels":["ORG"]},
+                 {"start":24,"end":27,"text":"Teen","labels":["PER"]},
+                 {"start":29,"end":30,"text":"Shre","labels":["ORG"]}]
+        tokens, tags = utils.create_tokens_and_tags(text, spans)
+        self.assertEqual(tokens, ['Mut', ';', 'ant', 'Ninja', 'Turtles.', 'Teen', '#', 'age', 'Mutant', 'Ninja', 'Turtles', '.'])
+        self.assertEqual(tags, ['B-PER', 'O', 'B-ORG', 'O', 'O', 'B-PER', 'O', 'B-ORG', 'O', 'O', 'O', 'O'])
