@@ -52,7 +52,7 @@ def convert_yolo_to_ls(input_dir, out_file,
             continue
 
         if not os.path.exists(image_file):
-            logger.error("Can't convert YOLO to Label Studio JSON without image source: %s", image_file)
+            logger.info("Can't convert YOLO to Label Studio JSON without image source: %s", image_file)
             continue
 
         task = {
