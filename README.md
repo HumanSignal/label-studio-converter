@@ -23,7 +23,7 @@ Label Studio Format Converter helps you to encode labels into the format of your
 #### JSON
 Running from the command line:
 ```bash
-python backend/converter/cli.py --input examples/sentiment_analysis/completions/ --config examples/sentiment_analysis/config.xml --output tmp/output.json
+python label_studio_converter/cli.py --input examples/sentiment_analysis/completions/ --config examples/sentiment_analysis/config.xml --output tmp/output.json
 ```
 
 Running from python:
@@ -58,7 +58,7 @@ Use cases: any tasks
 #### CSV
 Running from the command line:
 ```bash
-python backend/converter/cli.py --input examples/sentiment_analysis/completions/ --config examples/sentiment_analysis/config.xml --output output_dir --format CSV --csv-separator $'\t'
+python label_studio_converter/cli.py --input examples/sentiment_analysis/completions/ --config examples/sentiment_analysis/config.xml --output output_dir --format CSV --csv-separator $'\t'
 ```
 
 Running from python:
@@ -83,7 +83,7 @@ Use cases: any tasks
 
 Running from the command line:
 ```bash
-python backend/converter/cli.py --input examples/named_entity/completions/ --config examples/named_entity/config.xml --output tmp/output.conll --format CONLL2003
+python label_studio_converter/cli.py --input examples/named_entity/completions/ --config examples/named_entity/config.xml --output tmp/output.conll --format CONLL2003
 ```
 
 Running from python:
@@ -116,7 +116,7 @@ Use cases: text tagging
 #### COCO
 Running from the command line:
 ```bash
-python backend/converter/cli.py --input examples/image_bbox/completions/ --config examples/image_bbox/config.xml --output tmp/output.json --format COCO --image-dir tmp/images
+python label_studio_converter/cli.py --input examples/image_bbox/completions/ --config examples/image_bbox/config.xml --output tmp/output.json --format COCO --image-dir tmp/images
 ```
 
 Running from python:
@@ -195,7 +195,7 @@ Use cases: image object detection
 #### Pascal VOC XML
 Running from the command line:
 ```bash
-python backend/converter/cli.py --input examples/image_bbox/completions/ --config examples/image_bbox/config.xml --output tmp/voc-annotations --format VOC --image-dir tmp/images
+python label_studio_converter/cli.py --input examples/image_bbox/completions/ --config examples/image_bbox/config.xml --output tmp/voc-annotations --format VOC --image-dir tmp/images
 ```
 
 Running from python:
