@@ -693,7 +693,7 @@ class Converter(object):
             
             # Label studio saves the position of top left corner after rotation
             x_0 = label_x - radius * (math.cos(math.pi - alpha - beta) - math.cos(math.pi - alpha)) + label_w / 2
-            y_0 = label_y - radius * (math.sin(math.pi - alpha - beta) - math.sin(math.pi - alpha)) + label_h / 2
+            y_0 = label_y + radius * (math.sin(math.pi - alpha - beta) - math.sin(math.pi - alpha)) + label_h / 2
             
             theta_1 = alpha + beta
             theta_2 = math.pi - alpha + beta
