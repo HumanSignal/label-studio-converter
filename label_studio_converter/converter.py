@@ -652,7 +652,7 @@ class Converter(object):
 
                     if "rectanglelabels" in label or 'labels' in label:
                         x, y, w, h = self.rotated_rectangle(label)
-                        annotations.append([category_id, x, y, w, h])
+                        annotations.append([category_id, (x + w / 2) / 100, (y + h / 2) / 100, w / 100, h / 100])
                     else:
                         raise ValueError(f"Unknown label type {label}")
             with open(label_path, 'w') as f:
