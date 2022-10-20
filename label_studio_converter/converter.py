@@ -490,7 +490,7 @@ class Converter(object):
                 logger.warning('No annotations found for item #' + str(item_idx))
                 continue
           
-            # concatentate results over all tag names
+            # concatenate results over all tag names
             labels = []
             for key in item['output']:
                 labels += item['output'][key]
@@ -524,10 +524,12 @@ class Converter(object):
                 annotation_id = len(annotations)
 
                 if 'rectanglelabels' in label or 'labels' in label:
-                    x = int(label['x'] / 100 * width)
-                    y = int(label['y'] / 100 * height)
-                    w = int(label['width'] / 100 * width)
-                    h = int(label['height'] / 100 * height)
+                    x, y, w, h = self.rotated_rectangle(label)
+                    
+                    x = x * label["original_width"] / 100
+                    y = y * label["original_height"] / 100
+                    w = w * label["original_width"] / 100
+                    h = h * label["original_height"] / 100
 
                     annotations.append({
                         'id': annotation_id,
@@ -649,50 +651,8 @@ class Converter(object):
                     category_id = category_name_to_id[category_name]
 
                     if "rectanglelabels" in label or 'labels' in label:
-                        label_x, label_y, label_w, label_h, label_r = (
-                            label["x"],
-                            label["y"],
-                            label["width"],
-                            label["height"],
-                            label["rotation"],
-                        )
-                        if abs(label_r) > 0:
-
-                            aspect = 1
-                            if 'original_width' in label and 'original_height' in label and label['original_height'] != 0:
-                                aspect = label['original_width'] / label['original_height']
-                                label_x = label_x * aspect
-                                label_w = label_w * aspect
-                            
-                            r = math.pi * label_r / 180
-                            sin_r = math.sin(r)
-                            cos_r = math.cos(r)
-                            h_sin_r, h_cos_r = label_h * sin_r, label_h * cos_r
-                            x_top_right = label_x + label_w * cos_r
-                            y_top_right = label_y + label_w * sin_r
-
-                            x_ls = [
-                                label_x,
-                                x_top_right,
-                                x_top_right - h_sin_r,
-                                label_x - h_sin_r,
-                            ]
-                            y_ls = [
-                                label_y,
-                                y_top_right,
-                                y_top_right + h_cos_r,
-                                label_y + h_cos_r,
-                            ]
-                            label_x = max(0, min(x_ls)) / aspect
-                            label_y = max(0, min(y_ls))
-                            label_w = min(100*aspect, max(x_ls))/aspect - label_x
-                            label_h = min(100, max(y_ls)) - label_y
-
-                        x = (label_x + label_w / 2) / 100
-                        y = (label_y + label_h / 2) / 100
-                        w = label_w / 100
-                        h = label_h / 100
-                        annotations.append([category_id, x, y, w, h])
+                        x, y, w, h = self.rotated_rectangle(label)
+                        annotations.append([category_id, (x + w / 2) / 100, (y + h / 2) / 100, w / 100, h / 100])
                     else:
                         raise ValueError(f"Unknown label type {label}")
             with open(label_path, 'w') as f:
@@ -714,6 +674,51 @@ class Converter(object):
                     'contributor': 'Label Studio'
                 }
             }, fout, indent=2)
+
+    @staticmethod
+    def rotated_rectangle(label):
+        label_x, label_y, label_w, label_h, label_r = (
+            label["x"],
+            label["y"],
+            label["width"],
+            label["height"],
+            label["rotation"],
+        )
+        
+        if abs(label_r) > 0:
+            alpha = math.atan(label_h / label_w)
+            beta = math.pi * (label_r / 180)  # Label studio defines the angle towards the vertical axis
+            
+            radius = math.sqrt((label_w/2) ** 2 + (label_h/2) ** 2)
+            
+            # Label studio saves the position of top left corner after rotation
+            x_0 = label_x - radius * (math.cos(math.pi - alpha - beta) - math.cos(math.pi - alpha)) + label_w / 2
+            y_0 = label_y + radius * (math.sin(math.pi - alpha - beta) - math.sin(math.pi - alpha)) + label_h / 2
+            
+            theta_1 = alpha + beta
+            theta_2 = math.pi - alpha + beta
+            theta_3 = math.pi + alpha + beta
+            theta_4 = 2 * math.pi - alpha + beta
+
+            x_coord = [
+                x_0 + radius * math.cos(theta_1),
+                x_0 + radius * math.cos(theta_2),
+                x_0 + radius * math.cos(theta_3),
+                x_0 + radius * math.cos(theta_4),
+            ]
+            y_coord = [
+                y_0 + radius * math.sin(theta_1),
+                y_0 + radius * math.sin(theta_2),
+                y_0 + radius * math.sin(theta_3),
+                y_0 + radius * math.sin(theta_4),
+            ]
+            
+            label_x = min(x_coord)
+            label_y = min(y_coord)
+            label_w = max(x_coord) - label_x
+            label_h = max(y_coord) - label_y 
+        
+        return label_x, label_y, label_w, label_h
 
     def convert_to_voc(self, input_data, output_dir, output_image_dir=None, is_dir=True):
 
