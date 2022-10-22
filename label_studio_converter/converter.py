@@ -597,7 +597,6 @@ class Converter(object):
         for item_idx, item in enumerate(item_iterator):
             # get image path and label file path
             image_path = item['input'][data_key]
-            label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0] + '.txt')
             # Download image
             if not os.path.exists(image_path):
                 try:
@@ -608,6 +607,8 @@ class Converter(object):
                     logger.info('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
+            # identify label file path
+            label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0] + '.txt')
             # Skip tasks without annotations
             if not item['output']:
                 logger.warning('No completions found for item #' + str(item_idx))
