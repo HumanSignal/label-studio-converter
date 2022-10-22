@@ -259,6 +259,66 @@ Corresponding annotations could be found in `tmp/voc-annotations/*.xml`:
 
 Use cases: image object detection
 
+### YOLO
+
+Usage:
+
+```
+label-studio-converter import yolo -i /yolo/root/directory -o ls-tasks.json
+```
+
+Help:
+
+```
+label-studio-converter import yolo -h
+
+usage: label-studio-converter import yolo [-h] -i INPUT [-o OUTPUT]
+                                          [--to-name TO_NAME]
+                                          [--from-name FROM_NAME]
+                                          [--out-type OUT_TYPE]
+                                          [--image-root-url IMAGE_ROOT_URL]
+                                          [--image-ext IMAGE_EXT]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+                        directory with YOLO where images, labels, notes.json
+                        are located
+  -o OUTPUT, --output OUTPUT
+                        output file with Label Studio JSON tasks
+  --to-name TO_NAME     object name from Label Studio labeling config
+  --from-name FROM_NAME
+                        control tag name from Label Studio labeling config
+  --out-type OUT_TYPE   annotation type - "annotations" or "predictions"
+  --image-root-url IMAGE_ROOT_URL
+                        root URL path where images will be hosted, e.g.:
+                        http://example.com/images or s3://my-bucket
+  --image-ext IMAGE_EXT
+                        image extension to search: .jpg, .png
+```
+
+YOLO export folder example:
+
+```
+yolo-folder
+  images
+   - 1.jpg
+   - 2.jpg
+   - ...
+  labels
+   - 1.txt
+   - 2.txt
+
+  classes.txt
+```
+
+classes.txt example
+
+```
+Airplane
+Car
+```
+
 ## Contributing
 
 We would love to get your help for creating converters to other models. Please feel free to create pull requests.
