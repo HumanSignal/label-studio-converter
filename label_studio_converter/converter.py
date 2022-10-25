@@ -612,8 +612,9 @@ class Converter(object):
             # Skip tasks without annotations
             if not item['output']:
                 logger.warning('No completions found for item #' + str(item_idx))
-                with open(label_path, 'x'):
-                    pass
+                if not os.path.exists(label_path):
+                    with open(label_path, 'x'):
+                        pass
                 continue
 
             # concatenate results over all tag names
@@ -623,8 +624,9 @@ class Converter(object):
 
             if len(labels) == 0:
                 logger.warning(f'Empty bboxes for {item["output"]}')
-                with open(label_path, 'x'):
-                    pass
+                if not os.path.exists(label_path):
+                    with open(label_path, 'x'):
+                        pass
                 continue
 
             annotations = []
