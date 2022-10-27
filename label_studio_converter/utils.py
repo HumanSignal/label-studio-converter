@@ -150,7 +150,7 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
             with io.open(filepath, mode='wb') as fout:
                 fout.write(r.content)
     if return_relative_path:
-        return os.path.join(os.path.basename(output_dir), filename)
+        return os.path.join(os.path.basename(output_dir), os.path.basename(filename))
     return filepath
 
 

@@ -5,4 +5,4 @@ except ModuleNotFoundError as e:
     print(e)
 
 
-__version__ = '0.0.45.rc4'
+__version__ = '0.0.45.rc5'
