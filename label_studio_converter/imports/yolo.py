@@ -37,7 +37,7 @@ def convert_yolo_to_ls(input_dir, out_file,
 
     # generate and save labeling config
     label_config_file = out_file.replace('.json', '') + '.label_config.xml'
-    generate_label_config(categories, {'label': 'RectangleLabels'}, to_name, from_name, label_config_file)
+    generate_label_config(categories, {from_name: 'RectangleLabels'}, to_name, from_name, label_config_file)
 
     # labels, one label per image
     labels_dir = os.path.join(input_dir, 'labels')

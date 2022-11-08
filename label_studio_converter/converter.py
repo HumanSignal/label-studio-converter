@@ -399,6 +399,9 @@ class Converter(object):
             for name, value in item['output'].items():
                 pretty_value = self._prettify(value)
                 record[name] = pretty_value if isinstance(pretty_value, str) else json.dumps(pretty_value, ensure_ascii=False)
+            for name, value in item['input'].items():
+                if isinstance(value, dict) or isinstance(value, list):
+                    record[name] = json.dumps(value, ensure_ascii=False)
             record['annotator'] = _get_annotator(item)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
@@ -408,11 +411,26 @@ class Converter(object):
                 record['agreement'] = item['agreement']
             records.append(record)
 
-        df = pd.DataFrame.from_records(records)
-        if records:
-            # convert annotation_id with Null values as Int, refer to https://pandas.pydata.org/pandas-docs/stable/user_guide/gotchas.html#support-for-integer-na
-            df['annotation_id'] = df['annotation_id'].astype(pd.Int64Dtype())
-        df.to_csv(output_file, index=False, **kwargs)
+        # Previously we were using pandas dataframe to_csv() but that produced incorrect JSON so writing manually
+        with open(output_file, 'w') as outfile:
+            if kwargs['header']:
+                keys = records[0].keys()
+                outfile.write(kwargs['sep'].join(keys) + '\n')
+            for record in records:
+                line = []
+                for key in keys:
+                    if record[key] is None:
+                        line.append('')
+                    elif key == 'annotation_id':
+                        # Replicating previous implementation of converting None values to pandas.NA
+                        # which outputs in CSV files as an empty string
+                        if record[key] == None:
+                            line.append('')
+                        else:
+                            line.append(str(record[key]))
+                    else:
+                        line.append(str(record[key]))
+                outfile.write(kwargs['sep'].join(line) + '\n')
 
     def convert_to_conll2003(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.CONLL2003)
@@ -612,8 +630,9 @@ class Converter(object):
             # Skip tasks without annotations
             if not item['output']:
                 logger.warning('No completions found for item #' + str(item_idx))
-                with open(label_path, 'x'):
-                    pass
+                if not os.path.exists(label_path):
+                    with open(label_path, 'x'):
+                        pass
                 continue
 
             # concatenate results over all tag names
@@ -623,8 +642,9 @@ class Converter(object):
 
             if len(labels) == 0:
                 logger.warning(f'Empty bboxes for {item["output"]}')
-                with open(label_path, 'x'):
-                    pass
+                if not os.path.exists(label_path):
+                    with open(label_path, 'x'):
+                        pass
                 continue
 
             annotations = []
