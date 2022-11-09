@@ -413,24 +413,25 @@ class Converter(object):
 
         # Previously we were using pandas dataframe to_csv() but that produced incorrect JSON so writing manually
         with open(output_file, 'w') as outfile:
-            if kwargs['header']:
-                keys = records[0].keys()
-                outfile.write(kwargs['sep'].join(keys) + '\n')
-            for record in records:
-                line = []
-                for key in keys:
-                    if record[key] is None:
-                        line.append('')
-                    elif key == 'annotation_id':
-                        # Replicating previous implementation of converting None values to pandas.NA
-                        # which outputs in CSV files as an empty string
-                        if record[key] == None:
+            if records:
+                if kwargs['header']:
+                    keys = records[0].keys()
+                    outfile.write(kwargs['sep'].join(keys) + '\n')
+                for record in records:
+                    line = []
+                    for key in keys:
+                        if record[key] is None:
                             line.append('')
+                        elif key == 'annotation_id':
+                            # Replicating previous implementation of converting None values to pandas.NA
+                            # which outputs in CSV files as an empty string
+                            if record[key] == None:
+                                line.append('')
+                            else:
+                                line.append(str(record[key]))
                         else:
                             line.append(str(record[key]))
-                    else:
-                        line.append(str(record[key]))
-                outfile.write(kwargs['sep'].join(line) + '\n')
+                    outfile.write(kwargs['sep'].join(line) + '\n')
 
     def convert_to_conll2003(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.CONLL2003)
