@@ -22,7 +22,7 @@ def convert_yolo_to_ls(input_dir, out_file,
     :param from_name: control tag name from Label Studio labeling config
     :param out_type: annotation type - "annotations" or "predictions"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
-    :param image_ext: image extension to search: .jpg, .png
+    :param image_ext: image extension/s - single string or comma separated list to search, eg. .jpeg or .jpg, .png
     """
 
     tasks = []
@@ -42,16 +42,26 @@ def convert_yolo_to_ls(input_dir, out_file,
     # labels, one label per image
     labels_dir = os.path.join(input_dir, 'labels')
     logger.info('Converting labels from %s', labels_dir)
-
+    
+    # build array out of provided comma separated image_extns (str -> array)
+    image_ext = [x.strip() for x in image_ext.split(",")]
+    
     for f in os.listdir(labels_dir):
-        image_file_base = f[0:-4] + image_ext
-        image_file = os.path.join(input_dir, 'images', image_file_base)
-        label_file = os.path.join(labels_dir, f)
+        image_file_found_flag = False
+        for ext in image_ext:
+            image_file_base = os.splittext(f)[0] + ext
+            image_file = os.path.join(input_dir, "images", image_file_base)
+            if os.path.exists(image_file):
+                image_file_found_flag = True
+                break
+            else:
+                continue
 
+        label_file = os.path.join(labels_dir, f)
         if not f.endswith('.txt'):
             continue
 
-        if not os.path.exists(image_file):
+        if not image_file_found_flag:
             logger.info("Can't convert YOLO to Label Studio JSON without image source: %s", image_file)
             continue
 
@@ -152,6 +162,6 @@ def add_parser(subparsers):
     )
     yolo.add_argument(
         '--image-ext', dest='image_ext',
-        help='image extension to search: .jpg, .png',
+        help='image extension to search: .jpeg or .jpg, .png',
         default='.jpg',
     )
