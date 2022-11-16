@@ -1,5 +1,6 @@
 import os
 import json  # better to use "imports ujson as json" for the best performance
+from urllib import pathname2url #for converting "+","*", etc. in file paths to appropriate urls
 import uuid
 import logging
 from PIL import Image
@@ -57,7 +58,7 @@ def convert_yolo_to_ls(input_dir, out_file,
 
         task = {
             "data": {
-                "image": os.path.join(image_root_url, image_file_base)
+                "image": pathname2url(os.path.join(image_root_url, image_file_base)) #eg. '../../foo+you.py' -> '../../foo%2Byou.py'
             },
             # 'annotations' or 'predictions'
             out_type: [
