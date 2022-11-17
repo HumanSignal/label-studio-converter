@@ -391,6 +391,7 @@ class Converter(object):
         output_file = os.path.join(output_dir, 'result.csv')
         records = []
         item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
+        keys = set()
 
         for item in item_iterator(input_data):
             record = deepcopy(item['input'])
@@ -410,17 +411,17 @@ class Converter(object):
             if 'agreement' in item:
                 record['agreement'] = item['agreement']
             records.append(record)
+            keys.update(list(record.keys()))
 
         # Previously we were using pandas dataframe to_csv() but that produced incorrect JSON so writing manually
         with open(output_file, 'w') as outfile:
             if records:
                 if kwargs['header']:
-                    keys = records[0].keys()
                     outfile.write(kwargs['sep'].join(keys) + '\n')
                 for record in records:
                     line = []
                     for key in keys:
-                        if record[key] is None:
+                        if record.get(key) is None:
                             line.append('')
                         elif key == 'annotation_id':
                             # Replicating previous implementation of converting None values to pandas.NA
