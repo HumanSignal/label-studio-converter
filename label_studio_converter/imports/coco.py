@@ -50,6 +50,31 @@ def create_bbox(annotation, categories, from_name, image_height, image_width, to
     }
     return item
 
+def create_segmentation(annotation, categories, from_name, image_height, image_width, to_name):
+    label = categories[int(annotation['category_id'])]
+    segmentation = annotation['segmentation'][0]
+    points = [list(x) for x in zip(*[iter(segmentation)]*2)]
+
+    for i in range(len(points)):
+        points[i][0] = points[i][0]/ image_width * 100.0
+        points[i][1] = points[i][1]/ image_height * 100.0
+
+    item = {
+        "id": uuid.uuid4().hex[0:10],
+        "type": "polygonlabels",
+        "value": {
+            "points": points,
+            "polygonlabels": [
+                label
+            ]
+        },
+        "to_name": to_name,
+        "from_name": from_name,
+        "image_rotation": 0,
+        "original_width": image_width,
+        "original_height": image_height
+    }
+    return item
 
 def create_keypoints(annotation, categories, from_name, to_name, image_height, image_width, point_width):
     label = categories[int(annotation['category_id'])]
@@ -133,6 +158,7 @@ def convert_coco_to_ls(input_file, out_file,
     segmentation = bbox = keypoints = rle = False
     segmentation_once = bbox_once = keypoints_once = rle_once = False
     rectangles_from_name, keypoints_from_name = from_name + '_rectangles', from_name + '_keypoints'
+    segmentation_from_name = from_name + 'polygons'
     tags = {}
 
     for i, annotation in enumerate(coco['annotations']):
@@ -149,7 +175,8 @@ def convert_coco_to_ls(input_file, out_file,
             tags.update({keypoints_from_name: 'KeyPointLabels'})
             keypoints_once = True
         if segmentation and not segmentation_once:  # not supported
-            logger.error('Segmentation is not yet supported in COCO')
+            logger.warning('Segmentation in COCO is experimental')
+            tags.update({segmentation_from_name: 'PolygonLabels'})
             segmentation_once = True
         if bbox and not bbox_once:
             tags.update({rectangles_from_name: 'RectangleLabels'})
@@ -165,6 +192,10 @@ def convert_coco_to_ls(input_file, out_file,
 
         if 'bbox' in annotation:
             item = create_bbox(annotation, categories, rectangles_from_name, image_height, image_width, to_name)
+            task[out_type][0]['result'].append(item)
+
+        if 'segmentation' in annotation:
+            item = create_segmentation(annotation, categories, segmentation_from_name, image_height, image_width, to_name)
             task[out_type][0]['result'].append(item)
 
         if 'keypoints' in annotation:
