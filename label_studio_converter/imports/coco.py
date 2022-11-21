@@ -56,8 +56,8 @@ def create_segmentation(annotation, categories, from_name, image_height, image_w
     points = [list(x) for x in zip(*[iter(segmentation)]*2)]
 
     for i in range(len(points)):
-        points[i][0] = points[i][0]/ image_width * 100.0
-        points[i][1] = points[i][1]/ image_height * 100.0
+        points[i][0] = points[i][0] / image_width * 100.0
+        points[i][1] = points[i][1] / image_height * 100.0
 
     item = {
         "id": uuid.uuid4().hex[0:10],
