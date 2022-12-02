@@ -1,3 +1,6 @@
+"""
+ This file is deprecated and not used in label-studio-converter command
+"""
 import argparse
 import os
 import io

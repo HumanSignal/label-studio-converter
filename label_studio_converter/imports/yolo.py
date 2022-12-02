@@ -1,6 +1,6 @@
 import os
 import json  # better to use "imports ujson as json" for the best performance
-from urllib import pathname2url #for converting "+","*", etc. in file paths to appropriate urls
+from urllib.request import pathname2url # for converting "+","*", etc. in file paths to appropriate urls
 import uuid
 import logging
 from PIL import Image

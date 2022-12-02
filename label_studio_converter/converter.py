@@ -136,6 +136,8 @@ class Converter(object):
         self.project_dir = project_dir
         self.upload_dir = upload_dir
         self.download_resources = download_resources
+        self._schema = None
+
         if isinstance(config, dict):
             self._schema = config
         elif isinstance(config, str):
@@ -145,6 +147,11 @@ class Converter(object):
             else:
                 config_string = config
             self._schema = parse_config(config_string)
+
+        if self._schema is None:
+            logger.warning('Label config or schema for Converter is not provided, '
+                           'it might be critical for some export formats, now set schema to empty dict')
+            self._schema = {}
 
         self._data_keys, self._output_tags = self._get_data_keys_and_output_tags(output_tags)
         self._supported_formats = self._get_supported_formats()
@@ -328,7 +335,6 @@ class Converter(object):
             'lead_time': annotation.get('lead_time')
         }
 
-
     def _check_format(self, fmt):
         pass
 
@@ -387,8 +393,11 @@ class Converter(object):
 
     def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
         self._check_format(Format.CSV)
-        ensure_dir(output_dir)
-        output_file = os.path.join(output_dir, 'result.csv')
+        if output_dir.endswith('.csv'):
+            output_file = output_dir
+        else:
+            ensure_dir(output_dir)
+            output_file = os.path.join(output_dir, 'result.csv')
         records = []
         item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
         keys = set()
@@ -414,7 +423,7 @@ class Converter(object):
             keys.update(list(record.keys()))
 
         # Previously we were using pandas dataframe to_csv() but that produced incorrect JSON so writing manually
-        with open(output_file, 'w') as outfile:
+        with open(output_file, 'w', encoding='utf8') as outfile:
             if records:
                 if kwargs['header']:
                     outfile.write(kwargs['sep'].join(keys) + '\n')
@@ -426,7 +435,7 @@ class Converter(object):
                         elif key == 'annotation_id':
                             # Replicating previous implementation of converting None values to pandas.NA
                             # which outputs in CSV files as an empty string
-                            if record[key] == None:
+                            if record[key] is None:
                                 line.append('')
                             else:
                                 line.append(str(record[key]))

@@ -1,3 +1,4 @@
+# this csv converter is not used in GUI export, see convert_to_csv function
 import pandas as pd
 import os
 import json
@@ -8,7 +9,9 @@ from copy import deepcopy
 class ExportToCSV(object):
 
     def __init__(self, tasks):
-        if isinstance(tasks, str) and tasks.endswith('.json') and os.path.exists(tasks):
+        if isinstance(tasks, str) and tasks.endswith('.json'):
+            if not os.path.exists(tasks):
+                raise Exception(f'Task file not found {tasks}')
             # input is a file
             with open(tasks) as f:
                 self.tasks = json.load(f)
