@@ -685,6 +685,11 @@ class Converter(object):
                     if "rectanglelabels" in label or 'labels' in label:
                         x, y, w, h = self.rotated_rectangle(label)
                         annotations.append([category_id, (x + w / 2) / 100, (y + h / 2) / 100, w / 100, h / 100])
+                    elif "polygonlabels" in label:
+                        points_abs = [(x / 100, y / 100) for x, y in label["points"]]
+                        x, y = zip(*points_abs)
+
+                        annotations.append([category_id] + [coord for point in points_abs for coord in point])
                     else:
                         raise ValueError(f"Unknown label type {label}")
             with open(label_path, 'w') as f:
