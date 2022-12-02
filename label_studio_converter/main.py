@@ -63,18 +63,21 @@ def get_export_args(parser):
 
 def get_all_args():
     parser = argparse.ArgumentParser()
-
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     subparsers.required = False
 
-    # Export converter
+    # Export
     parser_export = subparsers.add_parser(
         'export',
-        help='Converter from Label Studio annotations to various formats'
+        help='Converter from Label Studio JSON annotations to external formats'
     )
     get_export_args(parser_export)
 
-    parser_import = subparsers.add_parser('import')
+    # Import
+    parser_import = subparsers.add_parser(
+        'import',
+        help="Converter from external formats to Label Studio JSON annotations"
+    )
     import_format = parser_import.add_subparsers(dest='import_format')
     import_yolo.add_parser(import_format)
     import_coco.add_parser(import_format)
