@@ -393,7 +393,7 @@ class Converter(object):
 
     def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
         self._check_format(Format.CSV)
-        if output_dir.endswith('.csv'):
+        if str(output_dir).endswith('.csv'):
             output_file = output_dir
         else:
             ensure_dir(output_dir)

@@ -58,7 +58,8 @@ def convert_yolo_to_ls(input_dir, out_file,
 
         task = {
             "data": {
-                "image": pathname2url(os.path.join(image_root_url, image_file_base)) #eg. '../../foo+you.py' -> '../../foo%2Byou.py'
+                # eg. '../../foo+you.py' -> '../../foo%2Byou.py'
+                "image": pathname2url(os.path.join(image_root_url, image_file_base))
             },
             # 'annotations' or 'predictions'
             out_type: [
