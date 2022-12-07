@@ -13,7 +13,7 @@ def test_import_yolo():
     (currently 7 images -> 3 png, 2 jpg and 2 jpeg files)
     """
     input_data_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data','test_import_yolo_data')
-    out_json_file = os.path.join('tmp','lsc-pytest','yolo_exp_test.json')
+    out_json_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.json')
     image_ext = '.jpg,.jpeg,.png' #comma seperated string of extns.
 
     import_yolo.convert_yolo_to_ls(
