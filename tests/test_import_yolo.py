@@ -31,7 +31,7 @@ def test_import_yolo():
 
     #generated labels from config xml
     label_element = ET.parse(out_config_file).getroot()[2]
-    lables_generated = [x.atrib['value'] for x in label_element.getchildren()]
+    lables_generated = [x.attrib['value'] for x in label_element.getchildren()]
     assert set(labels) == set(lables_generated), "> generated class labels do not match original labels"
 
     #total image files in the input folder 
