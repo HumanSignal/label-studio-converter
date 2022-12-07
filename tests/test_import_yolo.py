@@ -27,7 +27,7 @@ def test_import_yolo():
 
     #provided labels from classes.txt
     with open(os.path.join(input_data_dir,'classes.txt'), 'r') as f:
-        labels = f.read()[-1].split('\n') #[:-1] since last line in classes.txt is empty by convention
+        labels = f.read()[:-1].split('\n') #[:-1] since last line in classes.txt is empty by convention
 
     #generated labels from config xml
     label_element = ET.parse(out_config_file).getroot()[2]
