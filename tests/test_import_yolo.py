@@ -22,7 +22,7 @@ def test_import_yolo():
         image_ext=image_ext
     )
     #'yolo_exp_test.label_config.xml' and 'yolo_exp_test.json' must be generated.
-    out_config_file = os.path.join('tmp','lsc-pytest','yolo_exp_test.label_config.xml')
+    out_config_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.label_config.xml')
     assert os.path.exists(out_config_file) and os.path.exists(out_json_file), "> import failed! files not generated." 
 
     #provided labels from classes.txt
