@@ -1,11 +1,18 @@
 """
 Test for the brush.py module
 """
+import pytest
 import unittest
 import urllib3
 import json
+import numpy as np
 
-from label_studio_converter.brush import encode_rle, image2annotation
+from label_studio_converter.brush import (
+    encode_rle,
+    image2annotation,
+    binary_mask_to_rle,
+    ls_rle_to_coco_rle,
+)
 
 
 def test_image2annotation():
@@ -71,3 +78,31 @@ def test_rle_encoding():
         56,
         32,
     ]
+
+
+def test_binary_mask_to_rle():
+    # Test with a simple binary mask
+    binary_mask = np.array([[0, 1, 1, 0], [1, 1, 1, 0], [0, 0, 0, 1]])
+    rle = binary_mask_to_rle(binary_mask)
+    assert rle == {'counts': [1, 1, 1, 2, 1, 2, 3, 1], 'size': [3, 4]}
+
+    # Test with a binary mask that is all zeros
+    binary_mask = np.zeros((3, 4))
+    rle = binary_mask_to_rle(binary_mask)
+    assert rle == {'counts': [12], 'size': [3, 4]}
+
+    # Test with a binary mask that is all ones
+    binary_mask = np.ones((4, 5))
+    rle = binary_mask_to_rle(binary_mask)
+    assert rle == {'counts': [0, 20], 'size': [4, 5]}
+
+
+def test_ls_rle_to_coco_rle():
+    # Test with a simple LS RLE
+    pytest.importorskip("pycocotools")
+    ls_rle = encode_rle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
+    height = 2
+    width = 3
+    coco_rle = ls_rle_to_coco_rle(ls_rle, height, width)
+    assert coco_rle == {'counts': '06', 'size': [2, 3]}
+

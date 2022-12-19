@@ -36,6 +36,14 @@ from PIL import Image
 from collections import defaultdict
 from itertools import groupby
 
+try:
+    import pycocotools.mask
+except ImportError:
+    pycocotools_imported = False
+else:
+    pycocotools_imported = True
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -186,6 +194,36 @@ def convert_task_dir(items, out_dir, out_format='numpy'):
     """Directory with tasks and annotation to brush images, out_format = numpy | png"""
     for item in items:
         convert_task(item, out_dir, out_format)
+
+
+def binary_mask_to_rle(binary_mask: np.ndarray):
+    """from binary image mask to uncompressed coco rle"""
+    counts = []
+    for i, (value, elements) in enumerate(groupby(binary_mask.ravel(order='F'))):
+        if i == 0 and value == 1:
+            counts.append(0)
+        counts.append(len(list(elements)))
+    return {'counts': counts, 'size': list(binary_mask.shape)}
+
+
+def ls_rle_to_coco_rle(ls_rle, height, width):
+    """from LS rle to compressed coco rle"""
+    ls_mask = decode_rle(ls_rle)
+    ls_mask = np.reshape(ls_mask, [height, width, 4])[:, :, 3]
+    ls_mask = np.where(ls_mask > 0, 1, 0)
+    binary_mask = np.asfortranarray(ls_mask)
+    coco_rle = binary_mask_to_rle(binary_mask)
+    result = pycocotools.mask.frPyObjects(coco_rle, *coco_rle.get('size'))
+    result["counts"] = result["counts"].decode()
+    return result
+
+
+def get_cocomask_area(segmentation):
+    return int(pycocotools.mask.area(segmentation))
+
+
+def get_cocomask_bounding_box(segmentation):
+    return pycocotools.mask.toBbox(segmentation).tolist()
 
 
 # convert_task_dir('/ls/test/completions', '/ls/test/completions/output', 'numpy')

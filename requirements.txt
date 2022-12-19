@@ -5,4 +5,3 @@ nltk==3.6.7
 label-studio-tools>=0.0.2
 ujson
 ijson~=3.2.0.post0
-
