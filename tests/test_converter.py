@@ -4,11 +4,10 @@ import pytest
 import tempfile
 import shutil
 
-# Define path
-TEST_DATA_PATH = os.path.join("data","test_converter_data")
-INPUT_JSON_PATH = os.path.join(TEST_DATA_PATH, "data.json")
-LABEL_CONFIG_PATH = os.path.join(TEST_DATA_PATH, "label_config.xml")
-
+BASE_DIR = os.path.dirname(__file__)
+TEST_DATA_PATH = os.path.join(BASE_DIR, "data","test_converter_data")
+INPUT_JSON_PATH = os.path.join(BASE_DIR, TEST_DATA_PATH, "data.json")
+LABEL_CONFIG_PATH = os.path.join(BASE_DIR, TEST_DATA_PATH, "label_config.xml")
 
 def check_equal_list_of_strings(list1, list2):
     # Check that both lists are not empty
@@ -49,6 +48,11 @@ def create_temp_folder():
 
 
 def test_convert_to_yolo(create_temp_folder):
+    """_summary_
+
+    Args:
+        create_temp_folder (_type_): _description_
+    """
     
     # Generates a temporary folder and return the absolute path
     # The temporary folder contains all the data generate by the following function
