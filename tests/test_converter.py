@@ -48,11 +48,7 @@ def create_temp_folder():
 
 
 def test_convert_to_yolo(create_temp_folder):
-    """_summary_
-
-    Args:
-        create_temp_folder (_type_): _description_
-    """
+    """Check converstion label_studio json exported file to yolo with multiple labelers"""
     
     # Generates a temporary folder and return the absolute path
     # The temporary folder contains all the data generate by the following function
@@ -80,4 +76,10 @@ def test_convert_to_yolo(create_temp_folder):
             os.path.join(abs_path_label_dir,  "2","image1.txt"),
             ]
     generated_paths = get_os_walk(abs_path_label_dir)
+    # Check all files and subfolders have been generated.
     assert check_equal_list_of_strings(expected_paths,generated_paths), f"Generated file: \n  {generated_paths} \n does not match expected ones: \n {expected_paths}"
+    # Check all the annotations have been converted to yolo
+    for file in expected_paths:
+        with open(file) as f:
+            lines = f.readlines()
+            assert len(lines) == 2, f"Expect different number of annotations in file {file}."
