@@ -1,0 +1,219 @@
+[
+    {
+        "id": 1,
+        "annotations": [
+            {
+                "id": 1,
+                "completed_by": 2,
+                "result": [
+                    {
+                        "original_width": 2800,
+                        "original_height": 2800,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 37.15846994535519,
+                            "y": 70.67395264116576,
+                            "width": 4.189435336976321,
+                            "height": 4.735883424408015,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "parasites"
+                            ]
+                        },
+                        "id": "C7oHaRDVVC",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2800,
+                        "original_height": 2800,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 57.79102500413977,
+                            "y": 62.87464812054977,
+                            "width": 3.808577579069383,
+                            "height": 4.636529226693169,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "white"
+                            ]
+                        },
+                        "id": "9GLz8g9skg",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    }
+                ],
+                "was_cancelled": false,
+                "ground_truth": false,
+                "created_at": "2022-12-27T13:36:25.747398Z",
+                "updated_at": "2022-12-27T21:04:40.495704Z",
+                "lead_time": 1235.418,
+                "prediction": {},
+                "result_count": 0,
+                "task": 1,
+                "project": 1,
+                "parent_prediction": null,
+                "parent_annotation": null
+            },
+            {
+                "id": 2,
+                "completed_by": 1,
+                "result": [
+                    {
+                        "original_width": 2800,
+                        "original_height": 2800,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 37.88706739526412,
+                            "y": 71.76684881602914,
+                            "width": 3.8251366120218573,
+                            "height": 4.553734061930784,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "parasites"
+                            ]
+                        },
+                        "id": "ipBS_GBGZp",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2800,
+                        "original_height": 2800,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 49.18032786885246,
+                            "y": 23.13296903460838,
+                            "width": 5.2823315118397085,
+                            "height": 4.007285974499089,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "white"
+                            ]
+                        },
+                        "id": "QtdGMXo-M0",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    }
+                ],
+                "was_cancelled": false,
+                "ground_truth": false,
+                "created_at": "2022-12-27T13:37:15.043317Z",
+                "updated_at": "2022-12-27T21:05:03.127871Z",
+                "lead_time": 85.444,
+                "prediction": {},
+                "result_count": 0,
+                "task": 1,
+                "project": 1,
+                "parent_prediction": null,
+                "parent_annotation": null
+            }
+        ],
+        "drafts": [],
+        "predictions": [],
+        "data": {
+            "image": "/image1"
+        },
+        "meta": {},
+        "created_at": "2022-12-27T12:06:58.502299Z",
+        "updated_at": "2022-12-27T21:05:03.168883Z",
+        "inner_id": 1,
+        "total_annotations": 2,
+        "cancelled_annotations": 0,
+        "total_predictions": 0,
+        "comment_count": 0,
+        "unresolved_comment_count": 0,
+        "last_comment_updated_at": null,
+        "project": 1,
+        "updated_by": 1,
+        "comment_authors": []
+    },
+    {
+        "id": 2,
+        "annotations": [
+            {
+                "id": 3,
+                "completed_by": 1,
+                "result": [
+                    {
+                        "original_width": 2800,
+                        "original_height": 2800,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 19.672131147540984,
+                            "y": 49.72677595628415,
+                            "width": 3.278688524590164,
+                            "height": 2.914389799635701,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "white"
+                            ]
+                        },
+                        "id": "1o3pxwJAxl",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2800,
+                        "original_height": 2800,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 61.74863387978142,
+                            "y": 37.15846994535519,
+                            "width": 2.5500910746812386,
+                            "height": 4.371584699453552,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                "white"
+                            ]
+                        },
+                        "id": "-GoXZ7Oj8k",
+                        "from_name": "label",
+                        "to_name": "image",
+                        "type": "rectanglelabels",
+                        "origin": "manual"
+                    }
+                ],
+                "was_cancelled": false,
+                "ground_truth": false,
+                "created_at": "2022-12-27T17:20:52.822626Z",
+                "updated_at": "2022-12-27T21:05:25.940182Z",
+                "lead_time": 5.651999999999999,
+                "prediction": {},
+                "result_count": 0,
+                "task": 2,
+                "project": 1,
+                "parent_prediction": null,
+                "parent_annotation": null
+            }
+        ],
+        "drafts": [],
+        "predictions": [],
+        "data": {
+            "image": "/image2"
+        },
+        "meta": {},
+        "created_at": "2022-12-27T12:06:58.511973Z",
+        "updated_at": "2022-12-27T21:05:25.980897Z",
+        "inner_id": 2,
+        "total_annotations": 1,
+        "cancelled_annotations": 0,
+        "total_predictions": 0,
+        "comment_count": 0,
+        "unresolved_comment_count": 0,
+        "last_comment_updated_at": null,
+        "project": 1,
+        "updated_by": 1,
+        "comment_authors": []
+    }
+]

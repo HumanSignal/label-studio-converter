@@ -161,6 +161,11 @@ def convert_coco_to_ls(input_file, out_file,
     segmentation_from_name = from_name + 'polygons'
     tags = {}
 
+    # create tasks
+    for image in coco['images']:
+        image_id, image_file_name = image['id'], image['file_name']
+        tasks[image_id] = new_task(out_type, image_root_url, image_file_name)
+
     for i, annotation in enumerate(coco['annotations']):
         segmentation |= 'segmentation' in annotation
         bbox |= 'bbox' in annotation
@@ -187,8 +192,7 @@ def convert_coco_to_ls(input_file, out_file,
         image = images[image_id]
         image_file_name, image_width, image_height = image['file_name'], image['width'], image['height']
 
-        # get or create new task
-        task = tasks[image_id] if image_id in tasks else new_task(out_type, image_root_url, image_file_name)
+        task = tasks[image_id]
 
         if 'bbox' in annotation:
             item = create_bbox(annotation, categories, rectangles_from_name, image_height, image_width, to_name)

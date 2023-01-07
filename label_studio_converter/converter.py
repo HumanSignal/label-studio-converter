@@ -605,7 +605,24 @@ class Converter(object):
                 }
             }, fout, indent=2)
 
-    def convert_to_yolo(self, input_data, output_dir, output_image_dir=None, output_label_dir=None, is_dir=True):
+    def convert_to_yolo(self, input_data, output_dir, output_image_dir=None, output_label_dir=None, is_dir=True, split_labelers=False):
+        """Convert data in a specific format to the YOLO format.
+
+        Parameters
+        ----------
+        input_data : str
+            The input data, either a directory or a JSON file.
+        output_dir : str
+            The directory to store the output files in.
+        output_image_dir : str, optional
+            The directory to store the image files in. If not provided, it will default to a subdirectory called 'images' in output_dir.
+        output_label_dir : str, optional
+            The directory to store the label files in. If not provided, it will default to a subdirectory called 'labels' in output_dir.
+        is_dir : bool, optional
+            A boolean indicating whether `input_data` is a directory (True) or a JSON file (False).
+        split_labelers : bool, optional
+            A boolean indicating whether to create a dedicated subfolder for each labeler in the output label directory.
+        """
         self._check_format(Format.YOLO)
         ensure_dir(output_dir)
         notes_file = os.path.join(output_dir, 'notes.json')
@@ -636,8 +653,11 @@ class Converter(object):
                     logger.info('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
+            # create dedicated subfolder for each labeler if split_labelers=True 
+            labeler_subfolder = str(item['completed_by']) if split_labelers else ''
+            os.makedirs(os.path.join(output_label_dir, labeler_subfolder), exist_ok=True)
             # identify label file path
-            label_path = os.path.join(output_label_dir, os.path.splitext(os.path.basename(image_path))[0] + '.txt')
+            label_path = os.path.join(output_label_dir, labeler_subfolder, os.path.splitext(os.path.basename(image_path))[0] + '.txt')
             # Skip tasks without annotations
             if not item['output']:
                 logger.warning('No completions found for item #' + str(item_idx))
@@ -665,8 +685,8 @@ class Converter(object):
                 for key in ['rectanglelabels', 'polygonlabels', 'labels']:
                     if key in label and len(label[key]) > 0:
                         # change to save multi-label
-                        for item in label[key]:
-                            category_names.append(item)
+                        for category_name in label[key]:
+                            category_names.append(category_name)
 
                 if len(category_names) == 0:
                     logger.debug("Unknown label type or labels are empty: " + str(label))

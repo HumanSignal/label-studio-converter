@@ -27,7 +27,7 @@ def convert_yolo_to_ls(input_dir, out_file,
 
     tasks = []
     logger.info('Reading YOLO notes and categories from %s', input_dir)
-
+        
     # build categories=>labels dict
     notes_file = os.path.join(input_dir, 'classes.txt')
     with open(notes_file) as f:
