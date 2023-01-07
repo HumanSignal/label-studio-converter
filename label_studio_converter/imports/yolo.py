@@ -13,17 +13,16 @@ logger = logging.getLogger('root')
 
 def convert_yolo_to_ls(input_dir, out_file,
                        to_name='image', from_name='label', out_type="annotations",
-                       image_root_url='/data/local-files/?d=', image_ext='.jpg'):
+                       image_root_url='/data/local-files/?d=', image_ext='.jpg,.jpeg,.png'):
 
     """ Convert YOLO labeling to Label Studio JSON
-
     :param input_dir: directory with YOLO where images, labels, notes.json are located
     :param out_file: output file with Label Studio JSON tasks
     :param to_name: object name from Label Studio labeling config
     :param from_name: control tag name from Label Studio labeling config
     :param out_type: annotation type - "annotations" or "predictions"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
-    :param image_ext: image extension to search: .jpg, .png
+    :param image_ext: image extension/s - single string or comma separated list to search, eg. .jpeg or .jpg, .png and so on.
     """
 
     tasks = []
@@ -44,13 +43,22 @@ def convert_yolo_to_ls(input_dir, out_file,
     labels_dir = os.path.join(input_dir, 'labels')
     images_dir = os.path.join(input_dir, 'images')
     logger.info('Converting labels from %s', labels_dir)
+    
+    # build array out of provided comma separated image_extns (str -> array)
+    image_ext = [x.strip() for x in image_ext.split(",")]
+    logger.info(f'image extensions->, {image_ext}')
 
     # loop through images
     for f in os.listdir(images_dir):
-        if not f.endswith(image_ext):
+        image_file_found_flag = False
+        for ext in image_ext:
+            if f.endswith(ext):
+                image_file = f
+                image_file_base = f[0:-len(ext)]
+                image_file_found_flag = True
+                break
+        if not image_file_found_flag:
             continue
-
-        image_file_base = f[0:-4]
         
         task = {
             "data": {
@@ -71,9 +79,8 @@ def convert_yolo_to_ls(input_dir, out_file,
             ]
 
             # read image sizes
-            with Image.open(os.path.join(images_dir, image_file_base + image_ext)) as im:
+            with Image.open(os.path.join(images_dir, image_file)) as im:
                 image_width, image_height = im.size
-
 
             with open(label_file) as file:
                 # convert all bounding boxes to Label Studio Results
@@ -155,6 +162,6 @@ def add_parser(subparsers):
     )
     yolo.add_argument(
         '--image-ext', dest='image_ext',
-        help='image extension to search: .jpg, .png',
+        help='image extension to search: .jpeg or .jpg, .png',
         default='.jpg',
     )
