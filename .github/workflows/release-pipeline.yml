@@ -16,6 +16,8 @@ env:
 jobs:
   build-pypi:
     name: "Build"
+    permissions:
+      contents: write
     uses: heartexlabs/label-studio-converter/.github/workflows/build_pypi.yml@master
     with:
       version: ${{ github.ref_name }}

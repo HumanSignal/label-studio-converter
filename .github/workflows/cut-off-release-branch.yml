@@ -21,6 +21,9 @@ jobs:
   draft-new-release:
     name: "Cut off release branch"
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-request: write
     steps:
       - uses: hmarr/debug-action@v2.1.0
 

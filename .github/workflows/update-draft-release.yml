@@ -163,6 +163,8 @@ jobs:
     name: "Build"
     needs:
       - draft-release
+    permissions:
+      contents: write
     uses: heartexlabs/label-studio-converter/.github/workflows/build_pypi.yml@master
     with:
       version: ${{ needs.draft-release.outputs.rc-version }}
