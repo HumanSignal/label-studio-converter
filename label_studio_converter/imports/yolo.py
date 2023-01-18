@@ -39,79 +39,75 @@ def convert_yolo_to_ls(input_dir, out_file,
     label_config_file = out_file.replace('.json', '') + '.label_config.xml'
     generate_label_config(categories, {from_name: 'RectangleLabels'}, to_name, from_name, label_config_file)
 
-    # labels, one label per image
+    # define directories
     labels_dir = os.path.join(input_dir, 'labels')
+    images_dir = os.path.join(input_dir, 'images')
     logger.info('Converting labels from %s', labels_dir)
     
     # build array out of provided comma separated image_extns (str -> array)
     image_ext = [x.strip() for x in image_ext.split(",")]
     logger.info(f'image extensions->, {image_ext}')
-    
-    for f in os.listdir(labels_dir):
-        # image_file_base = f[0:-4] + image_ext
-        image_file_found_flag = False 
+
+    # loop through images
+    for f in os.listdir(images_dir):
+        image_file_found_flag = False
         for ext in image_ext:
-            image_file_base = f[0:-4] + ext
-            image_file = os.path.join(input_dir, 'images', image_file_base)
-            if os.path.exists(image_file):
+            if f.endswith(ext):
+                image_file = f
+                image_file_base = f[0:-len(ext)]
                 image_file_found_flag = True
                 break
-            else:
-                continue
-        
-        label_file = os.path.join(labels_dir, f)
-        if not f.endswith('.txt'):
-            continue
-
-        # if not os.path.exists(image_file):
         if not image_file_found_flag:
-            logger.info("Can't convert YOLO to Label Studio JSON without image source: %s", f[0:-4])
             continue
-
+        
         task = {
             "data": {
                 # eg. '../../foo+you.py' -> '../../foo%2Byou.py'
-                "image": pathname2url(os.path.join(image_root_url, image_file_base))
-            },
-            # 'annotations' or 'predictions'
-            out_type: [
+                "image": pathname2url(os.path.join(image_root_url, image_file))
+            }
+        }
+
+        # define coresponding label file and check existence
+        label_file = os.path.join(labels_dir, image_file_base + '.txt')
+
+        if os.path.exists(label_file):
+            task[out_type] = [
                 {
                     "result": [],
                     "ground_truth": False,
                 }
             ]
-        }
 
-        # read image sizes
-        im = Image.open(image_file)
-        image_width, image_height = im.size
+            # read image sizes
+            with Image.open(os.path.join(images_dir, image_file)) as im:
+                image_width, image_height = im.size
 
-        with open(label_file) as file:
-            # convert all bounding boxes to Label Studio Results
-            lines = file.readlines()
-            for line in lines:
-                label_id, x, y, width, height = line.split()
-                x, y, width, height = float(x), float(y), float(width), float(height)
-                item = {
-                    "id": uuid.uuid4().hex[0:10],
-                    "type": "rectanglelabels",
-                    "value": {
-                        "x": (x-width/2) * 100,
-                        "y": (y-height/2) * 100,
-                        "width": width * 100,
-                        "height": height * 100,
-                        "rotation": 0,
-                        "rectanglelabels": [
-                            categories[int(label_id)]
-                        ]
-                    },
-                    "to_name": to_name,
-                    "from_name": from_name,
-                    "image_rotation": 0,
-                    "original_width": image_width,
-                    "original_height": image_height
-                }
-                task[out_type][0]['result'].append(item)
+            with open(label_file) as file:
+                # convert all bounding boxes to Label Studio Results
+                lines = file.readlines()
+                for line in lines:
+                    label_id, x, y, width, height = line.split()
+                    x, y, width, height = float(x), float(y), float(width), float(height)
+                    item = {
+                        "id": uuid.uuid4().hex[0:10],
+                        "type": "rectanglelabels",
+                        "value": {
+                            "x": (x-width/2) * 100,
+                            "y": (y-height/2) * 100,
+                            "width": width * 100,
+                            "height": height * 100,
+                            "rotation": 0,
+                            "rectanglelabels": [
+                                categories[int(label_id)]
+                            ]
+                        },
+                        "to_name": to_name,
+                        "from_name": from_name,
+                        "image_rotation": 0,
+                        "original_width": image_width,
+                        "original_height": image_height
+                    }
+                    task[out_type][0]['result'].append(item)
 
         tasks.append(task)
 
