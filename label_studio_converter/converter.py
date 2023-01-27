@@ -133,6 +133,14 @@ class Converter(object):
         return self._FORMAT_INFO
 
     def __init__(self, config, project_dir, output_tags=None, upload_dir=None, download_resources=True):
+        """ Initialize Label Studio Converter for Exports
+
+        :param config: string or dict: XML string with Label studio labeling config or path to this file or parsed_config
+        :param project_dir: upload root directory for images, audio and other labeling files
+        :param output_tags: it will be calculated automatically, contains label names
+        :param upload_dir: upload root directory with files that were imported using LS GUI
+        :param download_resources: if True, LS will try to download images, audio, etc and include them to export
+        """
         self.project_dir = project_dir
         self.upload_dir = upload_dir
         self.download_resources = download_resources
