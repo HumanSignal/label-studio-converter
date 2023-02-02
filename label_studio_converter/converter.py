@@ -900,6 +900,10 @@ class Converter(object):
         category_name_to_id = dict()
 
         for name, info in self._schema.items():
+            # ignore labels that are not bounding boxes or segmentations
+            if (info['type'].lower() != 'rectanglelabels' and 
+                    info['type'].lower() != 'polygonlabels'):
+                continue
             labels |= set(info['labels'])
             attrs = info['labels_attrs']
             for label in attrs:
