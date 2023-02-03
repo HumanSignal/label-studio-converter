@@ -63,7 +63,7 @@ def convert_yolo_to_ls(input_dir, out_file,
         task = {
             "data": {
                 # eg. '../../foo+you.py' -> '../../foo%2Byou.py'
-                "image": os.path.join(image_root_url, pathname2url(image_file))
+                "image": image_root_url + str(pathname2url(image_file))
             }
         }
 
