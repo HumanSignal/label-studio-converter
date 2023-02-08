@@ -142,7 +142,11 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
 
     if filename is None:
         basename, ext = os.path.splitext(os.path.basename(urlparse(url).path))
-        filename = basename + '_' + hashlib.md5(url.encode() + str(datetime.datetime.now().timestamp()).encode()).hexdigest()[:4] + ext
+        filename = f'{basename}{ext}'
+        filepath = os.path.join(output_dir, filename)
+        if os.path.exists(filepath):
+            filename = basename + '_' + hashlib.md5(url.encode() + str(datetime.datetime.now().timestamp()).encode()).hexdigest()[:4] + ext
+
     filepath = os.path.join(output_dir, filename)
     if not os.path.exists(filepath):
         logger.info('Download {url} to {filepath}'.format(url=url, filepath=filepath))
