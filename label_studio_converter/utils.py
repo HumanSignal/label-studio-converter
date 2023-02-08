@@ -127,7 +127,7 @@ def download(url, output_dir, filename=None, project_dir=None, return_relative_p
         if download_resources:
             shutil.copy(filepath, output_dir)
         if return_relative_path:
-            return os.path.join(os.path.basename(output_dir), filename)
+            return os.path.join(os.path.basename(output_dir), os.path.basename(filename))
         return filepath
 
     if is_local_file:
