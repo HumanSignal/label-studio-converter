@@ -60,6 +60,7 @@ def convert_yolo_to_ls(input_dir, out_file,
         if not image_file_found_flag:
             continue
         
+        image_root_url += '' if image_root_url.endswith('/') else '/'
         task = {
             "data": {
                 # eg. '../../foo+you.py' -> '../../foo%2Byou.py'
