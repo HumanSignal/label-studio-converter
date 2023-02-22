@@ -4,7 +4,7 @@ import uuid
 import logging
 
 from PIL import Image
-from typing import Optional
+from typing import Optional, Tuple
 from urllib.request import (
     pathname2url,
 )  # for converting "+","*", etc. in file paths to appropriate urls
@@ -23,8 +23,7 @@ def convert_yolo_to_ls(
     out_type="annotations",
     image_root_url='/data/local-files/?d=',
     image_ext='.jpg,.jpeg,.png',
-    image_width: Optional[int] = None,
-    image_height: Optional[int] = None,
+    image_dims: Optional[Tuple[int,int]] = None,
 ):
     """Convert YOLO labeling to Label Studio JSON
     :param input_dir: directory with YOLO where images, labels, notes.json are located
@@ -34,8 +33,7 @@ def convert_yolo_to_ls(
     :param out_type: annotation type - "annotations" or "predictions"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
     :param image_ext: image extension/s - single string or comma separated list to search, eg. .jpeg or .jpg, .png and so on.
-    :param img_width: image width - optional integer specifying the image width of *all* images in the dataset. Defaults to opening the image to determine it's width and height, which is slower.
-    :param img_height: image height - optional integer specifying the image height of *all* images in the dataset. Defaults to opening the image to determine it's width and height, which is slower.
+    :param image_dims: image dimensions - optional tuple of integers specifying the image width and height of *all* images in the dataset. Defaults to opening the image to determine it's width and height, which is slower. This should only be used in the special case where you dataset has uniform image dimesions.
     """
 
     tasks = []
@@ -100,10 +98,12 @@ def convert_yolo_to_ls(
             ]
 
             # read image sizes
-            if image_width is None or image_height is None:
+            if image_dims is None:
                 # default to opening file if we aren't given image dims. slow!
                 with Image.open(os.path.join(images_dir, image_file)) as im:
                     image_width, image_height = im.size
+            else:
+                image_width, image_height = image_dims
 
             with open(label_file) as file:
                 # convert all bounding boxes to Label Studio Results
