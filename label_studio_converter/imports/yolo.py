@@ -1,9 +1,11 @@
 import os
 import json  # better to use "imports ujson as json" for the best performance
-from urllib.request import pathname2url # for converting "+","*", etc. in file paths to appropriate urls
 import uuid
 import logging
+
 from PIL import Image
+from typing import Optional
+from urllib.request import pathname2url # for converting "+","*", etc. in file paths to appropriate urls
 
 from label_studio_converter.utils import ExpandFullPath
 from label_studio_converter.imports.label_config import generate_label_config
@@ -13,7 +15,8 @@ logger = logging.getLogger('root')
 
 def convert_yolo_to_ls(input_dir, out_file,
                        to_name='image', from_name='label', out_type="annotations",
-                       image_root_url='/data/local-files/?d=', image_ext='.jpg,.jpeg,.png'):
+                       image_root_url='/data/local-files/?d=', image_ext='.jpg,.jpeg,.png',
+                       image_width: Optional[int]=None, image_height: Optional[int] = None):
 
     """ Convert YOLO labeling to Label Studio JSON
     :param input_dir: directory with YOLO where images, labels, notes.json are located
@@ -27,7 +30,7 @@ def convert_yolo_to_ls(input_dir, out_file,
 
     tasks = []
     logger.info('Reading YOLO notes and categories from %s', input_dir)
-        
+
     # build categories=>labels dict
     notes_file = os.path.join(input_dir, 'classes.txt')
     with open(notes_file) as f:
@@ -43,7 +46,7 @@ def convert_yolo_to_ls(input_dir, out_file,
     labels_dir = os.path.join(input_dir, 'labels')
     images_dir = os.path.join(input_dir, 'images')
     logger.info('Converting labels from %s', labels_dir)
-    
+
     # build array out of provided comma separated image_extns (str -> array)
     image_ext = [x.strip() for x in image_ext.split(",")]
     logger.info(f'image extensions->, {image_ext}')
@@ -59,7 +62,7 @@ def convert_yolo_to_ls(input_dir, out_file,
                 break
         if not image_file_found_flag:
             continue
-        
+
         image_root_url += '' if image_root_url.endswith('/') else '/'
         task = {
             "data": {
@@ -80,8 +83,10 @@ def convert_yolo_to_ls(input_dir, out_file,
             ]
 
             # read image sizes
-            with Image.open(os.path.join(images_dir, image_file)) as im:
-                image_width, image_height = im.size
+            if image_width is None or image_height is None:
+                # default to opening file if we aren't given image dims. slow!
+                with Image.open(os.path.join(images_dir, image_file)) as im:
+                    image_width, image_height = im.size
 
             with open(label_file) as file:
                 # convert all bounding boxes to Label Studio Results
