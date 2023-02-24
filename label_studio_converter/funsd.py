@@ -73,8 +73,8 @@ def ls_to_funsd_converter(ls_export_path='export.json', funsd_dir='funsd', data_
 
 
 if __name__ == '__main__':
-	import sys
-	print('Usage:', sys.argv[0], 'export.json')
-	print('This command will export your LS OCR annotations to "./funsd/" directory')
+    import sys
+    print('Usage:', sys.argv[0], 'export.json')
+    print('This command will export your LS OCR annotations to "./funsd/" directory')
 	
     ls_to_funsd_converter(sys.argv[1])
