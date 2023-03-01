@@ -651,7 +651,7 @@ class Converter(object):
         for item_idx, item in enumerate(item_iterator):
             # get image path and label file path
             image_path = item['input'][data_key]
-            # Download image
+            # download image
             if not os.path.exists(image_path):
                 try:
                     image_path = download(image_path, output_image_dir, project_dir=self.project_dir,
@@ -661,11 +661,16 @@ class Converter(object):
                     logger.info('Unable to download {image_path}. The item {item} will be skipped'.format(
                         image_path=image_path, item=item
                     ), exc_info=True)
-            # create dedicated subfolder for each labeler if split_labelers=True 
+
+            # create dedicated subfolder for each labeler if split_labelers=True
             labeler_subfolder = str(item['completed_by']) if split_labelers else ''
             os.makedirs(os.path.join(output_label_dir, labeler_subfolder), exist_ok=True)
+
             # identify label file path
-            label_path = os.path.join(output_label_dir, labeler_subfolder, os.path.splitext(os.path.basename(image_path))[0] + '.txt')
+            filename = os.path.splitext(os.path.basename(image_path))[0]
+            filename = filename[0:255 - 4]  # urls might be too long, use 255 bytes (-4 for .txt) limit for filenames
+            label_path = os.path.join(output_label_dir, labeler_subfolder, filename + '.txt')
+
             # Skip tasks without annotations
             if not item['output']:
                 logger.warning('No completions found for item #' + str(item_idx))
