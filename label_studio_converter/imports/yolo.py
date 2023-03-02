@@ -203,3 +203,15 @@ def add_parser(subparsers):
         help='image extension to search: .jpeg or .jpg, .png',
         default='.jpg',
     )
+    yolo.add_argument(
+        '--image-dims',
+        dest='image_dims',
+        help=(
+            "optional tuple of integers specifying the image width and height of *all* "
+            "images in the dataset. Defaults to opening the image to determine it's width "
+            "and height, which is slower. This should only be used in the special "
+            "case where you dataset has uniform image dimesions. e.g. `--image-dims 600 800` "
+            "if all your images are of dimensions width=600, height=800"
+        ),
+        default=None
+    )
