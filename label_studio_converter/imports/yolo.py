@@ -206,6 +206,8 @@ def add_parser(subparsers):
     yolo.add_argument(
         '--image-dims',
         dest='image_dims',
+        type=int,
+        nargs=2,
         help=(
             "optional tuple of integers specifying the image width and height of *all* "
             "images in the dataset. Defaults to opening the image to determine it's width "
