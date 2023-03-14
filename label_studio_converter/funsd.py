@@ -1,5 +1,7 @@
 """ This code allows to export Label Studio Export JSON to FUNSD format. 
 It's only the basic converter, it converts every bbox as a separate word. 
+Check this github issue for more details:
+https://github.com/heartexlabs/label-studio/issues/2634#issuecomment-1251648670
 
 Usage: funsd.py export.json 
 This command will export your LS OCR annotations to "./funsd/" directory. 
