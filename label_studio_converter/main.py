@@ -94,6 +94,14 @@ def export(args):
         header = not args.csv_no_header
         sep = args.csv_separator
         c.convert_to_csv(args.input, args.output, sep=sep, header=header, is_dir=not args.heartex_format)
+    elif args.format == Format.CSV_OLD:
+        header = not args.csv_no_header
+        sep = args.csv_separator
+        ExportToCSV(args.input).to_file(args.output, sep=sep, header=header, index=False)
+    elif args.format == Format.TSV:
+        header = not args.csv_no_header
+        sep = '\t'
+        c.convert_to_csv(args.input, args.output, sep=sep, header=header, is_dir=not args.heartex_format)
     elif args.format == Format.CONLL2003:
         c.convert_to_conll2003(args.input, args.output, is_dir=not args.heartex_format)
     elif args.format == Format.COCO:
@@ -102,10 +110,6 @@ def export(args):
         c.convert_to_voc(args.input, args.output, output_image_dir=args.image_dir, is_dir=not args.heartex_format)
     elif args.format == Format.YOLO:
         c.convert_to_yolo(args.input, args.output, is_dir=not args.heartex_format)
-    elif args.format == Format.CSV + '2':
-        header = not args.csv_no_header
-        sep = args.csv_separator
-        ExportToCSV(args.input).to_file(args.output, sep=sep, header=header, index=False)
     else:
         raise FormatNotSupportedError()
 
