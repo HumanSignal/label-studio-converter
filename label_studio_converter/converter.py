@@ -750,7 +750,7 @@ class Converter(object):
             label["y"],
             label["width"],
             label["height"],
-            label["rotation"],
+            label["rotation"] if "rotation" in label else 0.0,
         )
         
         if abs(label_r) > 0:
