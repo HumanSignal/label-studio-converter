@@ -16,54 +16,71 @@ class ExpandFullPath(argparse.Action):
 def main():
     parser = argparse.ArgumentParser(
         description='Converter from Label Studio output completions to various formats',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        '-i', '--input', dest='input', required=True,
+        '-i',
+        '--input',
+        dest='input',
+        required=True,
         help='Directory or JSON file with completions (e.g. "/<project_path>/completions")',
-        action=ExpandFullPath
+        action=ExpandFullPath,
     )
     parser.add_argument(
-        '-c', '--config', dest='config', required=True,
+        '-c',
+        '--config',
+        dest='config',
+        required=True,
         help='Project config (e.g. "/<project_path>/config.xml")',
-        action=ExpandFullPath
+        action=ExpandFullPath,
     )
     parser.add_argument(
-        '-o', '--output', dest='output',
+        '-o',
+        '--output',
+        dest='output',
         help='Output file or directory (will be created if not exists)',
         default=os.path.join(os.path.dirname(__file__), 'output'),
-        action=ExpandFullPath
+        action=ExpandFullPath,
     )
     parser.add_argument(
-        '-f', '--format', dest='format',
+        '-f',
+        '--format',
+        dest='format',
         metavar='FORMAT',
         help='Output format: ' + ', '.join(f.name for f in Format),
         type=Format.from_string,
         choices=list(Format),
-        default=Format.JSON
+        default=Format.JSON,
     )
     parser.add_argument(
-        '--csv-separator', dest='csv_separator',
+        '--csv-separator',
+        dest='csv_separator',
         help='Separator used in CSV format',
-        default=','
+        default=',',
     )
     parser.add_argument(
-        '--csv-no-header', dest='csv_no_header',
+        '--csv-no-header',
+        dest='csv_no_header',
         help='Whether to omit header in CSV output file',
-        action='store_true'
+        action='store_true',
     )
     parser.add_argument(
-        '--image-dir', dest='image_dir',
+        '--image-dir',
+        dest='image_dir',
         help='In case of image outputs (COCO, VOC, ...), specifies output image directory where downloaded images will '
-             'be stored. (If not specified, local image paths left untouched)'
+        'be stored. (If not specified, local image paths left untouched)',
     )
     parser.add_argument(
-        '--project-dir', dest='project_dir', default=None,
-        help='Label Studio project directory path'
+        '--project-dir',
+        dest='project_dir',
+        default=None,
+        help='Label Studio project directory path',
     )
     parser.add_argument(
-        '--heartex-format', dest='heartex_format', action='store_true',
-        help='Set this flag if your completions are coming from Heartex platform instead of Label Studio'
+        '--heartex-format',
+        dest='heartex_format',
+        action='store_true',
+        help='Set this flag if your completions are coming from Heartex platform instead of Label Studio',
     )
     args = parser.parse_args()
 
@@ -76,13 +93,29 @@ def main():
     elif args.format == Format.CSV:
         header = not args.csv_no_header
         sep = args.csv_separator
-        c.convert_to_csv(args.input, args.output, sep=sep, header=header, is_dir=not args.heartex_format)
+        c.convert_to_csv(
+            args.input,
+            args.output,
+            sep=sep,
+            header=header,
+            is_dir=not args.heartex_format,
+        )
     elif args.format == Format.CONLL2003:
         c.convert_to_conll2003(args.input, args.output, is_dir=not args.heartex_format)
     elif args.format == Format.COCO:
-        c.convert_to_coco(args.input, args.output, output_image_dir=args.image_dir, is_dir=not args.heartex_format)
+        c.convert_to_coco(
+            args.input,
+            args.output,
+            output_image_dir=args.image_dir,
+            is_dir=not args.heartex_format,
+        )
     elif args.format == Format.VOC:
-        c.convert_to_voc(args.input, args.output, output_image_dir=args.image_dir, is_dir=not args.heartex_format)
+        c.convert_to_voc(
+            args.input,
+            args.output,
+            output_image_dir=args.image_dir,
+            is_dir=not args.heartex_format,
+        )
     elif args.format == Format.YOLO:
         c.convert_to_yolo(args.input, args.output, is_dir=not args.heartex_format)
 
