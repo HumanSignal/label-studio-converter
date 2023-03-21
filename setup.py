@@ -34,5 +34,5 @@ setuptools.setup(
         'console_scripts': [
             'label-studio-converter=label_studio_converter.main:main',
         ],
-    }
+    },
 )
