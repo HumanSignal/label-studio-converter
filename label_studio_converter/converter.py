@@ -1,9 +1,9 @@
 import os
-import json
 import io
 import math
 import logging
 import pandas as pd
+import ujson as json
 import xml.dom
 import xml.dom.minidom
 
@@ -43,6 +43,7 @@ class Format(Enum):
     BRUSH_TO_PNG = 9
     ASR_MANIFEST = 10
     YOLO = 11
+    CSV_OLD = 12
 
     def __str__(self):
         return self.name
