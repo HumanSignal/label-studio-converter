@@ -9,7 +9,9 @@ TEST_DATA_PATH = os.path.join(BASE_DIR, "data", "test_converter_data")
 INPUT_JSON_PATH = os.path.join(BASE_DIR, TEST_DATA_PATH, "data.json")
 LABEL_CONFIG_PATH = os.path.join(BASE_DIR, TEST_DATA_PATH, "label_config.xml")
 INPUT_JSON_PATH_POLYGONS = os.path.join(BASE_DIR, TEST_DATA_PATH, "data_polygons.json")
-LABEL_CONFIG_PATH_POLYGONS = os.path.join(BASE_DIR, TEST_DATA_PATH, "label_config_polygons.xml")
+LABEL_CONFIG_PATH_POLYGONS = os.path.join(
+    BASE_DIR, TEST_DATA_PATH, "label_config_polygons.xml"
+)
 
 
 def check_equal_list_of_strings(list1, list2):
@@ -119,9 +121,7 @@ def test_convert_polygons_to_yolo(create_temp_folder):
     )
 
     abs_path_label_dir = os.path.abspath(output_label_dir)
-    expected_paths = [
-        os.path.join(abs_path_label_dir, "image2.txt")
-    ]
+    expected_paths = [os.path.join(abs_path_label_dir, "image2.txt")]
     generated_paths = get_os_walk(abs_path_label_dir)
     # Check all files and subfolders have been generated.
     assert check_equal_list_of_strings(

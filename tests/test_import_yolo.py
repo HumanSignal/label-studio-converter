@@ -61,18 +61,22 @@ def test_base_import_yolo_with_img_dims():
         image_ext=image_ext
     )
 
-    #'yolo_exp_test.label_config.xml' and 'yolo_exp_test.json' must be generated.
+    # 'yolo_exp_test.label_config.xml' and 'yolo_exp_test.json' must be generated.
     out_config_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.label_config.xml')
     assert os.path.exists(out_config_file) and os.path.exists(out_json_file), "> import failed! files not generated."
 
-    #provided labels from classes.txt
-    with open(os.path.join(input_data_dir,'classes.txt'), 'r') as f:
-        labels = f.read()[:-1].split('\n') #[:-1] since last line in classes.txt is empty by convention
+    # provided labels from classes.txt
+    with open(os.path.join(input_data_dir, 'classes.txt'), 'r') as f:
+        labels = f.read()[:-1].split(
+            '\n'
+        )  # [:-1] since last line in classes.txt is empty by convention
 
-    #generated labels from config xml
+    # generated labels from config xml
     label_element = ET.parse(out_config_file).getroot()[2]
     lables_generated = [x.attrib['value'] for x in label_element.getchildren()]
-    assert set(labels) == set(lables_generated), "> generated class labels do not match original labels"
+    assert set(labels) == set(
+        lables_generated
+    ), "> generated class labels do not match original labels"
 
     #total image files in the input folder
     img_files = glob.glob(os.path.join(input_data_dir,'images','*'))
