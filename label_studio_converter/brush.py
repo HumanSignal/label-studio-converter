@@ -48,28 +48,26 @@ class InputStream:
         self.i = 0
 
     def read(self, size):
-        out = self.data[self.i:self.i + size]
+        out = self.data[self.i : self.i + size]
         self.i += size
         return int(out, 2)
 
 
 def access_bit(data, num):
-    """ from bytes array to bits by num position
-    """
+    """from bytes array to bits by num position"""
     base = int(num // 8)
     shift = 7 - int(num % 8)
     return (data[base] & (1 << shift)) >> shift
 
 
 def bytes2bit(data):
-    """ get bit string from bytes data
-    """
+    """get bit string from bytes data"""
     return ''.join([str(access_bit(data, i)) for i in range(len(data) * 8)])
 
 
 def decode_rle(rle, print_params: bool = False):
-    """ from LS RLE to numpy uint8 3d image [width, height, channel]
-    
+    """from LS RLE to numpy uint8 3d image [width, height, channel]
+
     Args:
         print_params (bool, optional): If true, a RLE parameters print statement is suppressed
     """
@@ -77,10 +75,12 @@ def decode_rle(rle, print_params: bool = False):
     num = input.read(32)
     word_size = input.read(5) + 1
     rle_sizes = [input.read(4) + 1 for _ in range(4)]
-    
+
     if print_params:
-        print('RLE params:', num, 'values', word_size, 'word_size', rle_sizes, 'rle_sizes')
-        
+        print(
+            'RLE params:', num, 'values', word_size, 'word_size', rle_sizes, 'rle_sizes'
+        )
+
     i = 0
     out = np.zeros(num, dtype=np.uint8)
     while i < num:
@@ -99,13 +99,15 @@ def decode_rle(rle, print_params: bool = False):
 
 
 def decode_from_annotation(from_name, results):
-    """ from LS annotation to {"tag_name + label_name": [numpy uint8 image (width x height)]}
-    """
+    """from LS annotation to {"tag_name + label_name": [numpy uint8 image (width x height)]}"""
     layers = {}
     counters = defaultdict(int)
     for result in results:
-        key = 'brushlabels' if result['type'].lower() == 'brushlabels' else \
-            ('labels' if result['type'].lower() == 'labels' else None)
+        key = (
+            'brushlabels'
+            if result['type'].lower() == 'brushlabels'
+            else ('labels' if result['type'].lower() == 'labels' else None)
+        )
         if key is None or 'rle' not in result:
             continue
 
@@ -125,18 +127,36 @@ def decode_from_annotation(from_name, results):
     return layers
 
 
-def save_brush_images_from_annotation(task_id, annotation_id, completed_by,
-                                      from_name, results, out_dir, out_format='numpy'):
+def save_brush_images_from_annotation(
+    task_id,
+    annotation_id,
+    completed_by,
+    from_name,
+    results,
+    out_dir,
+    out_format='numpy',
+):
     layers = decode_from_annotation(from_name, results)
     if isinstance(completed_by, dict):
         email = completed_by.get('email', '')
     else:
         email = str(completed_by)
-    email = "".join(x for x in email if x.isalnum() or x == '@' or x == '.')  # sanitize filename
+    email = "".join(
+        x for x in email if x.isalnum() or x == '@' or x == '.'
+    )  # sanitize filename
 
     for name in layers:
-        filename = os.path.join(out_dir, 'task-' + str(task_id) + '-annotation-' + str(annotation_id)
-                                + '-by-' + email + '-' + name)
+        filename = os.path.join(
+            out_dir,
+            'task-'
+            + str(task_id)
+            + '-annotation-'
+            + str(annotation_id)
+            + '-by-'
+            + email
+            + '-'
+            + name,
+        )
         image = layers[name]
         logger.debug(f'Save image to {filename}')
         if out_format == 'numpy':
@@ -149,16 +169,21 @@ def save_brush_images_from_annotation(task_id, annotation_id, completed_by,
 
 
 def convert_task(item, out_dir, out_format='numpy'):
-    """ Task with multiple annotations to brush images, out_format = numpy | png
-    """
+    """Task with multiple annotations to brush images, out_format = numpy | png"""
     for from_name, results in item['output'].items():
-        save_brush_images_from_annotation(item['id'], item['annotation_id'], item['completed_by'],
-                                          from_name, results, out_dir, out_format)
+        save_brush_images_from_annotation(
+            item['id'],
+            item['annotation_id'],
+            item['completed_by'],
+            from_name,
+            results,
+            out_dir,
+            out_format,
+        )
 
 
 def convert_task_dir(items, out_dir, out_format='numpy'):
-    """ Directory with tasks and annotation to brush images, out_format = numpy | png
-    """
+    """Directory with tasks and annotation to brush images, out_format = numpy | png"""
     for item in items:
         convert_task(item, out_dir, out_format)
 
@@ -170,7 +195,7 @@ def convert_task_dir(items, out_dir, out_format='numpy'):
 
 
 def bits2byte(arr_str, n=8):
-    """ Convert bits back to byte
+    """Convert bits back to byte
 
     :param arr_str:  string with the bit array
     :type arr_str: str
@@ -180,7 +205,7 @@ def bits2byte(arr_str, n=8):
     :type rle: list
     """
     rle = []
-    numbers = [arr_str[i:i + n] for i in range(0, len(arr_str), n)]
+    numbers = [arr_str[i : i + n] for i in range(0, len(arr_str), n)]
     for i in numbers:
         rle.append(int(i, 2))
     return rle
@@ -188,23 +213,23 @@ def bits2byte(arr_str, n=8):
 
 # Shamelessly plagiarized from https://stackoverflow.com/a/32681075/6051733
 def base_rle_encode(inarray):
-    """ run length encoding. Partial credit to R rle function.
-        Multi datatype arrays catered for including non Numpy
-        returns: tuple (runlengths, startpositions, values) """
-    ia = np.asarray(inarray)                # force numpy
+    """run length encoding. Partial credit to R rle function.
+    Multi datatype arrays catered for including non Numpy
+    returns: tuple (runlengths, startpositions, values)"""
+    ia = np.asarray(inarray)  # force numpy
     n = len(ia)
     if n == 0:
         return None, None, None
     else:
-        y = ia[1:] != ia[:-1]               # pairwise unequal (string safe)
-        i = np.append(np.where(y), n - 1)   # must include last element posi
-        z = np.diff(np.append(-1, i))       # run lengths
-        p = np.cumsum(np.append(0, z))[:-1] # positions
+        y = ia[1:] != ia[:-1]  # pairwise unequal (string safe)
+        i = np.append(np.where(y), n - 1)  # must include last element posi
+        z = np.diff(np.append(-1, i))  # run lengths
+        p = np.cumsum(np.append(0, z))[:-1]  # positions
         return z, p, ia[i]
 
 
 def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
-    """ Encode a 1d array to rle
+    """Encode a 1d array to rle
 
 
     :param arr: flattened np.array from a 4d image (R, G, B, alpha)
@@ -287,9 +312,8 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
 
             # rle size = 16 or longer
             else:
-
                 length_temp = length_reeks
-                while length_temp > 2 ** 16:
+                while length_temp > 2**16:
                     # Starting with a 1 indicates that we have started a series
                     out_str += '1'
 
@@ -297,7 +321,7 @@ def encode_rle(arr, wordsize=8, rle_sizes=[3, 4, 8, 16]):
                     out_str += f'{2 ** 16 - 1:016b}'
 
                     out_str += f'{value:08b}'
-                    length_temp -= 2 ** 16
+                    length_temp -= 2**16
 
                 # Starting with a 1 indicates that we have started a series
                 out_str += '1'
@@ -328,40 +352,43 @@ def contour2rle(contours, contour_id, img_width, img_height):
     :type img_width: int
     :param img_height: image shape height
     :type img_height: int
-    :return: list of ints in RLE format 
+    :return: list of ints in RLE format
     """
     import cv2  # opencv
+
     mask_im = np.zeros((img_width, img_height, 4))
-    mask_contours = cv2.drawContours(mask_im, contours, contour_id, color=(0, 255, 0, 100), thickness=-1)
+    mask_contours = cv2.drawContours(
+        mask_im, contours, contour_id, color=(0, 255, 0, 100), thickness=-1
+    )
     rle_out = encode_rle(mask_contours.ravel().astype(int))
     return rle_out
 
 
 def mask2rle(mask):
-    """ Convert mask to RLE
-    
+    """Convert mask to RLE
+
     :param mask: uint8 or int np.array mask with len(shape) == 2 like grayscale image
-    :return: list of ints in RLE format 
+    :return: list of ints in RLE format
     """
     assert len(mask.shape) == 2, 'mask must be 2D np.array'
     assert mask.dtype == np.uint8 or mask.dtype == int, 'mask must be uint8 or int'
     array = mask.ravel()
-    array = np.repeat(array, 4)  # must be 4 channels 
+    array = np.repeat(array, 4)  # must be 4 channels
     rle = encode_rle(array)
     return rle
-    
-    
+
+
 def image2rle(path):
-    """ Convert mask image (jpg, png) to RLE
+    """Convert mask image (jpg, png) to RLE
 
     1. Read image as grayscale
     2. Flatten to 1d array
     3. Threshold > 128
     4. Encode
-    
-    :param path: path to image with mask (jpg, png), this image will be thresholded with values > 128 to obtain mask, 
+
+    :param path: path to image with mask (jpg, png), this image will be thresholded with values > 128 to obtain mask,
                  so you can mark background as black and foreground as white
-    :return: list of ints in RLE format 
+    :return: list of ints in RLE format
     """
     with Image.open(path).convert('L') as image:
         mask = np.array((np.array(image) > 128) * 255, dtype=np.uint8)
@@ -371,10 +398,18 @@ def image2rle(path):
         return rle, image.size[0], image.size[1]
 
 
-def image2annotation(path, label_name, from_name, to_name, ground_truth=False, model_version=None, score=None):
-    """ Convert image with mask to brush RLE annotation
+def image2annotation(
+    path,
+    label_name,
+    from_name,
+    to_name,
+    ground_truth=False,
+    model_version=None,
+    score=None,
+):
+    """Convert image with mask to brush RLE annotation
 
-    :param path: path to image with mask (jpg, png), this image will be thresholded with values > 128 to obtain mask, 
+    :param path: path to image with mask (jpg, png), this image will be thresholded with values > 128 to obtain mask,
                  so you can mark background as black and foreground as white
     :param label_name: label name from labeling config (<Label>)
     :param from_name: brush tag name (<BrushLabels>)
@@ -382,7 +417,7 @@ def image2annotation(path, label_name, from_name, to_name, ground_truth=False, m
     :param ground_truth: ground truth annotation true/false
     :param model_version: any string, only for predictions
     :param score: model score as float, only for predictions
-    
+
     :return: dict with Label Studio Annotation or Prediction (Pre-annotation)
     """
     rle, width, height = image2rle(path)
@@ -391,19 +426,13 @@ def image2annotation(path, label_name, from_name, to_name, ground_truth=False, m
             {
                 "id": str(uuid.uuid4())[0:8],
                 "type": "brushlabels",
-                "value": {
-                    "rle": rle,
-                    "format": "rle",
-                    "brushlabels": [
-                        label_name
-                    ]
-                },
+                "value": {"rle": rle, "format": "rle", "brushlabels": [label_name]},
                 "origin": "manual",
                 "to_name": to_name,
                 "from_name": from_name,
                 "image_rotation": 0,
                 "original_width": width,
-                "original_height": height
+                "original_height": height,
             }
         ],
     }
