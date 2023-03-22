@@ -1,11 +1,14 @@
 import os
 import json  # better to use "imports ujson as json" for the best performance
+
+import uuid
+import logging
+
+from PIL import Image
+from typing import Optional, Tuple
 from urllib.request import (
     pathname2url,
 )  # for converting "+","*", etc. in file paths to appropriate urls
-import uuid
-import logging
-from PIL import Image
 
 from label_studio_converter.utils import ExpandFullPath
 from label_studio_converter.imports.label_config import generate_label_config
@@ -21,6 +24,7 @@ def convert_yolo_to_ls(
     out_type="annotations",
     image_root_url='/data/local-files/?d=',
     image_ext='.jpg,.jpeg,.png',
+    image_dims: Optional[Tuple[int,int]] = None,
 ):
     """Convert YOLO labeling to Label Studio JSON
     :param input_dir: directory with YOLO where images, labels, notes.json are located
@@ -30,6 +34,7 @@ def convert_yolo_to_ls(
     :param out_type: annotation type - "annotations" or "predictions"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
     :param image_ext: image extension/s - single string or comma separated list to search, eg. .jpeg or .jpg, .png and so on.
+    :param image_dims: image dimensions - optional tuple of integers specifying the image width and height of *all* images in the dataset. Defaults to opening the image to determine it's width and height, which is slower. This should only be used in the special case where you dataset has uniform image dimesions.
     """
 
     tasks = []
@@ -94,8 +99,12 @@ def convert_yolo_to_ls(
             ]
 
             # read image sizes
-            with Image.open(os.path.join(images_dir, image_file)) as im:
-                image_width, image_height = im.size
+            if image_dims is None:
+                # default to opening file if we aren't given image dims. slow!
+                with Image.open(os.path.join(images_dir, image_file)) as im:
+                    image_width, image_height = im.size
+            else:
+                image_width, image_height = image_dims
 
             with open(label_file) as file:
                 # convert all bounding boxes to Label Studio Results
@@ -194,4 +203,18 @@ def add_parser(subparsers):
         dest='image_ext',
         help='image extension to search: .jpeg or .jpg, .png',
         default='.jpg',
+    )
+    yolo.add_argument(
+        '--image-dims',
+        dest='image_dims',
+        type=int,
+        nargs=2,
+        help=(
+            "optional tuple of integers specifying the image width and height of *all* "
+            "images in the dataset. Defaults to opening the image to determine it's width "
+            "and height, which is slower. This should only be used in the special "
+            "case where you dataset has uniform image dimesions. e.g. `--image-dims 600 800` "
+            "if all your images are of dimensions width=600, height=800"
+        ),
+        default=None
     )
