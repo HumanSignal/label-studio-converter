@@ -10,4 +10,4 @@ jobs:
       - uses: psf/black@stable
         with:
           options: "--check --skip-string-normalization"
-          src: "./label_studio_sdk"
+          src: "./label_studio_converter"
