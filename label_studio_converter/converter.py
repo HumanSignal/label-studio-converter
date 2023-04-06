@@ -2,8 +2,8 @@ import os
 import io
 import math
 import logging
-import pandas as pd
 import ujson as json
+import ijson
 import xml.dom
 import xml.dom.minidom
 
@@ -11,11 +11,11 @@ from shutil import copy2
 from enum import Enum
 from datetime import datetime
 from glob import glob
-from collections.abc import Mapping, MutableMapping
 from collections import defaultdict
 from operator import itemgetter
 from copy import deepcopy
 from PIL import Image
+from exports import csv2
 
 from label_studio_converter.utils import (
     parse_config,
@@ -26,7 +26,9 @@ from label_studio_converter.utils import (
     ensure_dir,
     get_polygon_area,
     get_polygon_bounding_box,
-    _get_annotator,
+    get_annotator,
+    get_json_root_type,
+    prettify_result
 )
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest
@@ -351,15 +353,18 @@ class Converter(object):
 
         param json_file: path to task list or dict with annotations
         """
-        with io.open(json_file, encoding='utf8') as f:
-            data = json.load(f)
-            # one task
-            if isinstance(data, Mapping):
-                for item in self.annotation_result_from_task(data):
-                    yield item
+        data_type = get_json_root_type(json_file)
 
-            # many tasks
-            elif isinstance(data, list):
+        # one task
+        if data_type == 'dict':
+            data = json.load(json_file)
+            for item in self.annotation_result_from_task(data):
+                yield item
+
+        # many tasks
+        elif data_type == 'list':
+            with io.open(json_file, encoding='utf8') as f:
+                data = ijson.items(f, 'item')  # 'item' means to read array of dicts
                 for task in data:
                     for item in self.annotation_result_from_task(task):
                         if item is not None:
@@ -434,18 +439,7 @@ class Converter(object):
         pass
 
     def _prettify(self, v):
-        out = []
-        tag_type = None
-        for i in v:
-            j = deepcopy(i)
-            tag_type = j.pop('type')
-            if tag_type == 'Choices' and len(j['choices']) == 1:
-                out.append(j['choices'][0])
-            elif tag_type == 'TextArea' and len(j['text']) == 1:
-                out.append(j['text'][0])
-            else:
-                out.append(j)
-        return out[0] if tag_type in ('Choices', 'TextArea') and len(out) == 1 else out
+        return prettify_result(v)
 
     def convert_to_json(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.JSON)
@@ -474,7 +468,7 @@ class Converter(object):
                 record['id'] = item['id']
             for name, value in item['output'].items():
                 record[name] = self._prettify(value)
-            record['annotator'] = _get_annotator(item, int_id=True)
+            record['annotator'] = get_annotator(item, int_id=True)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
             record['updated_at'] = item['updated_at']
@@ -488,59 +482,7 @@ class Converter(object):
 
     def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
         self._check_format(Format.CSV)
-        if str(output_dir).endswith('.csv'):
-            output_file = output_dir
-        else:
-            ensure_dir(output_dir)
-            output_file = os.path.join(output_dir, 'result.csv')
-        records = []
-        item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
-        keys = set()
-
-        for item in item_iterator(input_data):
-            record = deepcopy(item['input'])
-            if item.get('id') is not None:
-                record['id'] = item['id']
-            for name, value in item['output'].items():
-                pretty_value = self._prettify(value)
-                record[name] = (
-                    pretty_value
-                    if isinstance(pretty_value, str)
-                    else json.dumps(pretty_value, ensure_ascii=False)
-                )
-            for name, value in item['input'].items():
-                if isinstance(value, dict) or isinstance(value, list):
-                    record[name] = json.dumps(value, ensure_ascii=False)
-            record['annotator'] = _get_annotator(item)
-            record['annotation_id'] = item['annotation_id']
-            record['created_at'] = item['created_at']
-            record['updated_at'] = item['updated_at']
-            record['lead_time'] = item['lead_time']
-            if 'agreement' in item:
-                record['agreement'] = item['agreement']
-            records.append(record)
-            keys.update(list(record.keys()))
-
-        # Previously we were using pandas dataframe to_csv() but that produced incorrect JSON so writing manually
-        with open(output_file, 'w', encoding='utf8') as outfile:
-            if records:
-                if kwargs['header']:
-                    outfile.write(kwargs['sep'].join(keys) + '\n')
-                for record in records:
-                    line = []
-                    for key in keys:
-                        if record.get(key) is None:
-                            line.append('')
-                        elif key == 'annotation_id':
-                            # Replicating previous implementation of converting None values to pandas.NA
-                            # which outputs in CSV files as an empty string
-                            if record[key] is None:
-                                line.append('')
-                            else:
-                                line.append(str(record[key]))
-                        else:
-                            line.append(str(record[key]))
-                    outfile.write(kwargs['sep'].join(line) + '\n')
+        return csv2.convert_to_csv(self, input_data, output_dir, is_dir, **kwargs)
 
     def convert_to_conll2003(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.CONLL2003)
@@ -719,7 +661,7 @@ class Converter(object):
                     raise ValueError("Unknown label type")
 
                 if os.getenv('LABEL_STUDIO_FORCE_ANNOTATOR_EXPORT'):
-                    annotations[-1].update({'annotator': _get_annotator(item)})
+                    annotations[-1].update({'annotator': get_annotator(item)})
 
         with io.open(output_file, mode='w', encoding='utf8') as fout:
             json.dump(
@@ -1062,7 +1004,7 @@ class Converter(object):
             create_child_node(doc, 'annotation', 'COCO2017', source_node)
             create_child_node(doc, 'image', 'flickr', source_node)
             create_child_node(doc, 'flickrid', 'NULL', source_node)
-            create_child_node(doc, 'annotator', _get_annotator(item, ''), source_node)
+            create_child_node(doc, 'annotator', get_annotator(item, ''), source_node)
             root_node.appendChild(source_node)
 
             owner_node = doc.createElement('owner')
