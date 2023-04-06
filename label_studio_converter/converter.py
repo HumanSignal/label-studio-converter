@@ -438,9 +438,6 @@ class Converter(object):
     def _check_format(self, fmt):
         pass
 
-    def _prettify(self, v):
-        return prettify_result(v)
-
     def convert_to_json(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.JSON)
         ensure_dir(output_dir)
@@ -467,7 +464,7 @@ class Converter(object):
             if item.get('id') is not None:
                 record['id'] = item['id']
             for name, value in item['output'].items():
-                record[name] = self._prettify(value)
+                record[name] = prettify_result(value)
             record['annotator'] = get_annotator(item, int_id=True)
             record['annotation_id'] = item['annotation_id']
             record['created_at'] = item['created_at']
