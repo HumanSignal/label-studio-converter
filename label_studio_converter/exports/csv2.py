@@ -38,27 +38,6 @@ def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
             record = prepare_annotation(item)
             writer.writerow(record)
 
-    # Previously we were using pandas dataframe to_csv() but that produced incorrect JSON so writing manually
-    # with open(output_file, 'w', encoding='utf8') as outfile:
-    #     if records:
-    #         if kwargs['header']:
-    #             outfile.write(kwargs['sep'].join(keys) + '\n')
-    #         for record in records:
-    #             line = []
-    #             for key in keys:
-    #                 if record.get(key) is None:
-    #                     line.append('')
-    #                 elif key == 'annotation_id':
-    #                     # Replicating previous implementation of converting None values to pandas.NA
-    #                     # which outputs in CSV files as an empty string
-    #                     if record[key] is None:
-    #                         line.append('')
-    #                     else:
-    #                         line.append(str(record[key]))
-    #                 else:
-    #                     line.append(str(record[key]))
-    #             outfile.write(kwargs['sep'].join(line) + '\n')
-
 
 def prepare_annotation(item):
     record = deepcopy(item['input'])
@@ -68,11 +47,6 @@ def prepare_annotation(item):
     for name, value in item['output'].items():
         pretty_value = prettify_result(value)
         record[name] = pretty_value
-        # record[name] = (
-        #     pretty_value
-        #     if isinstance(pretty_value, str)
-        #     else json.dumps(pretty_value, ensure_ascii=False)
-        # )
 
     for name, value in item['input'].items():
         if isinstance(value, dict) or isinstance(value, list):
