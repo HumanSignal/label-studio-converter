@@ -4,11 +4,8 @@ import ujson as json
 
 from copy import deepcopy, copy
 
-from label_studio_converter.utils import (
-    ensure_dir,
-    get_annotator,
-    prettify_result
-)
+from label_studio_converter.utils import ensure_dir, get_annotator, prettify_result
+
 
 def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
     item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
@@ -20,13 +17,7 @@ def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
         output_file = os.path.join(output_dir, 'result.csv')
 
     # these keys are always presented
-    keys = {
-        'annotator',
-        'annotation_id',
-        'created_at',
-        'updated_at',
-        'lead_time'
-    }
+    keys = {'annotator', 'annotation_id', 'created_at', 'updated_at', 'lead_time'}
 
     # make 2 passes: the first pass is to get keys, otherwise we can't write csv without headers
     for item in item_iterator(input_data):
@@ -35,13 +26,17 @@ def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
 
     # the second pass is to write records to csv
     with open(output_file, 'w', encoding='utf8') as outfile:
-        writer = csv.DictWriter(outfile, fieldnames=list(keys), quoting=csv.QUOTE_NONNUMERIC, delimiter=kwargs['sep'])
+        writer = csv.DictWriter(
+            outfile,
+            fieldnames=list(keys),
+            quoting=csv.QUOTE_NONNUMERIC,
+            delimiter=kwargs['sep'],
+        )
         writer.writeheader()
 
         for item in item_iterator(input_data):
             record = prepare_annotation(item)
             writer.writerow(record)
-
 
     # Previously we were using pandas dataframe to_csv() but that produced incorrect JSON so writing manually
     # with open(output_file, 'w', encoding='utf8') as outfile:
@@ -93,6 +88,7 @@ def prepare_annotation(item):
         record['agreement'] = item['agreement']
 
     return record
+
 
 def prepare_annotation_keys(item):
     record = set(item['input'].keys())  # we don't need deepcopy for keys

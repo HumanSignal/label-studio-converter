@@ -24,7 +24,7 @@ def convert_yolo_to_ls(
     out_type="annotations",
     image_root_url='/data/local-files/?d=',
     image_ext='.jpg,.jpeg,.png',
-    image_dims: Optional[Tuple[int,int]] = None,
+    image_dims: Optional[Tuple[int, int]] = None,
 ):
     """Convert YOLO labeling to Label Studio JSON
     :param input_dir: directory with YOLO where images, labels, notes.json are located
@@ -216,5 +216,5 @@ def add_parser(subparsers):
             "case where you dataset has uniform image dimesions. e.g. `--image-dims 600 800` "
             "if all your images are of dimensions width=600, height=800"
         ),
-        default=None
+        default=None,
     )

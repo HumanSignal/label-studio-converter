@@ -28,7 +28,7 @@ from label_studio_converter.utils import (
     get_polygon_bounding_box,
     get_annotator,
     get_json_root_type,
-    prettify_result
+    prettify_result,
 )
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest

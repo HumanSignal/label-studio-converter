@@ -367,6 +367,7 @@ def get_json_root_type(filename):
     # If the file is empty, return "empty"
     return "empty"
 
+
 def prettify_result(v):
     """
     :param v: list of regions or results
