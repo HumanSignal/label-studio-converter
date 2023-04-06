@@ -1,5 +1,7 @@
 import os
 import csv
+import time
+import logging
 import ujson as json
 
 from copy import deepcopy, copy
@@ -7,7 +9,12 @@ from copy import deepcopy, copy
 from label_studio_converter.utils import ensure_dir, get_annotator, prettify_result
 
 
+logger = logging.getLogger(__name__)
+logger.setLevel('DEBUG')
+
 def convert(item_iterator, input_data, output_dir, **kwargs):
+    start_time = time.time()
+    logger.debug('Convert CSV started')
     if str(output_dir).endswith('.csv'):
         output_file = output_dir
     else:
@@ -18,11 +25,13 @@ def convert(item_iterator, input_data, output_dir, **kwargs):
     keys = {'annotator', 'annotation_id', 'created_at', 'updated_at', 'lead_time'}
 
     # make 2 passes: the first pass is to get keys, otherwise we can't write csv without headers
+    logger.debug('Prepare column names for CSV ...')
     for item in item_iterator(input_data):
         record = prepare_annotation_keys(item)
         keys.update(record)
 
     # the second pass is to write records to csv
+    logger.debug(f'Prepare done in {time.time()-start_time:0.2f} sec. Write CSV rows now ...')
     with open(output_file, 'w', encoding='utf8') as outfile:
         writer = csv.DictWriter(
             outfile,
@@ -36,6 +45,7 @@ def convert(item_iterator, input_data, output_dir, **kwargs):
             record = prepare_annotation(item)
             writer.writerow(record)
 
+    logger.debug(f'CSV conversion finished in {time.time()-start_time:0.2f} sec')
 
 def prepare_annotation(item):
     record = deepcopy(item['input'])
