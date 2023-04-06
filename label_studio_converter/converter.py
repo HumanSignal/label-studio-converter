@@ -15,7 +15,8 @@ from collections import defaultdict
 from operator import itemgetter
 from copy import deepcopy
 from PIL import Image
-from exports import csv2
+
+from label_studio_converter.exports import csv2
 
 from label_studio_converter.utils import (
     parse_config,
