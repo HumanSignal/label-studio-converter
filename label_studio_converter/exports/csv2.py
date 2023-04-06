@@ -7,9 +7,7 @@ from copy import deepcopy, copy
 from label_studio_converter.utils import ensure_dir, get_annotator, prettify_result
 
 
-def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
-    item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
-
+def convert(item_iterator, input_data, output_dir, is_dir=True, **kwargs):
     if str(output_dir).endswith('.csv'):
         output_file = output_dir
     else:

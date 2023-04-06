@@ -479,7 +479,8 @@ class Converter(object):
 
     def convert_to_csv(self, input_data, output_dir, is_dir=True, **kwargs):
         self._check_format(Format.CSV)
-        return csv2.convert_to_csv(self, input_data, output_dir, is_dir, **kwargs)
+        item_iterator = self.iter_from_dir if is_dir else self.iter_from_json_file
+        return csv2.convert(item_iterator, input_data, output_dir, **kwargs)
 
     def convert_to_conll2003(self, input_data, output_dir, is_dir=True):
         self._check_format(Format.CONLL2003)
