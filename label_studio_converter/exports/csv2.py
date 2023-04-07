@@ -48,17 +48,24 @@ def convert(item_iterator, input_data, output_dir, **kwargs):
     logger.debug(f'CSV conversion finished in {time.time()-start_time:0.2f} sec')
 
 def prepare_annotation(item):
-    record = deepcopy(item['input'])
+    record = {}
     if item.get('id') is not None:
         record['id'] = item['id']
 
     for name, value in item['output'].items():
         pretty_value = prettify_result(value)
-        record[name] = pretty_value
+        record[name] = (
+            pretty_value
+            if isinstance(pretty_value, str)
+            else json.dumps(pretty_value, ensure_ascii=False)
+        )
 
     for name, value in item['input'].items():
         if isinstance(value, dict) or isinstance(value, list):
+            # flat dicts and arrays from task.data to json strings 
             record[name] = json.dumps(value, ensure_ascii=False)
+        else:
+            record[name] = value
 
     record['annotator'] = get_annotator(item)
     record['annotation_id'] = item['annotation_id']
@@ -79,10 +86,6 @@ def prepare_annotation_keys(item):
 
     for name, value in item['output'].items():
         record.add(name)
-
-    for name, value in item['input'].items():
-        if isinstance(value, dict) or isinstance(value, list):
-            record.add(name)
 
     if 'agreement' in item:
         record.add('agreement')

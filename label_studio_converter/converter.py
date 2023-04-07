@@ -365,7 +365,8 @@ class Converter(object):
         # many tasks
         elif data_type == 'list':
             with io.open(json_file, encoding='utf8') as f:
-                data = ijson.items(f, 'item')  # 'item' means to read array of dicts
+                logger.debug(f'ijson backend in use: {ijson.backend}')
+                data = ijson.items(f, 'item', use_float=True)  # 'item' means to read array of dicts
                 for task in data:
                     for item in self.annotation_result_from_task(task):
                         if item is not None:
