@@ -35,7 +35,7 @@ def convert(item_iterator, input_data, output_dir, **kwargs):
     with open(output_file, 'w', encoding='utf8') as outfile:
         writer = csv.DictWriter(
             outfile,
-            fieldnames=list(keys),
+            fieldnames=sorted(list(keys)),
             quoting=csv.QUOTE_NONNUMERIC,
             delimiter=kwargs['sep'],
         )

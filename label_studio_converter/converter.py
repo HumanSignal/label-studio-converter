@@ -364,7 +364,7 @@ class Converter(object):
 
         # many tasks
         elif data_type == 'list':
-            with io.open(json_file, encoding='utf8') as f:
+            with io.open(json_file, 'rb') as f:
                 logger.debug(f'ijson backend in use: {ijson.backend}')
                 data = ijson.items(f, 'item', use_float=True)  # 'item' means to read array of dicts
                 for task in data:
