@@ -5,7 +5,7 @@ import tempfile
 import shutil
 
 BASE_DIR = os.path.dirname(__file__)
-TEST_DATA_PATH = os.path.join(BASE_DIR, "data", "test_converter_data")
+TEST_DATA_PATH = os.path.join(BASE_DIR, "data", "test_export_yolo")
 INPUT_JSON_PATH = os.path.join(BASE_DIR, TEST_DATA_PATH, "data.json")
 LABEL_CONFIG_PATH = os.path.join(BASE_DIR, TEST_DATA_PATH, "label_config.xml")
 INPUT_JSON_PATH_POLYGONS = os.path.join(BASE_DIR, TEST_DATA_PATH, "data_polygons.json")

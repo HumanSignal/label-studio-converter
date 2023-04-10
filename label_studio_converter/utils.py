@@ -11,6 +11,7 @@ import argparse
 import re
 import datetime
 
+from copy import deepcopy
 from operator import itemgetter
 from PIL import Image
 from urllib.parse import urlparse
@@ -331,7 +332,7 @@ def get_polygon_bounding_box(x, y):
     return [x1, y1, x2 - x1, y2 - y1]
 
 
-def _get_annotator(item, default=None, int_id=False):
+def get_annotator(item, default=None, int_id=False):
     """Get annotator id or email from annotation"""
     annotator = item['completed_by']
     if isinstance(annotator, dict):
@@ -342,3 +343,45 @@ def _get_annotator(item, default=None, int_id=False):
         return annotator
 
     return str(annotator)
+
+
+def get_json_root_type(filename):
+    with open(filename, "r", encoding='utf-8') as f:
+        # Read the file character by character
+        for char in f.read():
+            # Skip any whitespace
+            if char.isspace():
+                continue
+
+            # If the first non-whitespace character is '{', it's a dict
+            if char == '{':
+                return "dict"
+
+            # If the first non-whitespace character is '[', it's an array
+            if char == '[':
+                return "list"
+
+            # If neither, the JSON file is invalid
+            return "invalid"
+
+    # If the file is empty, return "empty"
+    return "empty"
+
+
+def prettify_result(v):
+    """
+    :param v: list of regions or results
+    :return: label name as is if there is only 1 item in result `v`, else list of label names
+    """
+    out = []
+    tag_type = None
+    for i in v:
+        j = deepcopy(i)
+        tag_type = j.pop('type')
+        if tag_type == 'Choices' and len(j['choices']) == 1:
+            out.append(j['choices'][0])
+        elif tag_type == 'TextArea' and len(j['text']) == 1:
+            out.append(j['text'][0])
+        else:
+            out.append(j)
+    return out[0] if tag_type in ('Choices', 'TextArea') and len(out) == 1 else out

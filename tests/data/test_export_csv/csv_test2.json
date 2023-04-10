@@ -1,0 +1,106 @@
+[
+    {
+        "id": 4,
+        "annotations": [
+            {
+                "id": 9,
+                "completed_by": {
+                    "id": 1,
+                    "email": "test@heartex.com",
+                    "first_name": "",
+                    "last_name": ""
+                },
+                "result": [
+                    {
+                        "id": "EmgEjJhhLj",
+                        "type": "choices",
+                        "value": {
+                            "choices": [
+                                "Yes \" \"\" \n \t \t а б в \n"
+                            ]
+                        },
+                        "origin": "manual",
+                        "to_name": "$uri",
+                        "from_name": "uri_selection"
+                    }
+                ],
+                "reviews": [],
+                "last_action": "submitted",
+                "was_cancelled": false,
+                "ground_truth": false,
+                "created_at": "2022-11-04T18:50:53.017134Z",
+                "updated_at": "2022-11-04T18:50:53.017151Z",
+                "lead_time": 10.744,
+                "prediction": {},
+                "result_count": 0,
+                "last_created_by": 1,
+                "task": 4,
+                "parent_prediction": null,
+                "parent_annotation": null
+            }
+        ],
+        "file_upload": "d06c405d-spotify.json",
+        "drafts": [],
+        "predictions": [],
+        "agreement": 100.0,
+        "data": {
+            "uri": "rawWork:spotify:publisher:WCPWW008648058000",
+            "iswcs": [],
+            "title": "TAN BAI",
+            "uri_1": "spotify:work:c7bb9c90f3eb4911a851c73bd48fc219",
+            "_row_id": "WCPWW008648058000_c7bb9c90f3eb4911a851c73bd48fc219",
+            "iswcs_1": [
+                "T0022789485"
+            ],
+            "title_1": "TAN BAI",
+            "writers": [
+                {
+                    "ipi": null,
+                    "name": "JIN XING CHEN",
+                    "role": "COMPOSER_WRITER",
+                    "ip_name": "TP004681F"
+                },
+                {
+                    "ipi": "187772321",
+                    "name": "YI XIONG HUANG",
+                    "role": "AUTHOR_WRITER",
+                    "ip_name": "TP005BCB1"
+                }
+            ],
+            "provider": null,
+            "writers_1": [
+                {
+                    "ipi": "801086474",
+                    "name": "JIN XING CHEN",
+                    "role": "COMPOSER_WRITER",
+                    "ip_name": "506438"
+                },
+                {
+                    "ipi": "187772321",
+                    "name": "YI XIONG HUANG",
+                    "role": "AUTHOR_WRITER",
+                    "ip_name": "3516541"
+                }
+            ],
+            "provider_1": null,
+            "alternative_titles": [
+                "CHENG SHOU",
+                "RENG SHI ZHE YANG AI NI"
+            ],
+            "alternative_titles_1": []
+        },
+        "meta": {},
+        "created_at": "2022-11-04T18:50:37.142887Z",
+        "updated_at": "2022-11-04T18:50:53.174018Z",
+        "inner_id": 1,
+        "total_annotations": 1,
+        "cancelled_annotations": 0,
+        "total_predictions": 0,
+        "comment_count": 0,
+        "unresolved_comment_count": 0,
+        "last_comment_updated_at": null,
+        "project": 3,
+        "updated_by": 1,
+        "comment_authors": []
+    }
+]
