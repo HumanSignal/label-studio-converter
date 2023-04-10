@@ -12,6 +12,7 @@ from label_studio_converter.utils import ensure_dir, get_annotator, prettify_res
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
 
+
 def convert(item_iterator, input_data, output_dir, **kwargs):
     start_time = time.time()
     logger.debug('Convert CSV started')
@@ -31,7 +32,9 @@ def convert(item_iterator, input_data, output_dir, **kwargs):
         keys.update(record)
 
     # the second pass is to write records to csv
-    logger.debug(f'Prepare done in {time.time()-start_time:0.2f} sec. Write CSV rows now ...')
+    logger.debug(
+        f'Prepare done in {time.time()-start_time:0.2f} sec. Write CSV rows now ...'
+    )
     with open(output_file, 'w', encoding='utf8') as outfile:
         writer = csv.DictWriter(
             outfile,
@@ -46,6 +49,7 @@ def convert(item_iterator, input_data, output_dir, **kwargs):
             writer.writerow(record)
 
     logger.debug(f'CSV conversion finished in {time.time()-start_time:0.2f} sec')
+
 
 def prepare_annotation(item):
     record = {}
@@ -62,7 +66,7 @@ def prepare_annotation(item):
 
     for name, value in item['input'].items():
         if isinstance(value, dict) or isinstance(value, list):
-            # flat dicts and arrays from task.data to json strings 
+            # flat dicts and arrays from task.data to json strings
             record[name] = json.dumps(value, ensure_ascii=False)
         else:
             record[name] = value
