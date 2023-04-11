@@ -348,7 +348,7 @@ def get_annotator(item, default=None, int_id=False):
 def get_json_root_type(filename):
     with open(filename, "r", encoding='utf-8') as f:
         # Read the file character by character
-        for char in f.read():
+        for char in f.read(1):
             # Skip any whitespace
             if char.isspace():
                 continue
