@@ -637,7 +637,7 @@ class Converter(object):
         else:
             output_label_dir = os.path.join(output_dir, 'labels')
             os.makedirs(output_label_dir, exist_ok=True)
-        categories, category_name_to_id = self._get_labels()
+        categories, category_name_to_id = self._get_labels(label_types_filter=['rectanglelabels', 'polygonlabels'])
         data_key = self._data_keys[0]
         item_iterator = self.iter_from_dir(input_data) if is_dir else self.iter_from_json_file(input_data)
         for item_idx, item in enumerate(item_iterator):
@@ -894,15 +894,13 @@ class Converter(object):
             with io.open(xml_filepath, mode='w', encoding='utf8') as fout:
                 doc.writexml(fout, addindent='' * 4, newl='\n', encoding='utf-8')
 
-    def _get_labels(self):
+    def _get_labels(self, label_types_filter=None):
         labels = set()
         categories = list()
         category_name_to_id = dict()
 
         for name, info in self._schema.items():
-            # ignore labels that are not bounding boxes or segmentations
-            if (info['type'].lower() != 'rectanglelabels' and 
-                    info['type'].lower() != 'polygonlabels'):
+            if label_types_filter is not None and info['type'].lower() not in label_types_filter:
                 continue
             labels |= set(info['labels'])
             attrs = info['labels_attrs']
