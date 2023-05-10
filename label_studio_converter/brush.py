@@ -43,7 +43,7 @@ try:
 except ImportError:
     pycocotools_imported = False
     logger.info(
-        'pycocotools library imported failed! You need to setup this library manually:\n' + 
+        'pycocotools library import failed! You need to setup this library manually:\n' + 
         'check this https://stackoverflow.com/questions/60189943/how-to-install-pycocotools-through-conda'
     )
 else:
