@@ -42,7 +42,7 @@ try:
     import pycocotools.mask
 except ImportError:
     pycocotools_imported = False
-    logger.info(
+    logger.warning(
         'pycocotools library import failed! You need to setup this library manually:\n' + 
         'check this https://stackoverflow.com/questions/60189943/how-to-install-pycocotools-through-conda'
     )
