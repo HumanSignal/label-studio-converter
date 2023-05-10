@@ -36,15 +36,22 @@ from PIL import Image
 from collections import defaultdict
 from itertools import groupby
 
+logger = logging.getLogger(__name__)
+
 try:
     import pycocotools.mask
 except ImportError:
     pycocotools_imported = False
+    logger.info(
+        'pycocotools library imported failed! You need to setup this library manually:\n' + 
+        'check this https://stackoverflow.com/questions/60189943/how-to-install-pycocotools-through-conda'
+    )
 else:
     pycocotools_imported = True
+    logger.info('pycocotools library imported successfully!')
 
 
-logger = logging.getLogger(__name__)
+
 
 
 ### Brush Export ###
