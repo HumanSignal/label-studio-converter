@@ -323,14 +323,14 @@ class Converter(object):
             and (
                 'RectangleLabels' in output_tag_types
                 or 'PolygonLabels' in output_tag_types
-                or 'BrushLabels' in output_tag_types
-                or 'brushlabels' in output_tag_types
+                or ('BrushLabels' in output_tag_types and brush.pycocotools_imported)
+                or 'brushlabels' in output_tag_types and brush.pycocotools_imported)
             )
             or 'Rectangle' in output_tag_types
             and 'Labels' in output_tag_types
             or 'PolygonLabels' in output_tag_types
             and 'Labels' in output_tag_types
-            or 'Brush' in output_tag_types
+            or ('Brush' in output_tag_types and brush.pycocotools_imported)
             and 'Labels' in output_tag_types
         ):
             all_formats.remove(Format.COCO.name)
