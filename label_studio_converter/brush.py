@@ -43,15 +43,12 @@ try:
 except ImportError:
     pycocotools_imported = False
     logger.warning(
-        'pycocotools library import failed! You need to setup this library manually:\n' + 
-        'check this https://stackoverflow.com/questions/60189943/how-to-install-pycocotools-through-conda'
+        'pycocotools library import failed! You need to setup this library manually:\n'
+        + 'check this https://stackoverflow.com/questions/60189943/how-to-install-pycocotools-through-conda'
     )
 else:
     pycocotools_imported = True
     logger.info('pycocotools library imported successfully!')
-
-
-
 
 
 ### Brush Export ###
