@@ -615,13 +615,20 @@ class Converter(object):
                     width, height = label['original_width'], label['original_height']
                     images = add_image(images, width, height, image_id, image_path)
 
+                if category_name not in category_name_to_id:
+                    category_id = len(categories)
+                    category_name_to_id[category_name] = category_id
+                    categories.append({'id': category_id, 'name': category_name})
                 category_id = category_name_to_id[category_name]
 
                 annotation_id = len(annotations)
 
                 if 'rectanglelabels' in label or 'labels' in label:
-                    x, y, w, h = self.rotated_rectangle(label)
+                    xywh = self.rotated_rectangle(label)
+                    if xywh is None:
+                        continue
 
+                    x, y, w, h = xywh
                     x = x * label["original_width"] / 100
                     y = y * label["original_height"] / 100
                     w = w * label["original_width"] / 100
@@ -811,8 +818,12 @@ class Converter(object):
                         categories.append({'id': category_id, 'name': category_name})
                     category_id = category_name_to_id[category_name]
 
-                    if "rectanglelabels" in label or 'labels' in label:
-                        x, y, w, h = self.rotated_rectangle(label)
+                    if "rectanglelabels" in label or 'rectangle' in label or 'labels' in label:
+                        xywh = self.rotated_rectangle(label)
+                        if xywh is None:
+                            continue
+
+                        x, y, w, h = xywh
                         annotations.append(
                             [
                                 category_id,
@@ -822,7 +833,7 @@ class Converter(object):
                                 h / 100,
                             ]
                         )
-                    elif "polygonlabels" in label:
+                    elif "polygonlabels" in label or 'polygon' in label:
                         points_abs = [(x / 100, y / 100) for x, y in label["points"]]
                         annotations.append(
                             [category_id]
@@ -856,6 +867,9 @@ class Converter(object):
 
     @staticmethod
     def rotated_rectangle(label):
+        if not ("x" in label and "y" in label and 'width' in label and 'height' in label):
+            return None
+            
         label_x, label_y, label_w, label_h, label_r = (
             label["x"],
             label["y"],
