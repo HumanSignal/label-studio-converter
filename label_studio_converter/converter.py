@@ -686,12 +686,14 @@ class Converter(object):
                     segmentation = brush.ls_rle_to_coco_rle(label["rle"], height, width)
                     annotations.append(
                         {
+                            "id": annotation_id,
                             "image_id": image_id,
-                            "segmentation": segmentation,
-                            "area": brush.get_cocomask_area(segmentation),
-                            "bbox": brush.get_cocomask_bounding_box(segmentation),
-                            "iscrowd": 1,
                             "category_id": category_id,
+                            "segmentation": segmentation,
+                            "bbox": brush.get_cocomask_bounding_box(segmentation),
+                            'ignore': 0,
+                            "iscrowd": 0,
+                            "area": brush.get_cocomask_area(segmentation),
                         }
                     )
                 else:
