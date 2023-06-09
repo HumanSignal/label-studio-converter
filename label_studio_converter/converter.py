@@ -818,7 +818,11 @@ class Converter(object):
                         categories.append({'id': category_id, 'name': category_name})
                     category_id = category_name_to_id[category_name]
 
-                    if "rectanglelabels" in label or 'rectangle' in label or 'labels' in label:
+                    if (
+                        "rectanglelabels" in label
+                        or 'rectangle' in label
+                        or 'labels' in label
+                    ):
                         xywh = self.rotated_rectangle(label)
                         if xywh is None:
                             continue
@@ -867,9 +871,11 @@ class Converter(object):
 
     @staticmethod
     def rotated_rectangle(label):
-        if not ("x" in label and "y" in label and 'width' in label and 'height' in label):
+        if not (
+            "x" in label and "y" in label and 'width' in label and 'height' in label
+        ):
             return None
-            
+
         label_x, label_y, label_w, label_h, label_r = (
             label["x"],
             label["y"],
