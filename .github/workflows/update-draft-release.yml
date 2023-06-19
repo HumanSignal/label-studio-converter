@@ -165,7 +165,7 @@ jobs:
       - draft-release
     permissions:
       contents: write
-    uses: heartexlabs/label-studio-converter/.github/workflows/build_pypi.yml@master
+    uses: ./.github/workflows/build_pypi.yml
     with:
       version: ${{ needs.draft-release.outputs.rc-version }}
       ref: ${{ github.ref_name }}
