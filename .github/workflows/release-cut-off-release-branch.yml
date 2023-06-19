@@ -81,7 +81,7 @@ jobs:
 
   set-version-default-branch:
     name: 'Set version in default branch'
-    uses: heartexlabs/label-studio-converter/.github/workflows/release-set-version.yml@master
+    uses: ./.github/workflows/release-set-version.yml
     needs:
       - draft-new-release
     with:
@@ -93,7 +93,7 @@ jobs:
 
   set-version-release-branch:
     name: 'Set version in release branch'
-    uses: heartexlabs/label-studio-converter/.github/workflows/release-set-version.yml@master
+    uses: ./.github/workflows/release-set-version.yml
     needs:
       - draft-new-release
     with:
