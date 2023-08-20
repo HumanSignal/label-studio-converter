@@ -215,7 +215,7 @@ def convert_coco_to_ls(
             )
             task[out_type][0]['result'].append(item)
 
-        if 'segmentation' in annotation:
+        if 'segmentation' in annotation and len(annotation['segmentation']):
             item = create_segmentation(
                 annotation,
                 categories,
