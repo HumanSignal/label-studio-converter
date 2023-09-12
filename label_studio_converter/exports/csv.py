@@ -7,7 +7,6 @@ from copy import deepcopy
 
 
 class ExportToCSV(object):
-
     def __init__(self, tasks):
         if isinstance(tasks, str) and tasks.endswith('.json'):
             if not os.path.exists(tasks):
@@ -37,7 +36,6 @@ class ExportToCSV(object):
             return value
 
     def _get_annotation_results(self, annotation, minify, flat_regions):
-
         results = annotation['result']
         if not flat_regions:
             yield {'result': results}
@@ -66,10 +64,12 @@ class ExportToCSV(object):
                 record = {
                     'id': task['id'],
                     'annotation_id': annotation.get('id'),
-                    'annotator': self._get_annotator_id(annotation)
+                    'annotator': self._get_annotator_id(annotation),
                 }
                 record.update(task['data'])
-                for result in self._get_annotation_results(annotation, minify, flat_regions):
+                for result in self._get_annotation_results(
+                    annotation, minify, flat_regions
+                ):
                     rec = deepcopy(record)
                     rec.update(result)
                     records.append(rec)

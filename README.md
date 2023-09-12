@@ -1,6 +1,6 @@
 # Label Studio Converter
 
-[Website](https://labelstud.io/) • [Docs](https://labelstud.io/guide) • [Twitter](https://twitter.com/heartexlabs) • [Join Slack Community <img src="https://app.heartex.ai/docs/images/slack-mini.png" width="18px"/>](https://slack.labelstudio.heartex.com)
+[Website](https://labelstud.io/) • [Docs](https://labelstud.io/guide) • [Twitter](https://twitter.com/heartexlabs) • [Join Slack Community <img src="https://app.heartex.ai/docs/images/slack-mini.png" width="18px"/>](https://slack.labelstud.io)
 
 ## Table of Contents
 
@@ -21,12 +21,14 @@ Label Studio Format Converter helps you to encode labels into the format of your
 ## Examples
 
 #### JSON
-Running from the command line:
+**Running from the command line:**
+
 ```bash
-python label_studio_converter/cli.py --input examples/sentiment_analysis/completions/ --config examples/sentiment_analysis/config.xml --output tmp/output.json
+pip install -U label-studio-converter
+python label-studio-converter export -i exported_tasks.json -c examples/sentiment_analysis/config.xml -o output_dir -f CSV
 ```
 
-Running from python:
+**Running from python:**
 ```python
 from label_studio_converter import Converter
 
@@ -259,7 +261,7 @@ Corresponding annotations could be found in `tmp/voc-annotations/*.xml`:
 
 Use cases: image object detection
 
-### YOLO
+### YOLO to Label Studio converter 
 
 Usage:
 

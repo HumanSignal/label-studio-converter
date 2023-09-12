@@ -35,7 +35,7 @@ def get_info(path):
             fps=float(b.root.doc.fps.get_text()),
             original_width=int(b.root.doc.imw.get_text()),
             original_height=int(b.root.doc.imh.get_text()),
-            frame_count=int(b.root.doc.num_frames.get_text())
+            frame_count=int(b.root.doc.num_frames.get_text()),
         )
 
 
@@ -47,22 +47,15 @@ def new_task(data, result, ground_truth=False, model_version=None, score=None):
     :param model_version: if not None, there will be prediction
     :param score: prediction score, used only if model_version is not None
     """
-    task = {
-        "data": data
-    }
+    task = {"data": data}
 
     # add predictions or annotations
     if model_version:
-        task["predictions"] = [{
-            "result": result,
-            "model_version": model_version,
-            "score": score
-        }]
+        task["predictions"] = [
+            {"result": result, "model_version": model_version, "score": score}
+        ]
     else:
-        task["annotations"] = [{
-            "result": result,
-            "ground_truth": ground_truth
-        }]
+        task["annotations"] = [{"result": result, "ground_truth": ground_truth}]
 
     return task
 
@@ -71,15 +64,10 @@ def new_region(labels, info, from_name, to_name):
     region = {
         "id": uuid.uuid4().hex[0:10],
         "type": "videorectangle",
-        "value": {
-            "sequence": [
-
-            ],
-            "framesCount": info.frame_count
-        },
+        "value": {"sequence": [], "framesCount": info.frame_count},
         "origin": "manual",
         "to_name": to_name,
-        "from_name": from_name
+        "from_name": from_name,
     }
 
     if labels is not None:
@@ -98,7 +86,7 @@ def new_keyframe(region, bbox, info):
             "time": bbox.frame / info.fps,
             "frame": bbox.frame,
             "enabled": False,
-            "rotation": 0
+            "rotation": 0,
         }
     )
     return region
@@ -114,13 +102,16 @@ def generator(path):
             frame=int(v[0]),
             bbox_id=int(v[1]),
             label_id=int(v[1]),
-
-            x=int(v[2]), y=int(v[3]),
-            width=int(v[4]), height=int(v[5])
+            x=int(v[2]),
+            y=int(v[3]),
+            width=int(v[4]),
+            height=int(v[5]),
         )
 
 
-def create_config(from_name='box', to_name='video', source_value='video', target_fps=None):
+def create_config(
+    from_name='box', to_name='video', source_value='video', target_fps=None
+):
     return f"""<View>
    <Header>Label the video:</Header>
    <Video name="{to_name}" value="${source_value}" framerate="{target_fps}"/>
@@ -134,10 +125,17 @@ def create_config(from_name='box', to_name='video', source_value='video', target
     """
 
 
-def convert_shot(input_url, label_file, info_file,
-                 from_name='box', to_name='video', source_value='video',
-                 target_fps=None, hop_keyframes=0):
-    """ Convert bounding boxes from PathTrack to Label Studio video format
+def convert_shot(
+    input_url,
+    label_file,
+    info_file,
+    from_name='box',
+    to_name='video',
+    source_value='video',
+    target_fps=None,
+    hop_keyframes=0,
+):
+    """Convert bounding boxes from PathTrack to Label Studio video format
 
     :param input_url: video file
     :param label_file: text file with annotations line by line
@@ -180,18 +178,29 @@ def convert_shot(input_url, label_file, info_file,
     if hop_keyframes > 1:
         for r in regions:
             last = regions[r]['value']['sequence'][-1]
-            regions[r]['value']['sequence'] = regions[r]['value']['sequence'][0:-1:hop_keyframes]
+            regions[r]['value']['sequence'] = regions[r]['value']['sequence'][
+                0:-1:hop_keyframes
+            ]
             if regions[r]['value']['sequence'][-1] != last:
                 regions[r]['value']['sequence'].append(last)
 
-    logger.info('Shot with %i regions and %i keyframes created', len(regions), keyframe_count)
+    logger.info(
+        'Shot with %i regions and %i keyframes created', len(regions), keyframe_count
+    )
     data = {source_value: input_url}
     return new_task(data, result=list(regions.values()))
 
 
-def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source_value='video',
-                    target_fps=None, hop_keyframes=0):
-    """ Convert PathTrack dataset to Label Studio video labeling format
+def convert_dataset(
+    root_dir,
+    root_url,
+    from_name='box',
+    to_name='video',
+    source_value='video',
+    target_fps=None,
+    hop_keyframes=0,
+):
+    """Convert PathTrack dataset to Label Studio video labeling format
 
     :param root_dir: root dir with video folders, e.g.: 'pathtrack/train' or 'pathtrack/test'
     :param root_url: where the dataset is served by http/https
@@ -216,9 +225,16 @@ def convert_dataset(root_dir, root_url, from_name='box', to_name='video', source
         label_file = os.path.join(shot_dir, 'gt/gt.txt')
         info_file = os.path.join(shot_dir, 'info.xml')
 
-        task = convert_shot(input_url, label_file, info_file,
-                            from_name, to_name, source_value,
-                            target_fps, hop_keyframes)
+        task = convert_shot(
+            input_url,
+            label_file,
+            info_file,
+            from_name,
+            to_name,
+            source_value,
+            target_fps,
+            hop_keyframes,
+        )
         if task is None:
             continue
 
@@ -242,9 +258,11 @@ if __name__ == '__main__':
     # exit()
     print(f'Usage: {sys.argv[0]} root_url target_fps\n')
 
-    url = sys.argv[1] if len(sys.argv) > 1 else 'https://data.heartex.net/pathtrack/train/'
+    url = (
+        sys.argv[1]
+        if len(sys.argv) > 1
+        else 'https://data.heartex.net/pathtrack/train/'
+    )
     fps = float(sys.argv[2]) if len(sys.argv) > 2 else None
     hop = int(sys.argv[3]) if len(sys.argv) > 3 else 0
     convert_dataset('./', url, target_fps=fps, hop_keyframes=hop)
-
-
