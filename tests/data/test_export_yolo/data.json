@@ -31,6 +31,26 @@
                         "original_height": 2800,
                         "image_rotation": 0,
                         "value": {
+                            "x": 37.15846994535519,
+                            "y": 70.67395264116576,
+                            "width": 4.189435336976321,
+                            "height": 4.735883424408015,
+                            "rotation": 0,
+                            "choices": [
+                                "uncertain"
+                            ]
+                        },
+                        "id": "C7oHaRDVVC",
+                        "from_name": "choices",
+                        "to_name": "image",
+                        "type": "choices",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2800,
+                        "original_height": 2800,
+                        "image_rotation": 0,
+                        "value": {
                             "x": 57.79102500413977,
                             "y": 62.87464812054977,
                             "width": 3.808577579069383,
@@ -161,6 +181,26 @@
                         "from_name": "label",
                         "to_name": "image",
                         "type": "rectanglelabels",
+                        "origin": "manual"
+                    },
+                    {
+                        "original_width": 2800,
+                        "original_height": 2800,
+                        "image_rotation": 0,
+                        "value": {
+                            "x": 19.672131147540984,
+                            "y": 49.72677595628415,
+                            "width": 3.278688524590164,
+                            "height": 2.914389799635701,
+                            "rotation": 0,
+                            "choices": [
+                                "uncertain"
+                            ]
+                        },
+                        "id": "1o3pxwJAxl",
+                        "from_name": "choices",
+                        "to_name": "image",
+                        "type": "choices",
                         "origin": "manual"
                     },
                     {
