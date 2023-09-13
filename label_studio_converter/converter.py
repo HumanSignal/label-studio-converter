@@ -533,7 +533,8 @@ class Converter(object):
             output_image_dir = os.path.join(output_dir, 'images')
             os.makedirs(output_image_dir, exist_ok=True)
         images, categories, annotations = [], [], []
-        categories, category_name_to_id = self._get_labels()
+        categories, category_name_to_id = self._get_labels(label_types_filter={
+            'rectanglelabels', 'polygonlabels', 'rectangle', 'polygon'})
         data_key = self._data_keys[0]
         item_iterator = (
             self.iter_from_dir(input_data)
@@ -731,7 +732,8 @@ class Converter(object):
         else:
             output_label_dir = os.path.join(output_dir, 'labels')
             os.makedirs(output_label_dir, exist_ok=True)
-        categories, category_name_to_id = self._get_labels(label_types_filter=['rectanglelabels', 'polygonlabels'])
+        categories, category_name_to_id = self._get_labels(label_types_filter={
+            'rectanglelabels', 'polygonlabels', 'rectangle', 'polygon'})
         data_key = self._data_keys[0]
         item_iterator = (
             self.iter_from_dir(input_data)
@@ -1072,7 +1074,7 @@ class Converter(object):
             with io.open(xml_filepath, mode='w', encoding='utf8') as fout:
                 doc.writexml(fout, addindent='' * 4, newl='\n', encoding='utf-8')
 
-    def _get_labels(self, label_types_filter=None):
+    def _get_labels(self, label_types_filter: set = None):
         labels = set()
         categories = list()
         category_name_to_id = dict()
