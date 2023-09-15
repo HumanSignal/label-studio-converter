@@ -739,26 +739,28 @@ class Converter(object):
             else self.iter_from_json_file(input_data)
         )
         for item_idx, item in enumerate(item_iterator):
-            # get image path and label file path
-            image_path = item['input'][data_key]
-            # download image
-            if not os.path.exists(image_path):
-                try:
-                    image_path = download(
-                        image_path,
-                        output_image_dir,
-                        project_dir=self.project_dir,
-                        return_relative_path=True,
-                        upload_dir=self.upload_dir,
-                        download_resources=self.download_resources,
-                    )
-                except:
-                    logger.info(
-                        'Unable to download {image_path}. The item {item} will be skipped'.format(
-                            image_path=image_path, item=item
-                        ),
-                        exc_info=True,
-                    )
+            # get image path(s) and label file path
+            image_paths = item['input'][data_key]
+            image_paths = [image_paths] if isinstance(image_paths, str) else image_paths
+            # download image(s)
+            for image_path in reversed(image_paths):
+                if not os.path.exists(image_path):
+                    try:
+                        image_path = download(
+                            image_path,
+                            output_image_dir,
+                            project_dir=self.project_dir,
+                            return_relative_path=True,
+                            upload_dir=self.upload_dir,
+                            download_resources=self.download_resources,
+                        )
+                    except:
+                        logger.info(
+                            'Unable to download {image_path}. The item {item} will be skipped'.format(
+                                image_path=image_path, item=item
+                            ),
+                            exc_info=True,
+                        )
 
             # create dedicated subfolder for each labeler if split_labelers=True
             labeler_subfolder = str(item['completed_by']) if split_labelers else ''
