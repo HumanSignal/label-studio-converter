@@ -263,13 +263,19 @@ Use cases: image object detection
 
 ### YOLO to Label Studio converter 
 
-Usage:
+Object detection usage:
 
 ```
 label-studio-converter import yolo -i /yolo/root/directory -o ls-tasks.json
 ```
 
-Help:
+Semantic segmentation usage:
+
+```
+label-studio-converter import yolo-seg -i /yolo/root/directory -o ls-tasks.json
+```
+
+Help (same for semantic segmentation):
 
 ```
 label-studio-converter import yolo -h
