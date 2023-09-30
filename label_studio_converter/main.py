@@ -168,7 +168,7 @@ def imports(args):
             image_ext=args.image_ext,
         )
     
-    if args.import_format == 'yolo-seg':
+    elif args.import_format == 'yolo-seg':
         import_yolo_seg.convert_yolo_seg_to_ls(
             input_dir=args.input,
             out_file=args.output,
