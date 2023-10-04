@@ -110,13 +110,15 @@ def convert_yolo_to_ls(
                 # convert all bounding boxes to Label Studio Results
                 lines = file.readlines()
                 for line in lines:
-                    label_id, x, y, width, height = line.split()
+                    label_id, x, y, width, height = line.split()[:5]
+                    conf = line.split()[-1] if out_type == 'predictions' else None
                     x, y, width, height = (
                         float(x),
                         float(y),
                         float(width),
                         float(height),
                     )
+                    conf = float(conf) if conf is not None else None
                     item = {
                         "id": uuid.uuid4().hex[0:10],
                         "type": "rectanglelabels",
@@ -134,6 +136,8 @@ def convert_yolo_to_ls(
                         "original_width": image_width,
                         "original_height": image_height,
                     }
+                    if out_type == 'predictions':
+                        item["score"] = conf
                     task[out_type][0]['result'].append(item)
 
         tasks.append(task)
