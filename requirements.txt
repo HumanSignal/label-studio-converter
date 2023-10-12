@@ -1,8 +1,7 @@
 pandas>=0.24.0
 requests>=2.22.0,<3
-Pillow==9.3.0
+Pillow>=10.0.1
 nltk==3.6.7
 label-studio-tools>=0.0.3
 ujson
 ijson~=3.2.0.post0
-
