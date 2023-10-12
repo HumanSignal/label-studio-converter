@@ -31,12 +31,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.7'
-          
+          python-version: '3.8'
+
       - uses: actions/cache@v3
         name: Configure pip cache
         id: pip-cache
@@ -45,21 +45,21 @@ jobs:
           key: ${{ env.CACHE_NAME_PREFIX }}-${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-test.txt') }}
           restore-keys: |
             ${{ env.CACHE_NAME_PREFIX }}-${{ runner.os }}-pip-
-            
+
       - name: Install dependencies
         run: |
           sudo apt-get clean
           sudo apt-get update
           sudo apt-get install virtualenv libsasl2-dev python3-dev libldap2-dev libssl-dev
           pip install -U pip==20.2
-          pip install -r requirements.txt -r requirements-test.txt 
-          
+          pip install -r requirements.txt -r requirements-test.txt
+
       - name: Run functional tests
         run: |
           pytest --junitxml report.xml --cov=. -m "not integration_tests"
-          
+
       - name: "Upload coverage to Codecov"
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true 
+          fail_ci_if_error: true
