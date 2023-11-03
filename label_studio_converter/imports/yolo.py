@@ -22,6 +22,7 @@ def convert_yolo_to_ls(
     to_name='image',
     from_name='label',
     out_type="annotations",
+    yolo_type="rectanglelabels",
     image_root_url='/data/local-files/?d=',
     image_ext='.jpg,.jpeg,.png',
     image_dims: Optional[Tuple[int, int]] = None,
@@ -32,6 +33,7 @@ def convert_yolo_to_ls(
     :param to_name: object name from Label Studio labeling config
     :param from_name: control tag name from Label Studio labeling config
     :param out_type: annotation type - "annotations" or "predictions"
+    :param out_type: label type - "rectanglelabels" or "polygonlabels"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
     :param image_ext: image extension/s - single string or comma separated list to search, eg. .jpeg or .jpg, .png and so on.
     :param image_dims: image dimensions - optional tuple of integers specifying the image width and height of *all* images in the dataset. Defaults to opening the image to determine it's width and height, which is slower. This should only be used in the special case where you dataset has uniform image dimesions.
@@ -65,6 +67,10 @@ def convert_yolo_to_ls(
     # build array out of provided comma separated image_extns (str -> array)
     image_ext = [x.strip() for x in image_ext.split(",")]
     logger.info(f'image extensions->, {image_ext}')
+
+    # formatter functions
+    x_scale = lambda x_prop: round(x_prop*image_width,1)
+    y_scale = lambda y_prop: round((1-y_prop)*image_height,1)
 
     # loop through images
     for f in os.listdir(images_dir):
@@ -110,27 +116,43 @@ def convert_yolo_to_ls(
             with open(label_file) as file:
                 # convert all bounding boxes to Label Studio Results
                 lines = file.readlines()
+                
                 for line in lines:
-                    label_id, x, y, width, height = line.split()[:5]
-                    conf = line.split()[-1] if out_type == 'predictions' else None
-                    x, y, width, height = (
-                        float(x),
-                        float(y),
-                        float(width),
-                        float(height),
-                    )
-                    conf = float(conf) if conf is not None else None
-                    item = {
-                        "id": uuid.uuid4().hex[0:10],
-                        "type": "rectanglelabels",
-                        "value": {
+                    if yolo_type == "rectanglelabels":
+                        label_id, x, y, width, height = line.split()[:5]
+                        conf = line.split()[-1] if out_type == 'predictions' else None
+                        x, y, width, height = (
+                            float(x),
+                            float(y),
+                            float(width),
+                            float(height),
+                        )
+                        conf = float(conf) if conf is not None else None
+                        value = {
                             "x": (x - width / 2) * 100,
                             "y": (y - height / 2) * 100,
                             "width": width * 100,
                             "height": height * 100,
                             "rotation": 0,
                             "rectanglelabels": [categories[int(label_id)]],
-                        },
+                        }
+                        
+                    elif yolo_type == "polygonlabels":
+                        parts = line.split()
+                        label_id = parts.pop[0]     
+                        if out_type == 'predictions':          
+                            conf = parts.pop[-1]
+                        xy_pairs = [ [x_scale(parts[i]), y_scale(parts[i+1])] for i in range(0,len(parts),2) ] 
+                        
+                        value = {
+                            "points": xy_pairs,
+                            "polygonlabels": [categories[int(label_id)]],
+                        }
+                    
+                    item = {
+                        "id": uuid.uuid4().hex[0:10],
+                        "type": yolo_type,
+                        "value": value,
                         "to_name": to_name,
                         "from_name": from_name,
                         "image_rotation": 0,
@@ -140,6 +162,8 @@ def convert_yolo_to_ls(
                     if out_type == 'predictions':
                         item["score"] = conf
                     task[out_type][0]['result'].append(item)
+                    
+                        
 
         tasks.append(task)
 
@@ -196,6 +220,12 @@ def add_parser(subparsers):
         dest='out_type',
         help='annotation type - "annotations" or "predictions"',
         default='annotations',
+    )
+    yolo.add_argument(
+        '--yolo-type',
+        dest='yolo_type',
+        help='label type - "rectanglelabels" or "polygonlabels" ',
+        default='rectangles',
     )
     yolo.add_argument(
         '--image-root-url',
