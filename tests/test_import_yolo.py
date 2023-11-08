@@ -6,7 +6,7 @@ import lxml.etree as ET
 from label_studio_converter.imports import yolo as import_yolo
 
 # run as python -m tests.test_import_yolo
-
+os.makedirs(os.path.dirname(__file__)+'/../tmp/lsc-pytest',exist_ok=True)
 def test_base_import_yolo():
     """Tests generated config and json files for yolo imports
     test_import_yolo_data folder assumes only images in the 'images' folder
