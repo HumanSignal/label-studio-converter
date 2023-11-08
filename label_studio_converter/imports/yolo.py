@@ -51,7 +51,7 @@ def convert_yolo_to_ls(
 
     # generate and save labeling config
     label_config_file = out_file.replace('.json', '') + '.label_config.xml'
-    poly_ops = {'stroke':3, 'pointSize':'small', 'opacity'=0.9}
+    poly_ops = {'stroke':3, 'pointSize':'small', 'opacity':0.9}
     generate_label_config(
         categories,
         {from_name: 'RectangleLabels' if yolo_type == "rectanglelabels" else 'PolygonLabels','poly_ops':poly_ops},
@@ -66,7 +66,7 @@ def convert_yolo_to_ls(
     logger.info('Converting labels from %s', labels_dir)
     if yolo_type == 'polygonlabel':
         # verify if current labels are boxes
-        with open(f'{labels_dir}/{os.listdir(labels_dir[0])}')
+        with open(f'{labels_dir}/{os.listdir(labels_dir[0])}') as f:
             sample_lbl = [line.strip() for line in f.readlines()][0]
             if len(sample_lbl < 7): # Polygons expected to consist of 7 items. At least three x,y pairs + class 
                 logger.info('Transforming labels at %s from bboxes to polygons', labels_dir)
