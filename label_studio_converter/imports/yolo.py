@@ -51,9 +51,10 @@ def convert_yolo_to_ls(
 
     # generate and save labeling config
     label_config_file = out_file.replace('.json', '') + '.label_config.xml'
+    poly_ops = {'stroke':3, 'pointSize'='small', 'opacity'=0.9}
     generate_label_config(
         categories,
-        {from_name: 'RectangleLabels'},
+        {from_name: 'RectangleLabels' if yolo_type == "rectanglelabels" else 'PolygonLabels','poly_ops':poly_ops},
         to_name,
         from_name,
         label_config_file,

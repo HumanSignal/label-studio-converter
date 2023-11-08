@@ -5,6 +5,12 @@ LABELS = """
   <{# TAG_NAME #} name="{# FROM_NAME #}" toName="image">
 {# LABELS #}  </{# TAG_NAME #}>
 """
+POLY_LABELS = """
+                        strokeWidth="{# STROKE #}" pointSize="{# POINT #}"
+                        opacity="{# OPACITY #}">
+
+{# LABELS #}  </{# TAG_NAME #}>
+"""
 
 LABELING_CONFIG = """<View>
   <Image name="{# TO_NAME #}" value="$image"/>
@@ -29,7 +35,15 @@ def generate_label_config(
             .replace('{# LABELS #}', labels)
             .replace('{# TO_NAME #}', to_name)
             .replace('{# FROM_NAME #}', from_name)
-        )
+        ) 
+        if tags[from_name] == 'PolygonLabels':
+            tag_body = (
+                tagbody[:-1] + # All of the current tag, minus the closing bracket
+                str(POLY_LABELS)
+                .replace('{# STROKE #}', poly_ops['stroke'])
+                .replace('{# POINT #}', poly_ops['pointSize'])
+                .replace('{# OPACITY #}', poly_ops['opacity'])
+            )
         body += f'\n  <Header value="{tags[from_name]}"/>' + tag_body
 
     config = (
