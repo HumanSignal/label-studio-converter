@@ -22,9 +22,9 @@ def convert_yolo_to_ls(
     to_name='image',
     from_name='label',
     out_type="annotations",
-    yolo_type="rectanglelabels",
     image_root_url='/data/local-files/?d=',
     image_ext='.jpg,.jpeg,.png',
+    yolo_type="rectanglelabels",
     image_dims: Optional[Tuple[int, int]] = None,
 ):
     """Convert YOLO labeling to Label Studio JSON
@@ -33,9 +33,9 @@ def convert_yolo_to_ls(
     :param to_name: object name from Label Studio labeling config
     :param from_name: control tag name from Label Studio labeling config
     :param out_type: annotation type - "annotations" or "predictions"
-    :param out_type: label type - "rectanglelabels" or "polygonlabels"
     :param image_root_url: root URL path where images will be hosted, e.g.: http://example.com/images
     :param image_ext: image extension/s - single string or comma separated list to search, eg. .jpeg or .jpg, .png and so on.
+    :param yolo_type: label type - "rectanglelabels" or "polygonlabels"
     :param image_dims: image dimensions - optional tuple of integers specifying the image width and height of *all* images in the dataset. Defaults to opening the image to determine it's width and height, which is slower. This should only be used in the special case where you dataset has uniform image dimesions.
     """
 
