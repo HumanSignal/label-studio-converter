@@ -184,6 +184,32 @@ def convert_yolo_to_ls(
     else:
         logger.error('No labels converted')
 
+def polygonise_bboxes(input_dir, out_type):
+    """
+    This function allows the user to seamlessly transform existing bounding boxes 
+     into polygons as they're imported into Label Studio. Ideal for datasets 
+     transitioning from the yolo detect to the yolo segment task.
+    :param input_dir  directory with YOLO where images, labels, notes.json are located
+    """
+    labels_dir = Path(input_dir) / 'labels'
+    poly_labels_dir = Path(input_dir) / 'labels-seg'
+    os.makedirs(poly_labels_dir, exist_ok=True)
+    
+    for label in os.listdir(labels_dir):
+        with open(labels_dir / label, 'r') as lbl_f:
+            boxes = [line.strip() for line in lbl_f.readlines()]
+        poly_boxes = []
+        for box in boxes:
+            c, cx, cy, w, h = [float(n) for n in box.split()[:5]]
+            conf = line.split()[-1] if out_type == 'predictions' else None
+            x0, y0 = (cx-w/2, cy+h/2)
+            x1, y1 = (cx-w/2, cy-h/2)
+            x2, y2 = (cx+w/2, cy-h/2)
+            x3, y3 = (cx+w/2, cy+h/2)
+            poly_boxes.append(f'{int(c)} {x0} {y0} {x1} {y1} {x2} {y2} {x3} {y3}')
+            poly_boxes.append(f'{conf}\n' if out_type == 'predictions' else '\n')
+        with open(poly_labels_dir / label, 'w+') as plbl_f:
+            plbl_f.write(''.join(poly_boxes))
 
 def add_parser(subparsers):
     yolo = subparsers.add_parser('yolo')
