@@ -64,6 +64,14 @@ def convert_yolo_to_ls(
     labels_dir = os.path.join(input_dir, 'labels')
     images_dir = os.path.join(input_dir, 'images')
     logger.info('Converting labels from %s', labels_dir)
+    if yolo_type == 'polygonlabel':
+        # verify if current labels are boxes
+        with open(f'{labels_dir}/{os.listdir(labels_dir[0])}')
+            sample_lbl = [line.strip() for line in f.readlines()][0]
+            if len(sample_lbl < 7): # Polygons expected to consist of 7 items. At least three x,y pairs + class 
+                logger.info('Transforming labels at %s from bboxes to polygons', labels_dir)
+                polygonyse_labels(labels_dir, out_type)
+
 
     # build array out of provided comma separated image_extns (str -> array)
     image_ext = [x.strip() for x in image_ext.split(",")]
