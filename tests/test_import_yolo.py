@@ -5,7 +5,7 @@ import lxml.etree as ET
 
 from label_studio_converter.imports import yolo as import_yolo
 
-
+# run as python -m tests.test_import_yolo
 
 def test_base_import_yolo():
     """Tests generated config and json files for yolo imports

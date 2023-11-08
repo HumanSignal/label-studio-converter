@@ -6,9 +6,9 @@ LABELS = """
 {# LABELS #}  </{# TAG_NAME #}>
 """
 POLY_LABELS = """
-                        strokeWidth="{# STROKE #}" pointSize="{# POINT #}"
-                        opacity="{# OPACITY #}">
-
+  <{# TAG_NAME #} name="{# FROM_NAME #}" toName="image"
+        strokeWidth="{# STROKE #}" pointSize="{# POINT #}"
+        opacity="{# OPACITY #}">
 {# LABELS #}  </{# TAG_NAME #}>
 """
 
@@ -29,20 +29,24 @@ def generate_label_config(
 
     body = ''
     for from_name in [tag_key for tag_key in tags.keys() if type(tags[tag_key]) == str]:
-        tag_body = (
-            str(LABELS)
-            .replace('{# TAG_NAME #}', tags[from_name])
-            .replace('{# LABELS #}', labels)
-            .replace('{# TO_NAME #}', to_name)
-            .replace('{# FROM_NAME #}', from_name)
-        ) 
         if tags[from_name] == 'PolygonLabels':
             tag_body = (
-                tag_body.split('\n')[:-1] + # All of the current tag, minus the closing bracket
                 str(POLY_LABELS)
-                .replace('{# STROKE #}', poly_ops['stroke'])
-                .replace('{# POINT #}', poly_ops['pointSize'])
-                .replace('{# OPACITY #}', poly_ops['opacity'])
+                .replace('{# TAG_NAME #}', tags[from_name])
+                .replace('{# LABELS #}', labels)
+                .replace('{# TO_NAME #}', to_name)
+                .replace('{# FROM_NAME #}', from_name)
+                .replace('{# STROKE #}', tags['poly_ops']['stroke'])
+                .replace('{# POINT #}', tags['poly_ops']['pointSize'])
+                .replace('{# OPACITY #}', tags['poly_ops']['opacity'])
+            )
+        else:
+            tag_body = (
+                str(LABELS)
+                .replace('{# TAG_NAME #}', tags[from_name])
+                .replace('{# LABELS #}', labels)
+                .replace('{# TO_NAME #}', to_name)
+                .replace('{# FROM_NAME #}', from_name)
             )
         body += f'\n  <Header value="{tags[from_name]}"/>' + tag_body
 

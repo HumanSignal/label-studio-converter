@@ -51,7 +51,7 @@ def convert_yolo_to_ls(
 
     # generate and save labeling config
     label_config_file = out_file.replace('.json', '') + '.label_config.xml'
-    poly_ops = {'stroke':3, 'pointSize':'small', 'opacity':0.9}
+    poly_ops = {'stroke':'3', 'pointSize':'small', 'opacity':'0.9'}
     generate_label_config(
         categories,
         {from_name: 'RectangleLabels' if yolo_type == "rectanglelabels" else 'PolygonLabels','poly_ops':poly_ops},
@@ -147,8 +147,8 @@ def convert_yolo_to_ls(
                         }
                         
                     elif yolo_type == "polygonlabels":
-                        parts = line.split()
-                        label_id = parts.pop[0]     
+                        parts = [float( part ) for part in line.split()]
+                        label_id = int(parts.pop(0))
                         if out_type == 'predictions':          
                             conf = parts.pop[-1]
                         xy_pairs = [ [x_scale(parts[i]), y_scale(parts[i+1])] for i in range(0,len(parts),2) ] 
