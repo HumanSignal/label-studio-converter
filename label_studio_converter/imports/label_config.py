@@ -28,7 +28,7 @@ def generate_label_config(
         labels += label
 
     body = ''
-    for from_name in tags:
+    for from_name in [tag_key for tag_key in tags.keys() if type(tags[tag_key]) == str]:
         tag_body = (
             str(LABELS)
             .replace('{# TAG_NAME #}', tags[from_name])
@@ -38,7 +38,7 @@ def generate_label_config(
         ) 
         if tags[from_name] == 'PolygonLabels':
             tag_body = (
-                tagbody[:-1] + # All of the current tag, minus the closing bracket
+                tag_body.split('\n')[:-1] + # All of the current tag, minus the closing bracket
                 str(POLY_LABELS)
                 .replace('{# STROKE #}', poly_ops['stroke'])
                 .replace('{# POINT #}', poly_ops['pointSize'])
