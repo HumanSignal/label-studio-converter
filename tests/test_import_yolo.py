@@ -14,7 +14,7 @@ def test_base_import_yolo():
     (currently 7 images -> 3 png, 2 jpg and 2 jpeg files)
     """
     input_data_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data','test_import_yolo_data')
-    out_json_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.json')
+    out_json_file = os.path.join('tmp','lsc-pytest','yolo_exp_test.json')
 
     image_ext = '.jpg,.jpeg,.png' #comma seperated string of extns.
 
@@ -25,7 +25,7 @@ def test_base_import_yolo():
     )
 
     #'yolo_exp_test.label_config.xml' and 'yolo_exp_test.json' must be generated.
-    out_config_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.label_config.xml')
+    out_config_file = os.path.join('tmp','lsc-pytest','yolo_exp_test.label_config.xml')
     assert os.path.exists(out_config_file) and os.path.exists(out_json_file), "> import failed! files not generated."
 
     #provided labels from classes.txt
@@ -55,7 +55,7 @@ def test_base_import_yolo_seg():
     (currently 7 images -> 3 png, 2 jpg and 2 jpeg files)
     """
     input_data_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data','test_import_yolo_seg_data')
-    out_json_file = os.path.join('/tmp','lsc-pytest','yolo-seg_exp_test.json')
+    out_json_file = os.path.join('tmp','lsc-pytest','yolo-seg_exp_test.json')
 
     image_ext = '.jpg,.jpeg,.png' #comma seperated string of extns.
 
@@ -67,7 +67,7 @@ def test_base_import_yolo_seg():
     )
 
     #'yolo-seg_exp_test.label_config.xml' and 'yolo-seg_exp_test.json' must be generated.
-    out_config_file = os.path.join('/tmp','lsc-pytest','yolo-seg_exp_test.label_config.xml')
+    out_config_file = os.path.join('tmp','lsc-pytest','yolo-seg_exp_test.label_config.xml')
     assert os.path.exists(out_config_file) and os.path.exists(out_json_file), "> import failed! files not generated."
 
     #provided labels from classes.txt
@@ -92,7 +92,7 @@ def test_base_import_yolo_with_img_dims():
     """Tests generated config and json files for yolo imports while importing unique image dims
     """
     input_data_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data','test_import_yolo_data_unif_dims')
-    out_json_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.json')
+    out_json_file = os.path.join('tmp','lsc-pytest','yolo_exp_test.json')
 
     image_ext = '.jpg,.jpeg,.png' # comma seperated string of extns.
     img_dims = (640, 329)  # known width and height of dataset
@@ -104,7 +104,7 @@ def test_base_import_yolo_with_img_dims():
     )
 
     # 'yolo_exp_test.label_config.xml' and 'yolo_exp_test.json' must be generated.
-    out_config_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.label_config.xml')
+    out_config_file = os.path.join('tmp','lsc-pytest','yolo_exp_test.label_config.xml')
     assert os.path.exists(out_config_file) and os.path.exists(out_json_file), "> import failed! files not generated."
 
     # provided labels from classes.txt
