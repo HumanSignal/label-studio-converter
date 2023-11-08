@@ -49,11 +49,13 @@ def test_base_import_yolo_seg():
     """Tests generated config and json files for yolo imports
     test_import_yolo_seg_data folder assumes only images in the 'images' folder
     with corresponding polygon labels existing in the 'labes' dir and a 'classes.txt' present.
+    if current labels are bboxes, they will be polygonised.
+    assumes that all labels are either boxes or polygons, not mixed.
     Label format as per yolov8 DOCS: <class-index> <x1> <y1> <x2> <y2> ... <xn> <yn>
     (currently 7 images -> 3 png, 2 jpg and 2 jpeg files)
     """
     input_data_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'data','test_import_yolo_seg_data')
-    out_json_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.json')
+    out_json_file = os.path.join('/tmp','lsc-pytest','yolo-seg_exp_test.json')
 
     image_ext = '.jpg,.jpeg,.png' #comma seperated string of extns.
 
@@ -64,8 +66,8 @@ def test_base_import_yolo_seg():
         yolo_type='polygonlabels'
     )
 
-    #'yolo_exp_test.label_config.xml' and 'yolo_exp_test.json' must be generated.
-    out_config_file = os.path.join('/tmp','lsc-pytest','yolo_exp_test.label_config.xml')
+    #'yolo-seg_exp_test.label_config.xml' and 'yolo-seg_exp_test.json' must be generated.
+    out_config_file = os.path.join('/tmp','lsc-pytest','yolo-seg_exp_test.label_config.xml')
     assert os.path.exists(out_config_file) and os.path.exists(out_json_file), "> import failed! files not generated."
 
     #provided labels from classes.txt
