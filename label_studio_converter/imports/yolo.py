@@ -210,6 +210,9 @@ def polygonise_bboxes(input_dir, out_type):
             poly_boxes.append(f'{conf}\n' if out_type == 'predictions' else '\n')
         with open(poly_labels_dir / label, 'w+') as plbl_f:
             plbl_f.write(''.join(poly_boxes))
+    # keep copy of original bboxes labels, and make polygon labels the default one
+    shutil.move( str(labels_dir),f'{str(labels_dir)-old_boxes}')
+    shutil.move( str(poly_labels_dir), str(labels_dir) )
 
 def add_parser(subparsers):
     yolo = subparsers.add_parser('yolo')
