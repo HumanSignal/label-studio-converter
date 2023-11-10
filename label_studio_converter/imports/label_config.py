@@ -1,5 +1,6 @@
-from label_studio_converter.imports.colors import COLORS
+import logging
 
+from label_studio_converter.imports.colors import COLORS
 
 LABELS = """
   <{# TAG_NAME #} name="{# FROM_NAME #}" toName="image">
@@ -7,8 +8,8 @@ LABELS = """
 """
 POLY_LABELS = """
   <{# TAG_NAME #} name="{# FROM_NAME #}" toName="image"
-        strokeWidth="{# STROKE #}" pointSize="{# POINT #}"
-        opacity="{# OPACITY #}">
+                    strokeWidth="{# STROKE #}" pointSize="{# POINT #}"
+                    opacity="{# OPACITY #}">
 {# LABELS #}  </{# TAG_NAME #}>
 """
 
@@ -17,10 +18,12 @@ LABELING_CONFIG = """<View>
 {# BODY #}</View>
 """
 
+logger = logging.getLogger('root')
 
 def generate_label_config(
     categories, tags, to_name='image', from_name='label', filename=None
 ):
+    logger.info(f'Creating your label configuration file with {tags[from_name]}')
     labels = ''
     for key in sorted(categories.keys()):
         color = COLORS[int(key) % len(COLORS)]
