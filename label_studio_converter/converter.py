@@ -358,9 +358,10 @@ class Converter(object):
 
         # one task
         if data_type == 'dict':
-            data = json.load(json_file)
-            for item in self.annotation_result_from_task(data):
-                yield item
+            with open(json_file, 'r') as json_file:
+                data = json.load(json_file)
+                for item in self.annotation_result_from_task(data):
+                    yield item
 
         # many tasks
         elif data_type == 'list':
