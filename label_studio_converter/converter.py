@@ -828,6 +828,9 @@ class Converter(object):
                             continue
 
                         x, y, w, h = xywh
+                        # stub to avoid width or height being more than 100%
+                        w = min(w, 100)
+                        h = min(h, 100)
                         annotations.append(
                             [
                                 category_id,
