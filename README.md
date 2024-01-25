@@ -292,6 +292,7 @@ optional arguments:
   --from-name FROM_NAME
                         control tag name from Label Studio labeling config
   --out-type OUT_TYPE   annotation type - "annotations" or "predictions"
+  --yolo-type YOLO_TYPE label type - "rectanglelabels" or "polygonlabels"
   --image-root-url IMAGE_ROOT_URL
                         root URL path where images will be hosted, e.g.:
                         http://example.com/images or s3://my-bucket

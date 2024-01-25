@@ -156,13 +156,15 @@ def export(args):
 
 
 def imports(args):
-    if args.import_format == 'yolo':
+    is_seg = 'seg' in args.import_format 
+    if 'yolo' in args.import_format:
         import_yolo.convert_yolo_to_ls(
             input_dir=args.input,
             out_file=args.output,
             to_name=args.to_name,
             from_name=args.from_name,
             out_type=args.out_type,
+            yolo_type=args.yolo_type,
             image_root_url=args.image_root_url,
             image_ext=args.image_ext,
         )

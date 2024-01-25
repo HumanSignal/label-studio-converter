@@ -1,8 +1,15 @@
-from label_studio_converter.imports.colors import COLORS
+import logging
 
+from label_studio_converter.imports.colors import COLORS
 
 LABELS = """
   <{# TAG_NAME #} name="{# FROM_NAME #}" toName="image">
+{# LABELS #}  </{# TAG_NAME #}>
+"""
+POLY_LABELS = """
+  <{# TAG_NAME #} name="{# FROM_NAME #}" toName="image"
+                    strokeWidth="{# STROKE #}" pointSize="{# POINT #}"
+                    opacity="{# OPACITY #}">
 {# LABELS #}  </{# TAG_NAME #}>
 """
 
@@ -11,10 +18,12 @@ LABELING_CONFIG = """<View>
 {# BODY #}</View>
 """
 
+logger = logging.getLogger('root')
 
 def generate_label_config(
     categories, tags, to_name='image', from_name='label', filename=None
 ):
+    logger.info(f'Creating your label configuration file with {tags[from_name]}')
     labels = ''
     for key in sorted(categories.keys()):
         color = COLORS[int(key) % len(COLORS)]
@@ -22,14 +31,26 @@ def generate_label_config(
         labels += label
 
     body = ''
-    for from_name in tags:
-        tag_body = (
-            str(LABELS)
-            .replace('{# TAG_NAME #}', tags[from_name])
-            .replace('{# LABELS #}', labels)
-            .replace('{# TO_NAME #}', to_name)
-            .replace('{# FROM_NAME #}', from_name)
-        )
+    for from_name in [tag_key for tag_key in tags.keys() if type(tags[tag_key]) == str]:
+        if tags[from_name] == 'PolygonLabels':
+            tag_body = (
+                str(POLY_LABELS)
+                .replace('{# TAG_NAME #}', tags[from_name])
+                .replace('{# LABELS #}', labels)
+                .replace('{# TO_NAME #}', to_name)
+                .replace('{# FROM_NAME #}', from_name)
+                .replace('{# STROKE #}', tags['poly_ops']['stroke'])
+                .replace('{# POINT #}', tags['poly_ops']['pointSize'])
+                .replace('{# OPACITY #}', tags['poly_ops']['opacity'])
+            )
+        else:
+            tag_body = (
+                str(LABELS)
+                .replace('{# TAG_NAME #}', tags[from_name])
+                .replace('{# LABELS #}', labels)
+                .replace('{# TO_NAME #}', to_name)
+                .replace('{# FROM_NAME #}', from_name)
+            )
         body += f'\n  <Header value="{tags[from_name]}"/>' + tag_body
 
     config = (
