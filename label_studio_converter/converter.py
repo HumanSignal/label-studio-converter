@@ -1,5 +1,6 @@
 import os
 import io
+import itertools
 import math
 import logging
 import ujson as json
@@ -30,6 +31,8 @@ from label_studio_converter.utils import (
     get_annotator,
     get_json_root_type,
     prettify_result,
+    get_cocomask_area,
+    get_cocomask_bounding_box,
 )
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest
@@ -314,8 +317,23 @@ class Converter(object):
             or 'PolygonLabels' in output_tag_types
             and 'Labels' in output_tag_types
         ):
-            all_formats.remove(Format.COCO.name)
             all_formats.remove(Format.YOLO.name)
+        if not (
+            'Image' in input_tag_types
+            and (
+                'RectangleLabels' in output_tag_types
+                or 'PolygonLabels' in output_tag_types
+                or ('BrushLabels' in output_tag_types and brush.pycocotools_imported)
+                or ('brushlabels' in output_tag_types and brush.pycocotools_imported)
+            )
+            or 'Rectangle' in output_tag_types
+            and 'Labels' in output_tag_types
+            or 'PolygonLabels' in output_tag_types
+            and 'Labels' in output_tag_types
+            or ('Brush' in output_tag_types and brush.pycocotools_imported)
+            and 'Labels' in output_tag_types
+        ):
+            all_formats.remove(Format.COCO.name)
         if not (
             'Image' in input_tag_types
             and (
@@ -596,7 +614,12 @@ class Converter(object):
 
             for label in labels:
                 category_name = None
-                for key in ['rectanglelabels', 'polygonlabels', 'labels']:
+                for key in [
+                    'rectanglelabels',
+                    'polygonlabels',
+                    'brushlabels',
+                    'labels',
+                ]:
                     if key in label and len(label[key]) > 0:
                         category_name = label[key][0]
                         break
@@ -664,6 +687,20 @@ class Converter(object):
                             'ignore': 0,
                             'iscrowd': 0,
                             'area': get_polygon_area(x, y),
+                        }
+                    )
+                elif 'brushlabels' in label and brush.pycocotools_imported:
+                    segmentation = brush.ls_rle_to_coco_rle(label["rle"], height, width)
+                    annotations.append(
+                        {
+                            "id": annotation_id,
+                            "image_id": image_id,
+                            "category_id": category_id,
+                            "segmentation": segmentation,
+                            "bbox": brush.get_cocomask_bounding_box(segmentation),
+                            'ignore': 0,
+                            "iscrowd": 0,
+                            "area": brush.get_cocomask_area(segmentation),
                         }
                     )
                 else:
