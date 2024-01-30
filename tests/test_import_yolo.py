@@ -6,7 +6,6 @@ import lxml.etree as ET
 from label_studio_converter.imports import yolo as import_yolo
 
 
-
 def test_base_import_yolo():
     """Tests generated config and json files for yolo imports
     test_import_yolo_data folder assumes only images in the 'images' folder
@@ -85,8 +84,3 @@ def test_base_import_yolo_with_img_dims():
         ls_data = json.loads(f.read())
 
     assert len(ls_data) == len(img_files), "some file imports did not succeed!"
-
-
-if __name__ == '__main__':
-    test_base_import_yolo()
-    test_base_import_yolo_with_img_dims()

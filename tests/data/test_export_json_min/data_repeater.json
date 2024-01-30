@@ -1,0 +1,101 @@
+[
+    {
+       "id": 86,
+       "annotations": [
+          {
+             "id": 21,
+             "completed_by": 1,
+             "result": [
+                {
+                   "id": "FmoGRgYXtw",
+                   "type": "rectanglelabels",
+                   "value": {
+                      "x": 19.466292134831463,
+                      "y": 53.70786516853933,
+                      "width": 20.35112359550562,
+                      "height": 20.224719101123597,
+                      "rotation": 0,
+                      "rectanglelabels": [
+                         "Document Title"
+                      ]
+                   },
+                   "origin": "manual",
+                   "to_name": "page_0",
+                   "from_name": "labels_0",
+                   "image_rotation": 0,
+                   "original_width": 1280,
+                   "original_height": 720
+                },
+                {
+                   "id": "FmoGRgYXtw",
+                   "type": "taxonomy",
+                   "value": {
+                      "x": 19.466292134831463,
+                      "y": 53.70786516853933,
+                      "width": 20.35112359550562,
+                      "height": 20.224719101123597,
+                      "rotation": 0,
+                      "taxonomy": [
+                         [
+                            "Archaea"
+                         ]
+                      ]
+                   },
+                   "origin": "manual",
+                   "to_name": "page_0",
+                   "from_name": "categories_0",
+                   "image_rotation": 0,
+                   "original_width": 1280,
+                   "original_height": 720
+                }
+             ],
+             "was_cancelled": false,
+             "ground_truth": false,
+             "created_at": "2024-01-25T23:52:15.182319Z",
+             "updated_at": "2024-01-25T23:52:15.182333Z",
+             "draft_created_at": "2024-01-25T23:52:13.732002Z",
+             "lead_time": 13.042,
+             "prediction": {},
+             "result_count": 0,
+             "unique_id": "5061fcba-4030-45b3-8079-71b7a134c254",
+             "import_id": null,
+             "last_action": null,
+             "task": 86,
+             "project": 28,
+             "updated_by": 1,
+             "parent_prediction": null,
+             "parent_annotation": null,
+             "last_created_by": null
+          }
+       ],
+       "file_upload": "a5ef7e93-task_copy.json",
+       "drafts": [],
+       "predictions": [],
+       "data": {
+          "images": [
+             {
+                "url": "https://example.org/example1.jpeg"
+             },
+             {
+                "url": "https://example.org/example2.jpeg"
+             },
+             {
+                "url": "https://example.org/example3.jpeg"
+             }
+          ]
+       },
+       "meta": {},
+       "created_at": "2024-01-25T23:52:00.852852Z",
+       "updated_at": "2024-01-25T23:52:15.207596Z",
+       "inner_id": 1,
+       "total_annotations": 1,
+       "cancelled_annotations": 0,
+       "total_predictions": 0,
+       "comment_count": 0,
+       "unresolved_comment_count": 0,
+       "last_comment_updated_at": null,
+       "project": 28,
+       "updated_by": 1,
+       "comment_authors": []
+    }
+ ]

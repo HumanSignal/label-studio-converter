@@ -1,9 +1,9 @@
 """
 Test for the brush.py module
 """
-import unittest
 import urllib3
 import json
+import os
 
 from label_studio_converter.brush import encode_rle, image2annotation
 
@@ -13,7 +13,7 @@ def test_image2annotation():
     Import from png to LS annotation with RLE values
     """
     annotation = image2annotation(
-        'tests/test.png',
+        os.path.abspath(os.path.dirname(__file__)) + '/data/test_brush/test.png',
         label_name='Airplane',
         from_name='tag',
         to_name='image',
@@ -28,7 +28,7 @@ def test_image2annotation():
     }
 
     """ You can import this `task.json` to the Label Studio project with this labeling config:
-    
+
     <View>
       <Image name="image" value="$image" zoom="true"/>
       <BrushLabels name="tag" toName="image">
