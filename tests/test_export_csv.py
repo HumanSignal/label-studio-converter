@@ -1,11 +1,12 @@
 import json
 import os
 
+
 from label_studio_converter import Converter
 from pandas import read_csv
 
 
-def test_csv_export():
+def test_simple_csv_export():
     # Test case 1, simple output, no JSON
     converter = Converter({}, '/tmp')
     output_dir = '/tmp/lsc-pytest'
@@ -19,7 +20,11 @@ def test_csv_export():
     if nulls.any() > 0:
         assert False, "There should be no empty values in result CSV"
 
-    # Test case 2, complex fields with JSON
+
+def test_csv_export_complex_fields_with_json():
+    converter = Converter({}, '/tmp')
+    output_dir = '/tmp/lsc-pytest'
+    result_csv = output_dir + '/result.csv'
     input_data = os.path.abspath(os.path.dirname(__file__)) + '/data/test_export_csv/csv_test2.json'
     assert_csv = os.path.abspath(os.path.dirname(__file__)) + '/data/test_export_csv/csv_test2_result.csv'
     sep = '\t'
@@ -33,7 +38,3 @@ def test_csv_export():
     json.loads(df.iloc[0].iswcs_1)
 
     assert open(result_csv).read() == open(assert_csv).read()
-
-
-if __name__ == '__main__':
-    test_csv_export()

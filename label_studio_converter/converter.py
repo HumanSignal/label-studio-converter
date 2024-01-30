@@ -1,6 +1,9 @@
+from typing import Optional
+
 import os
 import io
 import math
+import re
 import logging
 import ujson as json
 import ijson
@@ -374,6 +377,31 @@ class Converter(object):
                         if item is not None:
                             yield item
 
+    def _maybe_matching_tag_from_schema(self, from_name: str) -> Optional[str]:
+        """If the from name exactly matches an output tag from the schema, return that tag.
+
+        Otherwise, certain tags (like those from Repeater) contain
+        placeholders like {{idx}}. Such placeholders are mapped to a regex in self._schema.
+        For example, if "my_output_tag_{{idx}}" is a tag in the schema,
+        then the from_name "my_output_tag_0" should match it, and we should return "my_output_tag_{{idx}}".
+        """
+
+        for tag_name, tag_info in self._schema.items():
+            if tag_name == from_name:
+                return tag_name
+
+            if not tag_info.get('regex'):
+                continue
+
+            tag_name_pattern = tag_name
+            for variable, regex in tag_info['regex'].items():
+                tag_name_pattern = tag_name_pattern.replace(variable, regex)
+
+            if re.compile(tag_name_pattern).match(from_name):
+                return tag_name
+
+        return None
+
     def annotation_result_from_task(self, task):
         has_annotations = 'completions' in task or 'annotations' in task
         if not has_annotations:
@@ -412,9 +440,9 @@ class Converter(object):
 
             # get results only as output
             for r in result:
-                if 'from_name' in r and r['from_name'] in self._output_tags:
+                if 'from_name' in r and (tag_name := self._maybe_matching_tag_from_schema(r['from_name'])):
                     v = deepcopy(r['value'])
-                    v['type'] = self._schema[r['from_name']]['type']
+                    v['type'] = self._schema[tag_name]['type']
                     if 'original_width' in r:
                         v['original_width'] = r['original_width']
                     if 'original_height' in r:

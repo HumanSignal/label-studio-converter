@@ -1,0 +1,72 @@
+{
+  "labels_{{idx}}": {
+     "type": "RectangleLabels",
+     "regex": {
+        "{{idx}}": ".*"
+     },
+     "inputs": [
+        {
+           "type": "Image",
+           "value": "images[{{idx}}].url"
+        }
+     ],
+     "labels": [
+        "Document Title",
+        "Document Date"
+     ],
+     "to_name": [
+        "page_{{idx}}"
+     ],
+     "labels_attrs": {
+        "Document Date": {
+           "value": "Document Date"
+        },
+        "Document Title": {
+           "value": "Document Title"
+        }
+     }
+  },
+  "categories_{{idx}}": {
+     "type": "Taxonomy",
+     "regex": {
+        "{{idx}}": ".*"
+     },
+     "inputs": [
+        {
+           "type": "Image",
+           "value": "images[{{idx}}].url"
+        }
+     ],
+     "labels": [
+        "Archaea",
+        "Bacteria",
+        "Eukarya",
+        "Human",
+        "Oppossum",
+        "Extraterrestrial"
+     ],
+     "to_name": [
+        "page_{{idx}}"
+     ],
+     "labels_attrs": {
+        "Human": {
+           "value": "Human"
+        },
+        "Archaea": {
+           "value": "Archaea"
+        },
+        "Eukarya": {
+           "value": "Eukarya"
+        },
+        "Bacteria": {
+           "value": "Bacteria"
+        },
+        "Oppossum": {
+           "value": "Oppossum"
+        },
+        "Extraterrestrial": {
+           "value": "Extraterrestrial"
+        }
+     }
+  }
+}

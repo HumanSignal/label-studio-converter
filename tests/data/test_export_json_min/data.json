@@ -1,0 +1,79 @@
+[
+    {
+       "id": 87,
+       "annotations": [
+          {
+             "id": 22,
+             "completed_by": 1,
+             "result": [
+                {
+                   "id": "qd1jIVAq1h",
+                   "type": "polygonlabels",
+                   "value": {
+                      "closed": true,
+                      "points": [
+                         [
+                            44.44444444444444,
+                            48.25396825396825
+                         ],
+                         [
+                            42.53968253968254,
+                            60.317460317460316
+                         ],
+                         [
+                            56.19047619047619,
+                            50.79365079365079
+                         ]
+                      ],
+                      "polygonlabels": [
+                         "Airplane"
+                      ]
+                   },
+                   "origin": "manual",
+                   "to_name": "image",
+                   "from_name": "label",
+                   "image_rotation": 0,
+                   "original_width": 128,
+                   "original_height": 128
+                }
+             ],
+             "was_cancelled": false,
+             "ground_truth": false,
+             "created_at": "2024-01-30T02:40:43.893565Z",
+             "updated_at": "2024-01-30T02:40:43.893578Z",
+             "draft_created_at": "2024-01-30T02:40:42.917892Z",
+             "lead_time": 8.65,
+             "prediction": {},
+             "result_count": 0,
+             "unique_id": "3bc9da85-967f-47a1-bfa8-410206e54cf9",
+             "import_id": null,
+             "last_action": null,
+             "task": 87,
+             "project": 29,
+             "updated_by": 1,
+             "parent_prediction": null,
+             "parent_annotation": null,
+             "last_created_by": null
+          }
+       ],
+       "file_upload": "example.png",
+       "drafts": [],
+       "predictions": [],
+       "data": {
+          "image": "/data/upload/29/example.png"
+       },
+       "meta": {},
+       "created_at": "2024-01-30T02:40:33.867975Z",
+       "updated_at": "2024-01-30T02:40:43.923985Z",
+       "inner_id": 1,
+       "total_annotations": 1,
+       "cancelled_annotations": 0,
+       "total_predictions": 0,
+       "comment_count": 0,
+       "unresolved_comment_count": 0,
+       "last_comment_updated_at": null,
+       "project": 29,
+       "updated_by": 1,
+       "comment_authors": []
+    }
+ ]
