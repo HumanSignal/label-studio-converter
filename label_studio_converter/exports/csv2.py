@@ -23,7 +23,7 @@ def convert(item_iterator, input_data, output_dir, **kwargs):
         output_file = os.path.join(output_dir, 'result.csv')
 
     # these keys are always presented
-    keys = {'annotator', 'annotation_id', 'created_at', 'updated_at', 'lead_time'}
+    keys = {'annotator', 'annotation_id', 'created_at', 'updated_at', 'lead_time', 'was_cancelled'}
 
     # make 2 passes: the first pass is to get keys, otherwise we can't write csv without headers
     logger.debug('Prepare column names for CSV ...')
@@ -76,6 +76,7 @@ def prepare_annotation(item):
     record['created_at'] = item['created_at']
     record['updated_at'] = item['updated_at']
     record['lead_time'] = item['lead_time']
+    record['was_cancelled'] = item['was_cancelled']
 
     if 'agreement' in item:
         record['agreement'] = item['agreement']
