@@ -106,7 +106,7 @@ class Converter(object):
             'description': 'Popular machine learning format used by the COCO dataset for object detection and image '
             'segmentation tasks with polygons and rectangles.',
             'link': 'https://labelstud.io/guide/export.html#COCO',
-            'tags': ['image segmentation', 'object detection'],
+            'tags': ['image segmentation', 'object detection', 'keypoints'],
         },
         Format.VOC: {
             'title': 'Pascal VOC XML',
@@ -295,8 +295,10 @@ class Converter(object):
                 input_tag_types.add(input_tag['type'])
 
         all_formats = [f.name for f in Format]
+        
         if not ('Text' in input_tag_types and 'Labels' in output_tag_types):
             all_formats.remove(Format.CONLL2003.name)
+            
         if not (
             'Image' in input_tag_types
             and (
@@ -306,30 +308,26 @@ class Converter(object):
             )
         ):
             all_formats.remove(Format.VOC.name)
-        if not (
-            'Image' in input_tag_types
-            and (
-                'RectangleLabels' in output_tag_types
-                or 'PolygonLabels' in output_tag_types
-            )
-            or 'Rectangle' in output_tag_types
-            and 'Labels' in output_tag_types
-            or 'PolygonLabels' in output_tag_types
-            and 'Labels' in output_tag_types
-        ):
-            all_formats.remove(Format.COCO.name)
+            
+        if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
+                                                'PolygonLabels' in output_tag_types) or
+                                                'Rectangle' in output_tag_types and 'Labels' in output_tag_types or
+                                                'PolygonLabels' in output_tag_types and 'Labels' in output_tag_types):
             all_formats.remove(Format.YOLO.name)
-        if not (
-            'Image' in input_tag_types
-            and (
-                'BrushLabels' in output_tag_types
-                or 'brushlabels' in output_tag_types
-                or 'Brush' in output_tag_types
-                and 'Labels' in output_tag_types
-            )
-        ):
+            
+        if not ('Image' in input_tag_types and ('RectangleLabels' in output_tag_types or
+                                                'PolygonLabels' in output_tag_types or
+                                                'KeyPointLabels' in output_tag_types) or
+                                                'Rectangle' in output_tag_types and 'Labels' in output_tag_types or
+                                                'PolygonLabels' in output_tag_types and 'Labels' in output_tag_types or
+                                                'KeyPointLabels' in output_tag_types and 'Labels' in output_tag_types):
+            all_formats.remove(Format.COCO.name)
+            
+        if not ('Image' in input_tag_types and ('BrushLabels' in output_tag_types or 'brushlabels' in output_tag_types or
+                                                'Brush' in output_tag_types and 'Labels' in output_tag_types)):
             all_formats.remove(Format.BRUSH_TO_NUMPY.name)
             all_formats.remove(Format.BRUSH_TO_PNG.name)
+            
         if not (
             ('Audio' in input_tag_types or 'AudioPlus' in input_tag_types)
             and 'TextArea' in output_tag_types
@@ -624,7 +622,7 @@ class Converter(object):
 
             for label in labels:
                 category_name = None
-                for key in ['rectanglelabels', 'polygonlabels', 'labels']:
+                for key in ['rectanglelabels', 'polygonlabels', 'keypointlabels', 'labels']:
                     if key in label and len(label[key]) > 0:
                         category_name = label[key][0]
                         break
@@ -694,6 +692,31 @@ class Converter(object):
                             'area': get_polygon_area(x, y),
                         }
                     )
+                elif "keypointlabels" in label:
+                    # write only 1 point, probably it's not correct for keypoints in coco format,
+                    # because we need to concatenate all points from keypointslabel together and
+                    # write them as one whole array, more details: https://cocodataset.org/#format-data
+                    visibility_flag = 2
+                    if 'flag:0' in label['keypointlabels']:
+                        visibility_flag = 0
+                    if 'flag:1' in label['keypointlabels']:
+                        visibility_flag = 1
+                    if 'flag:2' in label['keypointlabels']:
+                        visibility_flag = 2
+                    x, y = label['x'] / 100 * width, label['y'] * height
+                    points = [(x, y, visibility_flag)]
+
+                    annotations.append({
+                        'id': annotation_id,
+                        'image_id': image_id,
+                        'category_id': category_id,
+                        'num_keypoints': len([points]),
+                        'keypoints': points,
+                        'bbox': get_polygon_bounding_box([x], [y]),
+                        'ignore': 0,
+                        'iscrowd': 0,
+                        'area': get_polygon_area([x], [y])
+                    })
                 else:
                     raise ValueError("Unknown label type")
 
