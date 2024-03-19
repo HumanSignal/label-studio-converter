@@ -152,6 +152,7 @@ class Converter(object):
         output_tags=None,
         upload_dir=None,
         download_resources=True,
+        include_cancelled_annotations=False
     ):
         """Initialize Label Studio Converter for Exports
 
@@ -160,11 +161,13 @@ class Converter(object):
         :param output_tags: it will be calculated automatically, contains label names
         :param upload_dir: upload root directory with files that were imported using LS GUI
         :param download_resources: if True, LS will try to download images, audio, etc and include them to export
+        :param include_cancelled_annotations: If True, was_cancelled annotation will be added to export
         """
         self.project_dir = project_dir
         self.upload_dir = upload_dir
         self.download_resources = download_resources
         self._schema = None
+        self.include_cancelled_annotations = include_cancelled_annotations
 
         if isinstance(config, dict):
             self._schema = config
@@ -422,10 +425,11 @@ class Converter(object):
             yield data
 
         # skip cancelled annotations
-        cancelled = lambda x: not (
-            x.get('skipped', False) or x.get('was_cancelled', False)
-        )
-        annotations = list(filter(cancelled, annotations))
+        if not self.include_cancelled_annotations:
+            cancelled = lambda x: not (
+                x.get('skipped', False) or x.get('was_cancelled', False)
+            )
+            annotations = list(filter(cancelled, annotations))
         if not annotations:
             return None
 
@@ -465,6 +469,7 @@ class Converter(object):
             'created_at': annotation.get('created_at'),
             'updated_at': annotation.get('updated_at'),
             'lead_time': annotation.get('lead_time'),
+            'was_cancelled': annotation.get('was_cancelled'),
         }
 
     def _check_format(self, fmt):

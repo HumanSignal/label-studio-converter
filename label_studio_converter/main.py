@@ -76,6 +76,13 @@ def get_export_args(parser):
         default=True,
         help='Set this flag if your annotations are in one JSON file instead of multiple JSON files from directory',
     )
+    parser.add_argument(
+        '--include-cancelled-annotations',
+        dest='include_cancelled_annotations',
+        help='Include cancelled annotations in the export to other formats',
+        default=False,
+        action='store_true',
+    )
 
 
 def get_all_args():
@@ -103,7 +110,11 @@ def get_all_args():
 
 
 def export(args):
-    c = Converter(args.config, project_dir=args.project_dir)
+    c = Converter(
+        args.config,
+        project_dir=args.project_dir,
+        include_cancelled_annotations=args.include_cancelled_annotations
+    )
 
     if args.format == Format.JSON:
         c.convert_to_json(args.input, args.output)
