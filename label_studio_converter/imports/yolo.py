@@ -72,7 +72,7 @@ def convert_yolo_to_ls(
         for ext in image_ext:
             if f.endswith(ext):
                 image_file = f
-                image_file_base = f[0 : -len(ext)]
+                image_file_base = os.path.splitext(f)[0]
                 image_file_found_flag = True
                 break
         if not image_file_found_flag:
