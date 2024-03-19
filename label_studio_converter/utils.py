@@ -163,7 +163,11 @@ def download(
     if is_local_file:
         filename, dir_path = url.split('/data/', 1)[-1].split('?d=')
         dir_path = str(urllib.parse.unquote(dir_path))
-        filepath = os.path.join(LOCAL_FILES_DOCUMENT_ROOT, dir_path)
+        try:
+            from django.conf import settings.LOCAL_FILES_DOCUMENT_ROOT
+            filepath = os.path.join(settings.LOCAL_FILES_DOCUMENT_ROOT, dir_path)
+        except:
+            filepath = os.path.join(LOCAL_FILES_DOCUMENT_ROOT, dir_path)
         if not os.path.exists(filepath):
             raise FileNotFoundError(filepath)
         if download_resources:
