@@ -1076,7 +1076,10 @@ class Converter(object):
                 )
                 if key is None or len(bbox[key]) == 0:
                     continue
-
+                
+                if 'x' not in bbox and bbox['format']=='rle' and bbox['type']=='RectangleLabels':
+                    continue
+                
                 name = bbox[key][0]
                 x = int(bbox['x'] / 100 * width)
                 y = int(bbox['y'] / 100 * height)
