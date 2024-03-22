@@ -57,6 +57,7 @@ class Format(Enum):
     ASR_MANIFEST = 10
     YOLO = 11
     CSV_OLD = 12
+    YOLO_OBB = 13
 
     def __str__(self):
         return self.name
@@ -118,6 +119,14 @@ class Converter(object):
             'title': 'YOLO',
             'description': 'Popular TXT format is created for each image file. Each txt file contains annotations for '
             'the corresponding image file, that is object class, object coordinates, height & width.',
+            'link': 'https://labelstud.io/guide/export.html#YOLO',
+            'tags': ['image segmentation', 'object detection'],
+        },
+        Format.YOLO_OBB: {
+            'title': 'YOLOv8-OBB',
+            'description': 'Popular TXT format is created for each image file. Each txt file contains annotations for '
+            'the corresponding image fileThe YOLO OBB format designates bounding boxes by their four corner points '
+            'with coordinates normalized between 0 and 1',
             'link': 'https://labelstud.io/guide/export.html#YOLO',
             'tags': ['image segmentation', 'object detection'],
         },
@@ -215,7 +224,7 @@ class Converter(object):
             self.convert_to_coco(
                 input_data, output_data, output_image_dir=image_dir, is_dir=is_dir
             )
-        elif format == Format.YOLO:
+        elif format == Format.YOLO or format == Format.YOLO_OBB:
             image_dir = kwargs.get('image_dir')
             label_dir = kwargs.get('label_dir')
             self.convert_to_yolo(
@@ -224,6 +233,7 @@ class Converter(object):
                 output_image_dir=image_dir,
                 output_label_dir=label_dir,
                 is_dir=is_dir,
+                is_obb=(format == Format.YOLO_OBB)
             )
         elif format == Format.VOC:
             image_dir = kwargs.get('image_dir')
@@ -727,6 +737,7 @@ class Converter(object):
         output_label_dir=None,
         is_dir=True,
         split_labelers=False,
+        is_obb=False,
     ):
         """Convert data in a specific format to the YOLO format.
 
@@ -744,8 +755,13 @@ class Converter(object):
             A boolean indicating whether `input_data` is a directory (True) or a JSON file (False).
         split_labelers : bool, optional
             A boolean indicating whether to create a dedicated subfolder for each labeler in the output label directory.
+        is_obb : bool, optional
+            A boolean indicating whether the format is obb
         """
-        self._check_format(Format.YOLO)
+        if is_obb:
+            self._check_format(Format.YOLO_OBB)
+        else:
+            self._check_format(Format.YOLO)
         ensure_dir(output_dir)
         notes_file = os.path.join(output_dir, 'notes.json')
         class_file = os.path.join(output_dir, 'classes.txt')
@@ -851,20 +867,52 @@ class Converter(object):
                         or 'rectangle' in label
                         or 'labels' in label
                     ):
-                        xywh = self.rotated_rectangle(label)
-                        if xywh is None:
-                            continue
+                        if is_obb:
+                            base_y = label["original_height"]
+                            base_x = label["original_width"]
 
-                        x, y, w, h = xywh
-                        annotations.append(
-                            [
-                                category_id,
-                                (x + w / 2) / 100,
-                                (y + h / 2) / 100,
-                                w / 100,
-                                h / 100,
+                            x1=label["x"]*base_x
+                            y1=label["y"]*base_y
+                            w=label["width"]*base_x
+                            h=label["height"]*base_y
+                            beta = math.pi * (
+                                label["rotation"] / 180
+                            ) if "rotation" in label else 0.0
+
+                            # Compute the vectors between points
+                            v12 = (w * math.cos(beta), w * math.sin(beta))
+                            v23 = (- h*math.sin(beta), h * math.cos(beta))
+
+                            X = [
+                                (x1, y1),
+                                (x1 + v12[0], y1 + v12[1]),
+                                (x1 + v12[0] + v23[0], y1 + v12[1] + v23[1]),
+                                (x1 + v23[0], y1 + v23[1])
                             ]
-                        )
+
+                            X= [
+                                (P[0]/base_x/100,  P[1]/base_y/100,) for P in X
+                            ]
+
+                            annotations.append(
+                                [category_id] + list(sum(X, ()))
+                            )
+
+                        else:
+                            xywh = self.rotated_rectangle(label)
+                            if xywh is None:
+                                continue
+
+                            x, y, w, h = xywh
+                            annotations.append(
+                                [
+                                    category_id,
+                                    (x + w / 2) / 100,
+                                    (y + h / 2) / 100,
+                                    w / 100,
+                                    h / 100,
+                                ]
+                            )
                     elif "polygonlabels" in label or 'polygon' in label:
                         points_abs = [(x / 100, y / 100) for x, y in label["points"]]
                         annotations.append(

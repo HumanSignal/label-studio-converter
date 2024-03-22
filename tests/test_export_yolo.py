@@ -54,6 +54,58 @@ def create_temp_folder():
     shutil.rmtree(temp_dir)
 
 
+def test_convert_to_yolo_obb(create_temp_folder):
+    """Check converstion label_studio json exported file to yolo with multiple labelers"""
+
+    # Generates a temporary folder and return the absolute path
+    # The temporary folder contains all the data generate by the following function
+    # For debugging replace create_temp_folder with "./tmp"
+    tmp_folder = create_temp_folder
+
+    output_dir = tmp_folder
+    output_image_dir = os.path.join(output_dir, "tmp_image")
+    output_label_dir = os.path.join(output_dir, "tmp_label")
+    project_dir = "."
+
+    converter = Converter(LABEL_CONFIG_PATH, project_dir)
+    converter.convert_to_yolo(
+        INPUT_JSON_PATH,
+        output_dir,
+        output_image_dir=output_image_dir,
+        output_label_dir=output_label_dir,
+        is_dir=False,
+        split_labelers=True,
+        is_obb=True,
+    )
+
+    abs_path_label_dir = os.path.abspath(output_label_dir)
+    expected_paths = [
+        os.path.join(abs_path_label_dir, "1", "image1.txt"),
+        os.path.join(abs_path_label_dir, "1", "image2.txt"),
+        os.path.join(abs_path_label_dir, "2", "image1.txt"),
+    ]
+    generated_paths = get_os_walk(abs_path_label_dir)
+    # Check all files and subfolders have been generated.
+    assert check_equal_list_of_strings(
+        expected_paths, generated_paths
+    ), f"Generated file: \n  {generated_paths} \n does not match expected ones: \n {expected_paths}"
+    # Check all the annotations have been converted to yolo
+    for file in expected_paths:
+        with open(file) as f:
+            lines = f.readlines()
+            for line in lines:
+                split_line = line.split(" ")
+                assert len(split_line) == 9, "OBB lines should have 9 parameters"
+                assert int(split_line[0]) == float(
+                    split_line[0]
+                ), f"Label should be an integer. Not {split_line[0]}"
+                for number in split_line:
+                    float(number)
+            assert (
+                len(lines) == 2
+            ), f"Expect different number of annotations in file {file}."
+
+
 def test_convert_to_yolo(create_temp_folder):
     """Check converstion label_studio json exported file to yolo with multiple labelers"""
 
