@@ -61,13 +61,13 @@ def prepare_annotation(item):
         record[name] = (
             pretty_value
             if isinstance(pretty_value, str)
-            else json.dumps(pretty_value, ensure_ascii=False)
+            else json.dumps(pretty_value)
         )
 
     for name, value in item['input'].items():
         if isinstance(value, dict) or isinstance(value, list):
             # flat dicts and arrays from task.data to json strings
-            record[name] = json.dumps(value, ensure_ascii=False)
+            record[name] = json.dumps(value)
         else:
             record[name] = value
 
