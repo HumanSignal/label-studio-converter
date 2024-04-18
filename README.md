@@ -385,7 +385,7 @@ http://localhost:8080/data/local-files/?d=one/images/<your_image>.jpg
 ```
 
 Replace `one/images/<your_image>.jpg` with the path to one of your images. The image should display **in the new tab of the browser**.
-If you can't open an image, the Local Storage configuration is incorrect: most likely you made a mistake in your `Path` in Local Storage settings or in `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT`. 
+If you can't open an image, the Local Storage configuration is incorrect. The most likely reason is that you made a mistake when specifying your `Path` in Local Storage settings or in `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT`. 
 
 **Note:** The URL path from `?d=` should be relative to `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/datasets`, 
 it means that the real path will be `/yolo/datasets/one/images/<your_image>.jpg` and this image should exist on your hard drive.
