@@ -400,7 +400,7 @@ label-studio-converter import yolo -i /yolo/datasets/one -o output.json --image-
 ### Step 5: Import Converted Annotations
 Now import the `output.json` file into Label Studio:
 1. Go to your Label Studio project.
-2. Click on the "Import" button.
+2. From the Data Manager, click **Import**.
 3. Select the `output.json` file and import it.
 
 ### Step 6: Verify Annotations
