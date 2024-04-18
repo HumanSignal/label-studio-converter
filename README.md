@@ -261,15 +261,57 @@ Corresponding annotations could be found in `tmp/voc-annotations/*.xml`:
 
 Use cases: image object detection
 
-### YOLO to Label Studio converter 
+# YOLO to Label Studio converter 
 
-Usage:
+1. label-studio-converter import yolo -i YOLO/datasets/test1 -o output.json --image-root-url "/data/local-files/?d=test1/images"
+2. http://localhost:8080/data/local-files/?d=test1/images/p10.jpg
+3. LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/Users/amir.giveon/GoogleDrive/projects/K1/YOLO/datasets/
+4. Local Storage `Absolute local path` (displayed as `Path` on the storage card) /Users/amir.giveon/GoogleDrive/projects/K1/YOLO/datasets/test1/images
+
+
+--image-root-url "/data/local-files/?d=images"
+label-studio-converter import yolo -i /yolo/root/directory 
+LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/root/directory
+
+### YOLO directory structure
+
+Check the structure of YOLO folder first, keep in mind that the root is `/yolo/root/directory`. 
+
+```
+/yolo/root/directory
+  images
+   - 1.jpg
+   - 2.jpg
+   - ...
+  labels
+   - 1.txt
+   - 2.txt
+
+  classes.txt
+```
+
+**classes.txt example**
+
+```
+Airplane
+Car
+```
+
+### Usage
 
 ```
 label-studio-converter import yolo -i /yolo/root/directory -o ls-tasks.json
 ```
 
-Help:
+**Note** 
+  * if you use Local Storage, you should point the Label Studio environment variable `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/root/directory` to the same directory as you used in `-i` parameter.
+  * If you want to use `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/root` (one level up relative to `-i`), you need to specify `--image-root-url`:
+    ```
+    label-studio-converter import yolo -i /yolo/root/directory -o ls-tasks.json --image-root-url "/data/local-files/?d=images"
+    ```
+
+
+**Help command**
 
 ```
 label-studio-converter import yolo -h
@@ -299,27 +341,81 @@ optional arguments:
                         image extension to search: .jpg, .png
 ```
 
-YOLO export folder example:
+
+## Tutorial: Importing YOLO Pre-Annotated Images to Label Studio using Local Storage
+
+This tutorial will guide you through the process of importing a folder with YOLO annotations into Label Studio for further annotation. 
+We'll cover setting up your environment, converting YOLO annotations to Label Studio's format, and importing them into your project.
+
+
+### Prerequisites
+- Label Studio installed locally
+- YOLO annotated images and corresponding .txt label files in the directory `/yolo/root/directory`.
+- label-studio-converter installed (available via `pip install label-studio-converter`)
+
+### Step 1: Set Up Your Environment and Run Label Studio
+Before starting Label Studio, set the following environment variables to enable Local Storage file serving:
+
+Unix systems: 
+```
+export LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+export LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/root/directory
+label-studio
+```
+
+Windows: 
+```
+set LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+set LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=C:\path\to\your\YOLO\dataset
+label-studio
+```
+
+Replace `/yolo/root/directory` with the actual path to your YOLO dataset directory.
+
+### Step 2: Setup Local Storage
+1. Create a new project.
+2. Go to project settings.
+3. Set the **absolute path** to the same directory as you have in `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT`.
+4. Click `Add storage`.
+
+Check more details about Local Storages [in the documentation](https://labelstud.io/guide/storage.html#Local-storage).
+
+### Step 3: Verify Image Access
+Before importing the converted annotations from YOLO, verify that you can access an image from your Local storage via Label Studio. Open a new browser tab and enter the following URL:
 
 ```
-yolo-folder
-  images
-   - 1.jpg
-   - 2.jpg
-   - ...
-  labels
-   - 1.txt
-   - 2.txt
-
-  classes.txt
+http://localhost:8080/data/local-files/?d=relative/path/to/images/your_image.jpg
 ```
 
-classes.txt example
+Replace `relative/path/to/images/your_image.jpg` with the path to one of your images. The image should display in the new tab of the browser.
+If you can't open an image, the Local Storage configuration is incorrect: most likely you made a mistake in your Path in Local Storage settings. 
 
-```
-Airplane
-Car
-```
+**Note:** The URL path from `?d=` should be relative to `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/root/directory`, 
+it means that the real path will be `/yolo/root/directory/relative/path/to/images/your_image.jpg` and this image should exist on your hard drive.
+
+### Step 3: Convert YOLO Annotations
+Use the label-studio-converter to convert your YOLO annotations to a format that Label Studio can understand:
+sh
+label-studio-converter import yolo -i /yolo/root/directory -o output.json --image-root-url "/data/local-files/?d=relative/path/to/images"
+Replace relative/path/to/images with the path to your images relative to the LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT.
+
+
+### Step 4: Import Converted Annotations
+Now that you've verified image access, import the output.json file into Label Studio:
+1. Go to your Label Studio project.
+2. Click on the "Import" button.
+3. Select the output.json file and import it.
+
+### Step 5: Verify Annotations
+After importing, you should see your images with the pre-annotated bounding boxes in Label Studio. Verify that the annotations are correct and make any necessary adjustments.
+
+### Troubleshooting
+If you encounter issues with paths or image access, ensure that:
+- The LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT is set correctly.
+- The `--image-root-url` in the conversion command matches the relative path used in Label Studio.
+- The Local Storage in Label Studio is set up correctly with the absolute path to your images.
+- For a more details, please refer to the documentation on [importing pre-annotated data](https://labelstud.io/guide/predictions.html).
+
 
 ## Contributing
 
