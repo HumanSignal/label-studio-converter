@@ -370,7 +370,8 @@ Replace `/yolo/datasets` with the actual path to your YOLO datasets directory.
 
 ### Step 2: Setup Local Storage
 1. Create a new project.
-2. Go to Project Settings.
+2. Go to the project settings and select **Cloud Storage**. 
+3. Click **Add Source Storage** and select **Local files** from the **Storage Type** options.  
 3. Set the **Absolute local path** to `/yolo/datasets/one/images` or `c:\yolo\datasets\one\images` on Windows.
 4. Click `Add storage`.
 
