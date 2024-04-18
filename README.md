@@ -297,6 +297,7 @@ Car
 ```
 label-studio-converter import yolo -i /yolo/datasets/one -o ls-tasks.json --image-root-url "/data/local-files/?d=one/images"
 ```
+Where the URL path from `?d=` is relative to the path you set in `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT`.
 
 **Note for Local Storages** 
   * It's very important to set `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/datasets` (**not** to `/yolo/datasets/one`, but **`/yolo/datasets`**) for Label Studio run.
