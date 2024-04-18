@@ -388,20 +388,20 @@ If you can't open an image, the Local Storage configuration is incorrect: most l
 **Note:** The URL path from `?d=` should be relative to `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/datasets`, 
 it means that the real path will be `/yolo/datasets/one/images/<your_image>.jpg` and this image should exist on your hard drive.
 
-### Step 3: Convert YOLO Annotations
+### Step 4: Convert YOLO Annotations
 Use the label-studio-converter to convert your YOLO annotations to a format that Label Studio can understand:
 
 ```
 label-studio-converter import yolo -i /yolo/datasets/one -o output.json --image-root-url "/data/local-files/?d=one/images"
 ```
 
-### Step 4: Import Converted Annotations
+### Step 5: Import Converted Annotations
 Now import the `output.json` file into Label Studio:
 1. Go to your Label Studio project.
 2. Click on the "Import" button.
 3. Select the `output.json` file and import it.
 
-### Step 5: Verify Annotations
+### Step 6: Verify Annotations
 After importing, you should see your images with the pre-annotated bounding boxes in Label Studio. Verify that the annotations are correct and make any necessary adjustments.
 
 ### Troubleshooting
