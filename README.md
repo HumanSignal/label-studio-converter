@@ -418,7 +418,7 @@ e.g.:
 /yolo/datasets/one/images - /yolo/datasets/ = one/images
 ```
 - The Local Storage in Label Studio is set up correctly with the Absolute local path to your images (`/yolo/datasets/one/images`)
-- For a more details, please refer to the documentation on [importing pre-annotated data](https://labelstud.io/guide/predictions.html) and [Cloud Storages](https://labelstud.io/guide/storage).
+- For more details, refer to the documentation on [importing pre-annotated data](https://labelstud.io/guide/predictions.html) and [setting up Cloud Storages](https://labelstud.io/guide/storage).
 
 ------------
 
