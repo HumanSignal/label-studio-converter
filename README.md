@@ -11,6 +11,9 @@
     - [CoNLL 2003](#conll-2003)
     - [COCO](#coco)
     - [Pascal VOC XML](#pascal-voc-xml)
+- [YOLO to Label Studio Converter](#yolo-to-label-studio-converter)
+  - [Usage](#usage)
+  - [Tutorial: Importing YOLO Pre-Annotated Images to Label Studio using Local Storage](#tutorial-importing-yolo-pre-annotated-images-to-label-studio-using-local-storage)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -261,15 +264,50 @@ Corresponding annotations could be found in `tmp/voc-annotations/*.xml`:
 
 Use cases: image object detection
 
-### YOLO to Label Studio converter 
+--------
 
-Usage:
+# YOLO to Label Studio Converter 
+
+### YOLO directory structure
+
+Check the structure of YOLO folder first, keep in mind that the root is `/yolo/datasets/one`. 
 
 ```
-label-studio-converter import yolo -i /yolo/root/directory -o ls-tasks.json
+/yolo/datasets/one
+  images
+   - 1.jpg
+   - 2.jpg
+   - ...
+  labels
+   - 1.txt
+   - 2.txt
+
+  classes.txt
 ```
 
-Help:
+*classes.txt example*
+
+```
+Airplane
+Car
+```
+
+### Usage
+
+```
+label-studio-converter import yolo -i /yolo/datasets/one -o ls-tasks.json --image-root-url "/data/local-files/?d=one/images"
+```
+Where the URL path from `?d=` is relative to the path you set in `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT`.
+
+**Note for Local Storages** 
+  * It's very important to set `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/datasets` (**not** to `/yolo/datasets/one`, but **`/yolo/datasets`**) for Label Studio to run.
+  * [Add a new Local Storage](https://labelstud.io/guide/storage#Local-storage) in the project settings and set **Absolute local path** to `/yolo/datasets/one/images` (or `c:\yolo\datasets\one\images` for Windows). 
+
+**Note for Cloud Storages**
+  * Use `--image-root-url` to make correct prefixes for task URLs, e.g. `--image-root-url s3://my-bucket/yolo/datasets/one`.
+  * [Add a new Cloud Storage](https://labelstud.io/guide/storage) in the project settings with the corresponding bucket and prefix.
+
+**Help command**
 
 ```
 label-studio-converter import yolo -h
@@ -299,36 +337,99 @@ optional arguments:
                         image extension to search: .jpg, .png
 ```
 
-YOLO export folder example:
+
+## Tutorial: Importing YOLO Pre-Annotated Images to Label Studio using Local Storage
+
+This tutorial will guide you through the process of importing a folder with YOLO annotations into Label Studio for further annotation. 
+We'll cover setting up your environment, converting YOLO annotations to Label Studio's format, and importing them into your project.
+
+
+### Prerequisites
+- Label Studio installed locally
+- YOLO annotated images and corresponding .txt label files in the directory `/yolo/datasets/one`.
+- label-studio-converter installed (available via `pip install label-studio-converter`)
+
+### Step 1: Set Up Your Environment and Run Label Studio
+Before starting Label Studio, set the following environment variables to enable Local Storage file serving:
+
+Unix systems: 
+```
+export LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+export LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/datasets
+label-studio
+```
+
+Windows: 
+```
+set LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+set LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=C:\\yolo\\datasets
+label-studio
+```
+
+Replace `/yolo/datasets` with the actual path to your YOLO datasets directory.
+
+### Step 2: Setup Local Storage
+1. Create a new project.
+2. Go to the project settings and select **Cloud Storage**. 
+3. Click **Add Source Storage** and select **Local files** from the **Storage Type** options.  
+3. Set the **Absolute local path** to `/yolo/datasets/one/images` or `c:\yolo\datasets\one\images` on Windows.
+4. Click `Add storage`.
+
+Check more details about Local Storages [in the documentation](https://labelstud.io/guide/storage.html#Local-storage).
+
+### Step 3: Verify Image Access
+Before importing the converted annotations from YOLO, verify that you can access an image from your Local storage via Label Studio. Open a new browser tab and enter the following URL:
 
 ```
-yolo-folder
-  images
-   - 1.jpg
-   - 2.jpg
-   - ...
-  labels
-   - 1.txt
-   - 2.txt
-
-  classes.txt
+http://localhost:8080/data/local-files/?d=one/images/<your_image>.jpg
 ```
 
-classes.txt example
+Replace `one/images/<your_image>.jpg` with the path to one of your images. The image should display **in the new tab of the browser**.
+If you can't open an image, the Local Storage configuration is incorrect. The most likely reason is that you made a mistake when specifying your `Path` in Local Storage settings or in `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT`. 
+
+**Note:** The URL path from `?d=` should be relative to `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/datasets`, 
+it means that the real path will be `/yolo/datasets/one/images/<your_image>.jpg` and this image should exist on your hard drive.
+
+### Step 4: Convert YOLO Annotations
+Use the label-studio-converter to convert your YOLO annotations to a format that Label Studio can understand:
 
 ```
-Airplane
-Car
+label-studio-converter import yolo -i /yolo/datasets/one -o output.json --image-root-url "/data/local-files/?d=one/images"
 ```
 
-## Contributing
+### Step 5: Import Converted Annotations
+Now import the `output.json` file into Label Studio:
+1. Go to your Label Studio project.
+2. From the Data Manager, click **Import**.
+3. Select the `output.json` file and import it.
+
+### Step 6: Verify Annotations
+After importing, you should see your images with the pre-annotated bounding boxes in Label Studio. Verify that the annotations are correct and make any necessary adjustments.
+
+### Troubleshooting
+If you encounter issues with paths or image access, ensure that:
+- The LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT is set correctly.
+- The `--image-root-url` in the conversion command matches the relative path:
+```
+`Absolute local path from Local Storage Settings` - `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT` = `path for --image_root_url`
+```
+e.g.:
+```
+/yolo/datasets/one/images - /yolo/datasets/ = one/images
+```
+- The Local Storage in Label Studio is set up correctly with the Absolute local path to your images (`/yolo/datasets/one/images`)
+- For more details, refer to the documentation on [importing pre-annotated data](https://labelstud.io/guide/predictions.html) and [setting up Cloud Storages](https://labelstud.io/guide/storage).
+
+------------
+
+# Contributing
 
 We would love to get your help for creating converters to other models. Please feel free to create pull requests.
 
 - [Contributing Guideline](https://github.com/heartexlabs/label-studio/blob/develop/CONTRIBUTING.md)
 - [Code Of Conduct](https://github.com/heartexlabs/label-studio/blob/develop/CODE_OF_CONDUCT.md)
 
-## License
+# License
 
 This software is licensed under the [Apache 2.0 LICENSE](/LICENSE) © [Heartex](https://www.heartex.com/). 2020
 

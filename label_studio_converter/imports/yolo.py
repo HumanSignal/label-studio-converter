@@ -14,6 +14,7 @@ from label_studio_converter.utils import ExpandFullPath
 from label_studio_converter.imports.label_config import generate_label_config
 
 logger = logging.getLogger('root')
+default_image_root_url = '/data/local-files/?d=images'
 
 
 def convert_yolo_to_ls(
@@ -22,7 +23,7 @@ def convert_yolo_to_ls(
     to_name='image',
     from_name='label',
     out_type="annotations",
-    image_root_url='/data/local-files/?d=',
+    image_root_url=default_image_root_url,
     image_ext='.jpg,.jpeg,.png',
     image_dims: Optional[Tuple[int, int]] = None,
 ):
@@ -143,12 +144,23 @@ def convert_yolo_to_ls(
         with open(out_file, 'w') as out:
             json.dump(tasks, out)
 
+        help_root_dir = ''
+        if image_root_url == default_image_root_url:
+            help_root_dir = (
+                f"Set environment variables LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true and "
+                f"LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT={input_dir} for Label Studio run,\n"
+                f"add Local Storage with Absolute local path = {input_dir}/images"
+            )
+
         print(
             '\n'
             f'  1. Create a new project in Label Studio\n'
             f'  2. Use Labeling Config from "{label_config_file}"\n'
-            f'  3. Setup serving for images [e.g. you can use Local Storage (or others):\n'
-            f'     https://labelstud.io/guide/storage.html#Local-storage]\n'
+            f'  3. Setup serving for images\n'
+            f'       E.g. you can use Local Storage (or others):\n'
+            f'       https://labelstud.io/guide/storage.html#Local-storage\n'
+            f'       See tutorial here:\nhttps://github.com/HumanSignal/label-studio-converter/tree/master?tab=readme-ov-file#yolo-to-label-studio-converter\n'
+            f'       {help_root_dir}\n'
             f'  4. Import "{out_file}" to the project\n'
         )
     else:
@@ -196,7 +208,7 @@ def add_parser(subparsers):
         '--image-root-url',
         dest='image_root_url',
         help='root URL path where images will be hosted, e.g.: http://example.com/images',
-        default='/data/local-files/?d=',
+        default=default_image_root_url,
     )
     yolo.add_argument(
         '--image-ext',
