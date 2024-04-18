@@ -305,7 +305,7 @@ Where the URL path from `?d=` is relative to the path you set in `LABEL_STUDIO_L
 
 **Note for Cloud Storages**
   * Use `--image-root-url` to make correct prefixes for task URLs, e.g. `--image-root-url s3://my-bucket/yolo/datasets/one`.
-  * Add a new Cloud Storage in the Project Settings with the corresponding bucket and prefix.
+  * [Add a new Cloud Storage](https://labelstud.io/guide/storage) in the project settings with the corresponding bucket and prefix.
 
 **Help command**
 
