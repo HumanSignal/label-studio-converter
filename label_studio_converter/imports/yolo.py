@@ -144,6 +144,7 @@ def convert_yolo_to_ls(
         with open(out_file, 'w') as out:
             json.dump(tasks, out)
 
+        help_root_dir = ''
         if image_root_url == default_image_root_url:
             help_root_dir = (
                 "Set environment variables LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true and "
