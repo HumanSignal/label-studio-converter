@@ -147,9 +147,9 @@ def convert_yolo_to_ls(
         help_root_dir = ''
         if image_root_url == default_image_root_url:
             help_root_dir = (
-                "Set environment variables LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true and "
-                "LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT={input_dir} for Label Studio run,\n"
-                "add Local Storage with Absolute local path = {input_dir}/images"
+                f"Set environment variables LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true and "
+                f"LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT={input_dir} for Label Studio run,\n"
+                f"add Local Storage with Absolute local path = {input_dir}/images"
             )
 
         print(
