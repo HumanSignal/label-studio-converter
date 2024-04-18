@@ -301,7 +301,7 @@ Where the URL path from `?d=` is relative to the path you set in `LABEL_STUDIO_L
 
 **Note for Local Storages** 
   * It's very important to set `LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/yolo/datasets` (**not** to `/yolo/datasets/one`, but **`/yolo/datasets`**) for Label Studio run.
-  * Add a new Local Storage in the Project Settings and set `Absolute local path` to `/yolo/datasets/one/images` (or `c:\yolo\datasets\one\images` for Windows). 
+  * [Add a new Local Storage](https://labelstud.io/guide/storage#Local-storage) in the project settings and set **Absolute local path** to `/yolo/datasets/one/images` (or `c:\yolo\datasets\one\images` for Windows). 
 
 **Note for Cloud Storages**
   * Use `--image-root-url` to make correct prefixes for task urls, e.g. `--image-root-url s3://my-bucket/yolo/datasets/one`.
