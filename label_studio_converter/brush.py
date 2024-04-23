@@ -161,7 +161,7 @@ def save_brush_images_from_annotation(
             + '-by-'
             + email
             + '-'
-            + name,
+            + sanatized_name,
         )
         image = layers[name]
         logger.debug(f'Save image to {filename}')
