@@ -111,7 +111,9 @@ def convert_yolo_to_ls(
                 # convert all bounding boxes to Label Studio Results
                 lines = file.readlines()
                 for line in lines:
-                    label_id, x, y, width, height = line.split()
+                    values = line.split()
+                    label_id, x, y, width, height = values[0:5]
+                    score = float(values[5]) if len(values) >= 6 else None
                     x, y, width, height = (
                         float(x),
                         float(y),
@@ -135,6 +137,8 @@ def convert_yolo_to_ls(
                         "original_width": image_width,
                         "original_height": image_height,
                     }
+                    if score:
+                        item["score"] = score
                     task[out_type][0]['result'].append(item)
 
         tasks.append(task)
