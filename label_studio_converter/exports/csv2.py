@@ -80,6 +80,9 @@ def prepare_annotation(item):
     if 'agreement' in item:
         record['agreement'] = item['agreement']
 
+    if 'history' in item and item['history']:
+        record['history'] = json.dumps(item['history'], ensure_ascii=False)
+
     return record
 
 
@@ -93,5 +96,8 @@ def prepare_annotation_keys(item):
 
     if 'agreement' in item:
         record.add('agreement')
+
+    if 'history' in item and item['history']:
+        record.add('history')
 
     return record

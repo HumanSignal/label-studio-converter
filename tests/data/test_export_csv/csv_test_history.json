@@ -1,0 +1,99 @@
+[
+  {
+    "id": 6141,
+    "annotations": [
+      {
+        "id": 18047,
+        "completed_by": {
+          "id": 14,
+          "email": "sergei@heartex.e2e",
+          "first_name": "",
+          "last_name": ""
+        },
+        "result": [
+          {
+            "id": "d1uGfhDvN6",
+            "type": "choices",
+            "value": {
+              "choices": [
+                "Positive"
+              ]
+            },
+            "origin": "manual",
+            "to_name": "text",
+            "from_name": "sentiment"
+          }
+        ],
+        "reviews": [],
+        "history": [
+          {
+            "id": 18070,
+            "comment": null,
+            "organization_id": 12,
+            "project_id": 24,
+            "annotation_id": 18047,
+            "draft_id": null,
+            "review_id": null,
+            "task_id": 6141,
+            "result": [
+              {
+                "id": "d1uGfhDvN6",
+                "type": "choices",
+                "value": {
+                  "choices": [
+                    "Positive"
+                  ]
+                },
+                "origin": "manual",
+                "to_name": "text",
+                "from_name": "sentiment"
+              }
+            ],
+            "action": "submitted",
+            "created_at": "2024-05-15T12:09:17.000572Z",
+            "created_by": 14,
+            "comment_id": null
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": "2024-05-15T12:09:16.789536Z",
+        "updated_at": "2024-05-15T12:09:16.789563Z",
+        "draft_created_at": null,
+        "lead_time": 1.849,
+        "prediction": {},
+        "result_count": 0,
+        "unique_id": "de253957-8959-4e6f-9022-30d08bbea9f3",
+        "import_id": null,
+        "last_action": "submitted",
+        "task": 6141,
+        "project": 24,
+        "updated_by": 14,
+        "parent_prediction": null,
+        "parent_annotation": null,
+        "last_created_by": 14
+      }
+    ],
+    "file_upload": "de982d35-text_data10.json",
+    "drafts": [],
+    "predictions": [],
+    "agreement": 100,
+    "data": {
+      "text": "Calif. wildfires signal the arrival of a planetary fire age https://t.co/Vvo9noqQfA"
+    },
+    "meta": {},
+    "created_at": "2024-05-15T12:08:36.422297Z",
+    "updated_at": "2024-05-15T12:09:16.934164Z",
+    "inner_id": 1,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 24,
+    "updated_by": 14,
+    "comment_authors": []
+  }
+]
+
