@@ -453,14 +453,21 @@ def convert_annotation_to_yolo_obb(label):
     ):
         return None
     
-    image_width, image_height = label["original_width"], label["original_height"]
-    w, h = label["width"] * image_width / 100, label["height"] * image_height / 100
-    a = math.radians(label.get("rotation", 0))
-    cos_a, sin_a = math.cos(a), math.sin(a)
+    org_width, org_height = label['original_width'], label['original_height']
+    x = label['x'] / 100 * org_width
+    y = label['y'] / 100 * org_height
+    w = label['width'] / 100 * org_width
+    h = label['height'] / 100 * org_height
 
-    x1, y1 = label["x"] * image_width / 100, label["y"] * image_height / 100  # top left corner
-    x2, y2 = x1 + w * cos_a, y1 + w * sin_a  # top right corner
-    x3, y3 = x2 - h * sin_a, y2 + h * cos_a  # bottom right corner
-    x4, y4 = x1 - h * sin_a, y1 + h * cos_a  # bottom left corner
+    rotation = math.radians(label.get("rotation", 0))
+    cos, sin = math.cos(rotation), math.sin(rotation)
 
-    return [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
+    coords = [
+        (x, y),
+        (x + w * cos, y + w * sin),
+        (x + w * cos - h * sin, y + w * sin + h * cos),
+        (x - h * sin, y + h * cos)
+    ]
+
+    # Normalize coordinates
+    return [(coord[0] / org_width,  coord[1] / org_height) for coord in coords]
