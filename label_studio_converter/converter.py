@@ -465,6 +465,7 @@ class Converter(object):
             'created_at': annotation.get('created_at'),
             'updated_at': annotation.get('updated_at'),
             'lead_time': annotation.get('lead_time'),
+            'history': annotation.get('history'),
         }
 
     def _check_format(self, fmt):
