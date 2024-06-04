@@ -33,8 +33,8 @@ def test_base_import_yolo():
 
     #generated labels from config xml
     label_element = ET.parse(out_config_file).getroot()[2]
-    lables_generated = [x.attrib['value'] for x in label_element.getchildren()]
-    assert set(labels) == set(lables_generated), "> generated class labels do not match original labels"
+    labels_generated = [x.attrib['value'] for x in label_element.getchildren()]
+    assert set(labels) == set(labels_generated), "> generated class labels do not match original labels"
 
     #total image files in the input folder
     img_files = glob.glob(os.path.join(input_data_dir,'images','*'))
@@ -72,9 +72,9 @@ def test_base_import_yolo_with_img_dims():
 
     # generated labels from config xml
     label_element = ET.parse(out_config_file).getroot()[2]
-    lables_generated = [x.attrib['value'] for x in label_element.getchildren()]
+    labels_generated = [x.attrib['value'] for x in label_element.getchildren()]
     assert set(labels) == set(
-        lables_generated
+        labels_generated
     ), "> generated class labels do not match original labels"
 
     #total image files in the input folder
