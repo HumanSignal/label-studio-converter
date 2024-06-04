@@ -10,6 +10,7 @@ import shutil
 import argparse
 import re
 import datetime
+import math
 
 from copy import deepcopy
 from operator import itemgetter
@@ -388,3 +389,85 @@ def prettify_result(v):
         else:
             out.append(j)
     return out[0] if tag_type in ('Choices', 'TextArea') and len(out) == 1 else out
+
+
+def convert_annotation_to_yolo(label):
+    """
+    Convert LS annotation to Yolo format.
+
+    Args:
+        label (dict): Dictionary containing annotation information including:
+            - width (float): Width of the object.
+            - height (float): Height of the object.
+            - x (float): X-coordinate of the top-left corner of the object.
+            - y (float): Y-coordinate of the top-left corner of the object.
+
+    Returns:
+        tuple or None: If the conversion is successful, returns a tuple (x, y, w, h) representing
+        the coordinates and dimensions of the object in Yolo format, where (x, y) are the center
+        coordinates of the object, and (w, h) are the width and height of the object respectively.
+    """
+
+    if not ("x" in label and "y" in label and 'width' in label and 'height' in label):
+        return None
+    
+    w = label['width']
+    h = label['height']
+
+    x = (label['x'] + w / 2) / 100
+    y = (label['y'] + h / 2) / 100
+    w = w / 100
+    h = h / 100
+
+    return x, y, w, h
+    
+
+def convert_annotation_to_yolo_obb(label):
+    """
+    Convert LS annotation to Yolo OBB format.
+
+    Args:
+        label (dict): Dictionary containing annotation information including:
+            - original_width (int): Original width of the image.
+            - original_height (int): Original height of the image.
+            - x (float): X-coordinate of the top-left corner of the object in percentage of the original width.
+            - y (float): Y-coordinate of the top-left corner of the object in percentage of the original height.
+            - width (float): Width of the object in percentage of the original width.
+            - height (float): Height of the object in percentage of the original height.
+            - rotation (float, optional): Rotation angle of the object in degrees (default is 0).
+
+    Returns:
+        list of tuple or None: List of tuples containing the coordinates of the object in Yolo OBB format.
+            Each tuple represents a corner of the bounding box in the order:
+            (top-left, top-right, bottom-right, bottom-left).
+    """
+
+    if not (
+        "original_width" in label and
+        "original_height" in label and
+        'x' in label and
+        'y' in label and
+        'width' in label and
+        'height' in label and
+        'rotation' in label
+    ):
+        return None
+    
+    org_width, org_height = label['original_width'], label['original_height']
+    x = label['x'] / 100 * org_width
+    y = label['y'] / 100 * org_height
+    w = label['width'] / 100 * org_width
+    h = label['height'] / 100 * org_height
+
+    rotation = math.radians(label.get("rotation", 0))
+    cos, sin = math.cos(rotation), math.sin(rotation)
+
+    coords = [
+        (x, y),
+        (x + w * cos, y + w * sin),
+        (x + w * cos - h * sin, y + w * sin + h * cos),
+        (x - h * sin, y + h * cos)
+    ]
+
+    # Normalize coordinates
+    return [(coord[0] / org_width,  coord[1] / org_height) for coord in coords]

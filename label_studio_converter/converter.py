@@ -33,6 +33,8 @@ from label_studio_converter.utils import (
     get_annotator,
     get_json_root_type,
     prettify_result,
+    convert_annotation_to_yolo,
+    convert_annotation_to_yolo_obb
 )
 from label_studio_converter import brush
 from label_studio_converter.audio import convert_to_asr_json_manifest
@@ -56,7 +58,8 @@ class Format(Enum):
     BRUSH_TO_PNG = 9
     ASR_MANIFEST = 10
     YOLO = 11
-    CSV_OLD = 12
+    YOLO_OBB = 12
+    CSV_OLD = 13
 
     def __str__(self):
         return self.name
@@ -118,6 +121,13 @@ class Converter(object):
             'title': 'YOLO',
             'description': 'Popular TXT format is created for each image file. Each txt file contains annotations for '
             'the corresponding image file, that is object class, object coordinates, height & width.',
+            'link': 'https://labelstud.io/guide/export.html#YOLO',
+            'tags': ['image segmentation', 'object detection'],
+        },Format.YOLO_OBB: {
+            'title': 'YOLOv8 OBB',
+            'description': 'Popular TXT format is created for each image file. Each txt file contains annotations for '
+            'the corresponding image file. The YOLO OBB format designates bounding boxes by their four corner points '
+            'with coordinates normalized between 0 and 1, so it is possible to export rotated objects.',
             'link': 'https://labelstud.io/guide/export.html#YOLO',
             'tags': ['image segmentation', 'object detection'],
         },
@@ -215,15 +225,16 @@ class Converter(object):
             self.convert_to_coco(
                 input_data, output_data, output_image_dir=image_dir, is_dir=is_dir
             )
-        elif format == Format.YOLO:
+        elif format == Format.YOLO or format == Format.YOLO_OBB:
             image_dir = kwargs.get('image_dir')
             label_dir = kwargs.get('label_dir')
             self.convert_to_yolo(
                 input_data,
                 output_data,
-                output_image_dir=image_dir,
-                output_label_dir=label_dir,
-                is_dir=is_dir,
+                output_image_dir = image_dir,
+                output_label_dir = label_dir,
+                is_dir = is_dir,
+                is_obb = (format == Format.YOLO_OBB)
             )
         elif format == Format.VOC:
             image_dir = kwargs.get('image_dir')
@@ -728,6 +739,7 @@ class Converter(object):
         output_label_dir=None,
         is_dir=True,
         split_labelers=False,
+        is_obb=False
     ):
         """Convert data in a specific format to the YOLO format.
 
@@ -745,8 +757,13 @@ class Converter(object):
             A boolean indicating whether `input_data` is a directory (True) or a JSON file (False).
         split_labelers : bool, optional
             A boolean indicating whether to create a dedicated subfolder for each labeler in the output label directory.
+        obb : bool, optional
+            A boolean indicating whether to convert to Oriented Bounding Box (OBB) format.
         """
-        self._check_format(Format.YOLO)
+        if is_obb:
+            self._check_format(Format.YOLO_OBB)
+        else:
+            self._check_format(Format.YOLO)
         ensure_dir(output_dir)
         notes_file = os.path.join(output_dir, 'notes.json')
         class_file = os.path.join(output_dir, 'classes.txt')
@@ -852,20 +869,30 @@ class Converter(object):
                         or 'rectangle' in label
                         or 'labels' in label
                     ):
-                        xywh = self.rotated_rectangle(label)
-                        if xywh is None:
-                            continue
+                        if is_obb:
 
-                        x, y, w, h = xywh
-                        annotations.append(
-                            [
-                                category_id,
-                                (x + w / 2) / 100,
-                                (y + h / 2) / 100,
-                                w / 100,
-                                h / 100,
-                            ]
-                        )
+                            obb_annotation = convert_annotation_to_yolo_obb(label)
+
+                            if obb_annotation == None:
+                                continue
+
+                            top_left, top_right, bottom_right, bottom_left = obb_annotation
+
+                            x1, y1 = top_left
+                            x2, y2 = top_right
+                            x3, y3 = bottom_right
+                            x4, y4 = bottom_left
+
+                            annotations.append([category_id, x1, y1, x2, y2, x3, y3, x4, y4])
+                        else:
+                            annotation = convert_annotation_to_yolo(label)
+
+                            if annotation == None:
+                                continue
+
+                            x, y, w, h, = annotation
+                            annotations.append([category_id, x, y, w, h])
+
                     elif "polygonlabels" in label or 'polygon' in label:
                         points_abs = [(x / 100, y / 100) for x, y in label["points"]]
                         annotations.append(

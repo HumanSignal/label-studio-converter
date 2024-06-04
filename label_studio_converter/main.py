@@ -151,6 +151,8 @@ def export(args):
         )
     elif args.format == Format.YOLO:
         c.convert_to_yolo(args.input, args.output, is_dir=not args.heartex_format)
+    elif args.format == Format.YOLO_OBB:
+        c.convert_to_yolo(args.input, args.output, is_dir=not args.heartex_format, is_obb=True)
     else:
         raise FormatNotSupportedError()
 
