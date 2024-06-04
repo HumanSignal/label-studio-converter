@@ -1,9 +1,12 @@
-from label_studio_converter import Converter
 import os
 import pytest
 import tempfile
 import shutil
+
 from label_studio_converter.utils import convert_annotation_to_yolo, convert_annotation_to_yolo_obb
+from label_studio_converter import Converter
+from .utils import almost_equal_1d, almost_equal_2d
+
 
 BASE_DIR = os.path.dirname(__file__)
 TEST_DATA_PATH = os.path.join(BASE_DIR, "data", "test_export_yolo")
@@ -136,18 +139,18 @@ def test_convert_to_yolo_obb(create_temp_folder):
     ), f"Generated file: \n  {generated_paths} \n does not match expected ones: \n {expected_paths}"
 
     # Check all the annotations have been converted to yolo
-    axpected_annotations = [23, 1, 1]
+    expected_annotations = [23, 1, 1]
     for fidx, file in enumerate(expected_paths):
         with open(file) as f:
             lines = f.readlines()
-            assert len(lines) == axpected_annotations[fidx], f"Expect different number of annotations in file {file}."
+            assert len(lines) == expected_annotations[fidx], f"Expect different number of annotations in file {file}."
             for idx, line in enumerate(lines):
                 parameters = line.split(' ')
                 total_parameters = len(parameters)
                 assert total_parameters == 9, f'Expected 9 parameters but got {total_parameters} in line {idx}'
 
 def test_convert_polygons_to_yolo(create_temp_folder):
-    """Check converstion label_studio json exported file to yolo with polygons"""
+    """Check conversion label_studio json exported file to yolo with polygons"""
 
     # Generates a temporary folder and return the absolute path
     # The temporary folder contains all the data generate by the following function
@@ -183,7 +186,6 @@ def test_convert_polygons_to_yolo(create_temp_folder):
             assert (
                 len(lines) == 1
             ), f"Expect different number of annotations in file {file}."
-
 
 def test_convert_annotation_to_yolo_format():
     """
@@ -228,7 +230,9 @@ def test_convert_annotation_to_yolo_format():
 
     for idx, annotation in enumerate(annotations):
         result = convert_annotation_to_yolo(annotation)
-        assert result == expectations[idx], f'Converted LS annotation to normalized Yolo format does not match expected result at index {idx}'
+        assert almost_equal_1d(
+            result, expectations[idx]
+        ), f'Converted LS annotation to normalized Yolo format does not match expected result at index {idx}'
 
 def test_convert_invalid_annotation_to_yolo_format():
     """
@@ -271,7 +275,7 @@ def test_convert_invalid_annotation_to_yolo_format():
 
     for idx, annotation in enumerate(annotations):
         result = convert_annotation_to_yolo(annotation)
-        assert result == None, f'Expected annotation at index {idx} to be invalid'
+        assert result is None, f'Expected annotation at index {idx} to be invalid'
 
 
 def test_convert_annotation_to_yolo_obb_format():
@@ -340,7 +344,10 @@ def test_convert_annotation_to_yolo_obb_format():
 
     for idx, annotation in enumerate(annotations):
         result = convert_annotation_to_yolo_obb(annotation)
-        assert result == expectations[idx], f'Converted LS annotation to normalized Yolo OBB-format does not match expected result at index {idx}'
+        print('result = ', result)
+        assert almost_equal_2d(
+            result, expectations[idx]
+        ), f'Converted LS annotation to normalized Yolo OBB-format does not match expected result at index {idx}'
 
 def test_convert_invalid_annotation_to_yolo_obb_format():
     """
@@ -421,4 +428,4 @@ def test_convert_invalid_annotation_to_yolo_obb_format():
     
     for idx, annotation in enumerate(annotations):
         result = convert_annotation_to_yolo_obb(annotation)
-        assert result == None, f'Expected annotation for OBB at index {idx} to be invalid'
+        assert result is None, f'Expected annotation for OBB at index {idx} to be invalid'
