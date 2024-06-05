@@ -68,6 +68,7 @@ def convert_yolo_to_ls(
     logger.info(f'image extensions->, {image_ext}')
 
     # loop through images
+    contains_predictions = False
     for f in os.listdir(images_dir):
         image_file_found_flag = False
         for ext in image_ext:
@@ -113,7 +114,8 @@ def convert_yolo_to_ls(
                 for line in lines:
                     values = line.split()
                     label_id, x, y, width, height = values[0:5]
-                    score = float(values[5]) if len(values) >= 6 else None
+                    contains_predictions = (len(values) >= 6) or contains_predictions
+                    score = float(values[5]) if contains_predictions else None
                     x, y, width, height = (
                         float(x),
                         float(y),
@@ -167,6 +169,12 @@ def convert_yolo_to_ls(
             f'       {help_root_dir}\n'
             f'  4. Import "{out_file}" to the project\n'
         )
+        if contains_predictions and (out_type != 'predictions'):
+            logger.warn(
+            f'  WARNING:\n'
+            f'  Annotations with prediction confidence scores detected in your data would be imported as confirmed annotations.\n'
+            f'  If you intended to import these as predictions, please specify so with the option --out_type=\'predictions\'\n'
+            )
     else:
         logger.error('No labels converted')
 
