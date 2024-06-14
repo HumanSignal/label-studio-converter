@@ -1,3 +1,8 @@
+# Warning
+
+This repository has been archived and merged into the Label Studio SDK:
+https://github.com/HumanSignal/label-studio-sdk/tree/master/src/label_studio_sdk/converter
+
 # Label Studio Converter
 
 [Website](https://labelstud.io/) • [Docs](https://labelstud.io/guide) • [Twitter](https://twitter.com/heartexlabs) • [Join Slack Community <img src="https://app.heartex.ai/docs/images/slack-mini.png" width="18px"/>](https://slack.labelstud.io)
