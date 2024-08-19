@@ -346,6 +346,8 @@ class Converter(object):
             and 'TextArea' in output_tag_types
         ):
             all_formats.remove(Format.ASR_MANIFEST.name)
+        if 'Video' in input_tag_types and 'TimelineLabels' in output_tag_types:
+            all_formats.remove(Format.YOLO_OBB.name)
 
         return all_formats
 
